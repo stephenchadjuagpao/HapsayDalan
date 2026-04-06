@@ -1,7 +1,16 @@
 import axios from "axios";
 
+const browserHostname =
+  typeof window !== "undefined" ? window.location.hostname : "127.0.0.1";
+const browserProtocol =
+  typeof window !== "undefined" && window.location.protocol
+    ? window.location.protocol
+    : "http:";
+
+const defaultBaseURL = `${browserProtocol}//${browserHostname}:8000/api/`;
+
 const API = axios.create({
-  baseURL: "http://127.0.0.1:8000/api/"
+  baseURL: process.env.REACT_APP_API_BASE_URL || defaultBaseURL,
 });
 
 export default API;

@@ -204,84 +204,86 @@ export default function Homepage() {
 
         /* How It Works */
         .sc-how {
-          background: #f3f4f6;
-          padding: 72px 24px;
+          background:
+            linear-gradient(90deg, #e4eef8 0%, #eef5fa 52%, #f5f8fb 100%);
+          padding: 74px 24px 68px;
           text-align: center;
         }
         .sc-section-title {
-          font-size: 32px;
+          font-size: 36px;
           font-weight: 800;
           color: #111827;
-          margin-bottom: 8px;
+          margin-bottom: 14px;
         }
         .sc-section-subtitle {
-          font-size: 15px;
-          color: #6b7280;
+          font-size: 16px;
+          color: #5b6472;
           margin-bottom: 52px;
         }
         .sc-steps {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
-          gap: 40px;
-          max-width: 960px;
+          gap: 72px;
+          max-width: 1120px;
           margin: 0 auto;
         }
         .sc-step {
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 14px;
+          gap: 16px;
         }
         .sc-step-number {
           width: 64px;
           height: 64px;
           border-radius: 50%;
-          background: #1e3a5f;
+          background: #003D7F;
           color: #fff;
-          font-size: 26px;
+          font-size: 20px;
           font-weight: 700;
           display: flex;
           align-items: center;
           justify-content: center;
         }
         .sc-step-title {
-          font-size: 16px;
+          font-size: 22px;
           font-weight: 700;
           color: #111827;
         }
         .sc-step-desc {
-          font-size: 14px;
-          color: #6b7280;
-          line-height: 1.6;
-          max-width: 240px;
+          font-size: 16px;
+          color: #5b6472;
+          line-height: 1.5;
+          max-width: 340px;
         }
 
         /* Benefits */
         .sc-benefits {
-          background: #f3f4f6;
-          padding: 8px 24px 72px;
+          background: #f1f2f3;
+          padding: 36px 24px 72px;
         }
         .sc-benefit-cards {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
-          gap: 24px;
-          max-width: 960px;
+          gap: 32px;
+          max-width: 1220px;
           margin: 0 auto;
         }
         .sc-benefit-card {
           background: #fff;
           border-radius: 12px;
-          padding: 36px 28px;
+          border: 1px solid #d9dee6;
+          padding: 22px 28px 24px;
           text-align: center;
-          box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+          box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
           display: flex;
           flex-direction: column;
           align-items: center;
           gap: 14px;
         }
-        .sc-benefit-icon { font-size: 36px; line-height: 1; }
-        .sc-benefit-title { font-size: 16px; font-weight: 700; color: #111827; }
-        .sc-benefit-desc { font-size: 14px; color: #6b7280; line-height: 1.6; max-width: 220px; }
+        .sc-benefit-icon { font-size: 40px; line-height: 1; }
+        .sc-benefit-title { font-size: 20px; font-weight: 700; color: #111827; }
+        .sc-benefit-desc { font-size: 16px; color: #5b6472; line-height: 1.5; max-width: 320px; }
 
         /* CTA Banner */
         .sc-cta {
@@ -307,9 +309,45 @@ export default function Homepage() {
         }
         .sc-btn-white:hover { background: #e8edf5; transform: translateY(-1px); }
 
+        /* Community Impact */
+        .sc-impact {
+          background: #ffffff;
+          padding: 72px 24px 96px;
+          text-align: center;
+        }
+        .sc-impact-title {
+          font-size: 34px;
+          font-weight: 800;
+          color: #111827;
+          margin-bottom: 44px;
+        }
+        .sc-impact-grid {
+          max-width: 1100px;
+          margin: 0 auto;
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 32px;
+        }
+        .sc-impact-stat {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 8px;
+        }
+        .sc-impact-value {
+          font-size: 42px;
+          font-weight: 800;
+          line-height: 1;
+          color: #0b4f99;
+        }
+        .sc-impact-label {
+          font-size: 15px;
+          color: #4b5563;
+        }
+
         /* Footer */
         .sc-footer {
-          background: #1a3358;
+          background: #003D7F;
           padding: 56px 24px 0;
           color: #b8c8e0;
           font-size: 14px;
@@ -335,10 +373,12 @@ export default function Homepage() {
           padding: 20px 0;
           font-size: 13px;
           color: #8fa3be;
+          text-align: center;
         }
 
         @media (max-width: 900px) {
           .sc-steps, .sc-benefit-cards { grid-template-columns: 1fr; max-width: 400px; }
+          .sc-impact-grid { grid-template-columns: 1fr; gap: 28px; }
           .sc-footer-grid { grid-template-columns: 1fr 1fr; }
         }
         @media (max-width: 560px) {
@@ -361,8 +401,8 @@ export default function Homepage() {
               achieve faster CTMO response.
             </p>
             <div className="sc-hero-actions">
-              <a href="#report" className="sc-btn-primary">Report a Violation</a>
-              <a href="#track" className="sc-btn-secondary">Track My Report</a>
+              <a href="/report" className="sc-btn-primary">Report a Violation</a>
+              <a href="/track" className="sc-btn-secondary">Track My Report</a>
             </div>
           </div>
 
@@ -424,7 +464,25 @@ export default function Homepage() {
           <p className="sc-cta-desc">
             Report violations today and be part of the solution. Your contribution helps make Surigao City's roads safer for everyone.
           </p>
-          <a href="#report" className="sc-btn-white">Get Started Now</a>
+          <a href="/report" className="sc-btn-white">Get Started Now</a>
+        </section>
+
+        <section className="sc-impact" aria-labelledby="community-impact-title">
+          <h2 className="sc-impact-title" id="community-impact-title">Community Impact</h2>
+          <div className="sc-impact-grid">
+            <div className="sc-impact-stat">
+              <div className="sc-impact-value">2,450+</div>
+              <div className="sc-impact-label">Reports Submitted</div>
+            </div>
+            <div className="sc-impact-stat">
+              <div className="sc-impact-value">1,850+</div>
+              <div className="sc-impact-label">Cases Resolved</div>
+            </div>
+            <div className="sc-impact-stat">
+              <div className="sc-impact-value">24hrs</div>
+              <div className="sc-impact-label">Average Response Time</div>
+            </div>
+          </div>
         </section>
 
         {/* Footer */}
@@ -438,8 +496,8 @@ export default function Homepage() {
               <div className="sc-footer-col-title">Quick Links</div>
               <ul className="sc-footer-links">
                 <li><a href="#home">Home</a></li>
-                <li><a href="#report">Report a Violation</a></li>
-                <li><a href="#track">Track My Report</a></li>
+                <li><a href="/report">Report a Violation</a></li>
+                <li><a href="/track">Track My Report</a></li>
                 <li><a href="#how">How It Works</a></li>
               </ul>
             </div>
