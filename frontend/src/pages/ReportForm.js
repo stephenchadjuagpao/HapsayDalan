@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Navbar from "../components/reusablecode/Navbar";
 import API from "../services/api";
 
@@ -33,7 +33,6 @@ const WHAT_TO_INCLUDE = [
   { icon: "check", text: "License plate number (if visible)" },
   { icon: "check", text: "Date, time, and exact location" },
   { icon: "check", text: "Detailed description of the violation" },
-  { icon: "voice", text: "New: Use voice recording to submit your description hands-free" },
   { icon: "ai", text: "New: AI image analysis automatically detects violation type from your photos" },
 ];
 
@@ -44,7 +43,7 @@ const WHAT_HAPPENS_NEXT = [
   "You receive updates via your reference ID",
 ];
 
-const formatReferenceId = (value) => `SUP-${String(value).padStart(3, "0")}`;
+const formatReferenceId = (value) => `SUP-${String(value).padStart(8, "0")}`;
 const DEFAULT_MAP_CENTER = { lat: 9.7843, lng: 125.4888 };
 const SURIGAO_CITY_BOUNDS = {
   north: 9.818,
@@ -94,7 +93,6 @@ const loadLeafletAssets = () => {
 };
 
 function ReportForm() {
-  const recognitionRef = useRef(null);
   const streamRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const recordedChunksRef = useRef([]);
@@ -102,14 +100,11 @@ function ReportForm() {
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const mapMarkerRef = useRef(null);
+  const hasAttemptedAutoLocateRef = useRef(false);
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [submittedReferenceId, setSubmittedReferenceId] = useState("");
-  const [isRecording, setIsRecording] = useState(false);
-  const [voiceTranscript, setVoiceTranscript] = useState("");
-  const [voiceDraft, setVoiceDraft] = useState("");
-  const [voiceError, setVoiceError] = useState("");
   const [cameraError, setCameraError] = useState("");
   const [isCameraModalOpen, setIsCameraModalOpen] = useState(false);
   const [cameraDevices, setCameraDevices] = useState([]);
@@ -128,6 +123,8 @@ function ReportForm() {
     time: "",
     image: null,
     location: "",
+    latitude: "",
+    longitude: "",
     reporter_name: "",
     reporter_email: "",
     reporter_phone: "",
@@ -145,13 +142,6 @@ function ReportForm() {
   };
 
   useEffect(() => () => {
-    if (recognitionRef.current) {
-      recognitionRef.current.onresult = null;
-      recognitionRef.current.onerror = null;
-      recognitionRef.current.onend = null;
-      recognitionRef.current.stop();
-    }
-
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
       mediaRecorderRef.current.stop();
     }
@@ -164,6 +154,87 @@ function ReportForm() {
       videoPreviewRef.current.srcObject = streamRef.current;
     }
   }, [isCameraModalOpen, selectedCameraId]);
+
+  const applyMapLocationSelection = useCallback(async (nextPosition) => {
+    const isInsideSurigaoCity =
+      nextPosition.lat >= SURIGAO_CITY_BOUNDS.south &&
+      nextPosition.lat <= SURIGAO_CITY_BOUNDS.north &&
+      nextPosition.lng >= SURIGAO_CITY_BOUNDS.west &&
+      nextPosition.lng <= SURIGAO_CITY_BOUNDS.east;
+
+    if (!isInsideSurigaoCity) {
+      setMapError("Please select a location within Surigao City only.");
+      return false;
+    }
+
+    setMapError("");
+
+    if (mapMarkerRef.current) {
+      mapMarkerRef.current.setLatLng([nextPosition.lat, nextPosition.lng]);
+    }
+
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.panTo([nextPosition.lat, nextPosition.lng]);
+    }
+
+    const fallbackLocation = `${nextPosition.lat.toFixed(6)}, ${nextPosition.lng.toFixed(6)}`;
+
+    try {
+      const response = await API.get("reverse-geocode/", {
+        params: {
+          lat: nextPosition.lat,
+          lng: nextPosition.lng,
+        },
+      });
+      const resolvedAddress = response?.data?.location || fallbackLocation;
+      setFormData((current) => ({
+        ...current,
+        location: resolvedAddress,
+        latitude: nextPosition.lat.toFixed(6),
+        longitude: nextPosition.lng.toFixed(6),
+      }));
+    } catch (error) {
+      setFormData((current) => ({
+        ...current,
+        location: fallbackLocation,
+        latitude: nextPosition.lat.toFixed(6),
+        longitude: nextPosition.lng.toFixed(6),
+      }));
+    }
+
+    return true;
+  }, []);
+
+  const autoLocateCurrentPosition = useCallback(() =>
+    new Promise((resolve) => {
+      if (!navigator.geolocation) {
+        resolve(false);
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const didApply = await applyMapLocationSelection({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+
+          if (!didApply) {
+            setMapError("Your detected location is outside Surigao City. Please choose the location on the map.");
+          }
+
+          resolve(didApply);
+        },
+        () => {
+          resolve(false);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0,
+        }
+      );
+    }), [applyMapLocationSelection]);
 
   useEffect(() => {
     if (step !== 3) {
@@ -197,6 +268,13 @@ function ReportForm() {
             zoom: 15,
             minZoom: 14,
             maxZoom: 18,
+            scrollWheelZoom: true,
+            dragging: true,
+            doubleClickZoom: true,
+            boxZoom: true,
+            keyboard: true,
+            touchZoom: true,
+            zoomControl: true,
             maxBounds: bounds,
             maxBoundsViscosity: 1.0,
           });
@@ -213,46 +291,26 @@ function ReportForm() {
           mapMarkerRef.current.addTo(mapInstanceRef.current);
 
           mapInstanceRef.current.on("click", async (event) => {
-            const clickedPosition = {
+            await applyMapLocationSelection({
               lat: event.latlng.lat,
               lng: event.latlng.lng,
-            };
-
-            const isInsideSurigaoCity =
-              clickedPosition.lat >= SURIGAO_CITY_BOUNDS.south &&
-              clickedPosition.lat <= SURIGAO_CITY_BOUNDS.north &&
-              clickedPosition.lng >= SURIGAO_CITY_BOUNDS.west &&
-              clickedPosition.lng <= SURIGAO_CITY_BOUNDS.east;
-
-            if (!isInsideSurigaoCity) {
-              setMapError("Please select a location within Surigao City only.");
-              return;
-            }
-
-            setMapError("");
-
-            mapMarkerRef.current.setLatLng([clickedPosition.lat, clickedPosition.lng]);
-            mapInstanceRef.current.panTo([clickedPosition.lat, clickedPosition.lng]);
-
-            const fallbackLocation = `${clickedPosition.lat.toFixed(6)}, ${clickedPosition.lng.toFixed(6)}`;
-
-            try {
-              const response = await fetch(
-                `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${clickedPosition.lat}&lon=${clickedPosition.lng}`
-              );
-              const data = await response.json();
-              const resolvedAddress = data?.display_name || fallbackLocation;
-              setFormData((current) => ({
-                ...current,
-                location: resolvedAddress,
-              }));
-            } catch (error) {
-              setFormData((current) => ({
-                ...current,
-                location: fallbackLocation,
-              }));
-            }
+            });
           });
+        }
+
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.scrollWheelZoom.enable();
+          mapInstanceRef.current.dragging.enable();
+          mapInstanceRef.current.doubleClickZoom.enable();
+          mapInstanceRef.current.boxZoom.enable();
+          mapInstanceRef.current.keyboard.enable();
+          mapInstanceRef.current.touchZoom.enable();
+          mapInstanceRef.current.invalidateSize();
+        }
+
+        if (!hasAttemptedAutoLocateRef.current && !formData.location.trim()) {
+          hasAttemptedAutoLocateRef.current = true;
+          await autoLocateCurrentPosition();
         }
       } catch (error) {
         if (!isCancelled) {
@@ -270,7 +328,7 @@ function ReportForm() {
     return () => {
       isCancelled = true;
     };
-  }, [step]);
+  }, [step, formData.location, applyMapLocationSelection, autoLocateCurrentPosition]);
 
   useEffect(() => () => {
     if (uploadedPreviewUrl) {
@@ -301,20 +359,6 @@ function ReportForm() {
       ...current,
       image: file,
     }));
-  };
-
-  const handleUseTranscribedText = () => {
-    if (!voiceTranscript.trim()) {
-      return;
-    }
-
-    setFormData((current) => ({
-      ...current,
-      description: voiceTranscript.trim(),
-    }));
-    setVoiceDraft("");
-    setVoiceTranscript("");
-    setVoiceError("");
   };
 
   const openCameraModal = async () => {
@@ -478,74 +522,6 @@ function ReportForm() {
     }
   };
 
-  const handleDiscardTranscript = () => {
-    setVoiceDraft("");
-    setVoiceTranscript("");
-    setVoiceError("");
-  };
-
-  const handleStartVoiceRecording = () => {
-    const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
-
-    if (!SpeechRecognition) {
-      setVoiceError("Voice transcription is not supported in this browser.");
-      return;
-    }
-
-    const recognition = new SpeechRecognition();
-    let latestTranscript = "";
-    recognition.lang = "en-US";
-    recognition.interimResults = true;
-    recognition.continuous = false;
-
-    recognition.onresult = (event) => {
-      let interimTranscript = "";
-      let finalTranscript = "";
-
-      for (let index = event.resultIndex; index < event.results.length; index += 1) {
-        const transcriptPart = event.results[index][0]?.transcript ?? "";
-
-        if (event.results[index].isFinal) {
-          finalTranscript += transcriptPart;
-        } else {
-          interimTranscript += transcriptPart;
-        }
-      }
-
-      latestTranscript = (finalTranscript || interimTranscript).trim();
-      setVoiceDraft(latestTranscript);
-      if (finalTranscript.trim()) {
-        setVoiceTranscript(finalTranscript.trim());
-      }
-    };
-
-    recognition.onerror = () => {
-      setVoiceError("We could not capture your voice. Please try again.");
-      setIsRecording(false);
-    };
-
-    recognition.onend = () => {
-      setIsRecording(false);
-      if (latestTranscript) {
-        setVoiceTranscript(latestTranscript);
-      }
-    };
-
-    recognitionRef.current = recognition;
-    setVoiceDraft("");
-    setVoiceTranscript("");
-    setVoiceError("");
-    setIsRecording(true);
-    recognition.start();
-  };
-
-  const handleStopVoiceRecording = () => {
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-    }
-  };
-
   const validateStep = () => {
     if (step === 1) {
       return Boolean(
@@ -605,18 +581,49 @@ function ReportForm() {
     payload.append("description", descriptionParts.join("\n"));
     payload.append("location", formData.location);
 
+    if (formData.latitude) {
+      payload.append("latitude", formData.latitude);
+    }
+
+    if (formData.longitude) {
+      payload.append("longitude", formData.longitude);
+    }
+
     if (formData.image) {
       payload.append("image", formData.image);
     }
 
     try {
-      const response = await API.post("reports/", payload);
+      const csrfResponse = await API.get("csrf/");
+      const csrfToken = csrfResponse?.data?.csrfToken;
+
+      const response = await API.post("reports/", payload, {
+        headers: csrfToken
+          ? {
+              "X-CSRFToken": csrfToken,
+            }
+          : undefined,
+      });
       const referenceId =
         response?.data?.reference_id ||
         response?.data?.referenceId ||
         (response?.data?.id ? formatReferenceId(response.data.id) : "");
 
-      setSubmittedReferenceId(String(referenceId || formatReferenceId(1)));
+      const finalReferenceId = String(referenceId || formatReferenceId(1));
+      setSubmittedReferenceId(finalReferenceId);
+
+      try {
+        const saved = JSON.parse(localStorage.getItem("hapsaydalan_my_reports") || "[]");
+        const newReport = {
+          referenceId: finalReferenceId,
+          violation_type: formData.violation_type,
+          location: formData.location,
+          date_reported: new Date().toISOString()
+        };
+        localStorage.setItem("hapsaydalan_my_reports", JSON.stringify([newReport, ...saved]));
+      } catch (err) {
+        console.error("Failed to save report to local storage", err);
+      }
     } catch (error) {
       const apiError = error?.response?.data;
 
@@ -658,10 +665,6 @@ function ReportForm() {
     submitError ? <div className="report-inline-error">{submitError}</div> : null;
 
   const renderIncludeIcon = (icon) => {
-    if (icon === "voice") {
-      return <span className="report-list-icon report-list-icon-dark">🎤</span>;
-    }
-
     if (icon === "ai") {
       return <span className="report-list-icon report-list-icon-dark">🤖</span>;
     }
@@ -683,6 +686,7 @@ function ReportForm() {
         value={formData.violation_type}
         onChange={handleChange}
       >
+        <option value="" disabled hidden>Select violation type</option>
         {VIOLATION_OPTIONS.map((option) => (
           <option key={option} value={option}>
             {option}
@@ -697,64 +701,10 @@ function ReportForm() {
         id="description"
         name="description"
         className="report-input report-textarea"
-        placeholder="Describe what you witnessed in detail or use voice recording below"
+        placeholder="Describe what you witnessed in detail"
         value={formData.description}
         onChange={handleChange}
       />
-
-      <div className="report-voice-box">
-        <div className="report-voice-header">
-          <span className="report-voice-title">Voice Recording</span>
-          <span className="report-voice-note">Optional: Record your report</span>
-        </div>
-        {isRecording ? (
-          <div className="report-voice-recording-row">
-            <div className="report-voice-status">
-              <span className="report-voice-dot" />
-              <span>Recording...</span>
-            </div>
-            <button
-              type="button"
-              className="report-button report-button-stop"
-              onClick={handleStopVoiceRecording}
-            >
-              Stop
-            </button>
-          </div>
-        ) : voiceTranscript || voiceDraft ? (
-          <>
-            <div className="report-transcript-box">
-              <div className="report-transcript-label">Transcribed text:</div>
-              <div className="report-transcript-text">{voiceTranscript || voiceDraft}</div>
-            </div>
-            <div className="report-voice-actions">
-              <button
-                type="button"
-                className="report-button report-button-primary report-voice-action"
-                onClick={handleUseTranscribedText}
-              >
-                Use This Text
-              </button>
-              <button
-                type="button"
-                className="report-button report-button-secondary report-voice-action"
-                onClick={handleDiscardTranscript}
-              >
-                Discard
-              </button>
-            </div>
-          </>
-        ) : (
-          <button
-            type="button"
-            className="report-voice-button"
-            onClick={handleStartVoiceRecording}
-          >
-            Start Voice Recording
-          </button>
-        )}
-        {voiceError ? <div className="report-voice-error">{voiceError}</div> : null}
-      </div>
 
       <label className="report-label" htmlFor="plate_number">
         License Plate Number (Optional)
@@ -903,6 +853,11 @@ function ReportForm() {
         value={formData.location}
         onChange={handleChange}
       />
+      {formData.latitude && formData.longitude ? (
+        <div className="report-contact-note">
+          Coordinates saved: {formData.latitude}, {formData.longitude}
+        </div>
+      ) : null}
 
       <div className="report-contact-heading">
         Contact Information (Optional - helps us follow up)
@@ -1084,7 +1039,10 @@ function ReportForm() {
         .report-page {
           min-height: 100vh;
           background:
-            linear-gradient(90deg, #e4eef8 0%, #eaf3f8 50%, #f1f6fa 100%);
+            radial-gradient(circle at 10% 18%, rgba(90, 127, 255, 0.34) 0, rgba(90, 127, 255, 0.34) 14%, transparent 36%),
+            radial-gradient(circle at 84% 14%, rgba(191, 174, 255, 0.28) 0, transparent 26%),
+            radial-gradient(circle at 16% 90%, rgba(200, 212, 255, 0.5) 0, transparent 30%),
+            linear-gradient(135deg, #dfe7ff 0%, #f7f8ff 44%, #e7e9ff 100%);
           font-family: 'Inter', sans-serif;
           color: #111827;
         }
@@ -1093,7 +1051,8 @@ function ReportForm() {
           text-align: center;
           padding: 70px 24px 92px;
           background:
-            linear-gradient(90deg, #e6f0f9 0%, #ffffff 52%, #f2f6f6 100%);
+            linear-gradient(90deg, rgba(105, 148, 255, 0.16) 0%, rgba(255, 255, 255, 0.74) 48%, rgba(200, 188, 255, 0.2) 100%);
+          backdrop-filter: blur(8px);
         }
 
         .report-hero-title {
@@ -1156,10 +1115,10 @@ function ReportForm() {
         .report-card {
           max-width: 760px;
           margin: 0 auto;
-          background: #ffffff;
-          border: 1px solid #e4e4e4;
+          background: rgba(255, 255, 255, 0.96);
+          border: 1px solid rgba(221, 229, 243, 0.95);
           border-radius: 16px;
-          box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+          box-shadow: 0 18px 38px rgba(90, 108, 166, 0.12);
           padding: 30px;
         }
 
@@ -1208,107 +1167,10 @@ function ReportForm() {
           gap: 14px;
         }
 
-        .report-voice-box {
-          border: 1px solid #f0d98b;
-          background: #fffdf4;
-          border-radius: 12px;
-          padding: 14px;
-          margin-bottom: 16px;
-        }
-
-        .report-voice-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 12px;
-          margin-bottom: 12px;
-          font-size: 14px;
-        }
-
-        .report-voice-title {
-          font-weight: 600;
-          color: #0f172a;
-        }
-
-        .report-voice-note {
-          color: #6b7280;
-        }
-
-        .report-voice-button {
-          width: 100%;
-          border: 1px solid #d9dee6;
-          background: #ffffff;
-          border-radius: 10px;
-          padding: 12px 14px;
-          font-size: 14px;
-          font-weight: 600;
-          cursor: pointer;
-        }
-
-        .report-voice-recording-row {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 16px;
-        }
-
-        .report-voice-status {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          font-size: 14px;
-          color: #111827;
-        }
-
-        .report-voice-dot {
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          background: #ff6b6b;
-          flex-shrink: 0;
-        }
-
         .report-button-stop {
           background: #ff5a52;
           color: #ffffff;
           padding-inline: 18px;
-        }
-
-        .report-transcript-box {
-          background: #ffffff;
-          border: 1px solid #d9dee6;
-          border-radius: 10px;
-          padding: 14px 16px;
-        }
-
-        .report-transcript-label {
-          font-size: 14px;
-          color: #4b5563;
-          margin-bottom: 8px;
-        }
-
-        .report-transcript-text {
-          font-size: 14px;
-          line-height: 1.55;
-          color: #111827;
-        }
-
-        .report-voice-actions {
-          display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 8px;
-          margin-top: 14px;
-        }
-
-        .report-voice-action {
-          width: 100%;
-          justify-content: center;
-        }
-
-        .report-voice-error {
-          margin-top: 10px;
-          font-size: 13px;
-          color: #b91c1c;
         }
 
         .report-upload-box {
@@ -1564,6 +1426,8 @@ function ReportForm() {
           width: 100%;
           height: 300px;
           display: block;
+          pointer-events: auto;
+          touch-action: none;
         }
 
         .report-live-map .leaflet-control-container .leaflet-top,
@@ -1700,7 +1564,8 @@ function ReportForm() {
 
         .report-info-strip {
           margin-top: 62px;
-          background: #f1f2f3;
+          background: rgba(255, 255, 255, 0.62);
+          backdrop-filter: blur(8px);
           padding: 58px 24px;
         }
 
@@ -1940,19 +1805,9 @@ function ReportForm() {
             grid-template-columns: 1fr 1fr;
           }
 
-          .report-voice-header,
           .report-actions {
             flex-direction: column;
             align-items: stretch;
-          }
-
-          .report-voice-recording-row {
-            flex-direction: column;
-            align-items: stretch;
-          }
-
-          .report-voice-actions {
-            grid-template-columns: 1fr;
           }
 
           .report-upload-actions {
@@ -2059,7 +1914,7 @@ function ReportForm() {
                 <li><a href="/">Home</a></li>
                 <li><a href="/report">Report a Violation</a></li>
                 <li><a href="/#track">Track My Report</a></li>
-                <li><a href="/#how">How It Works</a></li>
+                <li><a href="/how-it-works">How It Works</a></li>
               </ul>
             </div>
             <div>

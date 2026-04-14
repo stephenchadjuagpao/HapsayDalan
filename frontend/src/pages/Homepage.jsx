@@ -84,7 +84,11 @@ export default function Homepage() {
 
         .sc-homepage {
           font-family: 'Inter', sans-serif;
-          background: linear-gradient(160deg, #dce9f5 0%, #eaf3fb 40%, #f5f9ff 100%);
+          background:
+            radial-gradient(circle at 10% 18%, rgba(90, 127, 255, 0.34) 0, rgba(90, 127, 255, 0.34) 14%, transparent 36%),
+            radial-gradient(circle at 84% 14%, rgba(191, 174, 255, 0.28) 0, transparent 26%),
+            radial-gradient(circle at 16% 90%, rgba(200, 212, 255, 0.5) 0, transparent 30%),
+            linear-gradient(135deg, #dfe7ff 0%, #f7f8ff 44%, #e7e9ff 100%);
           min-height: 100vh;
         }
 
@@ -204,8 +208,8 @@ export default function Homepage() {
 
         /* How It Works */
         .sc-how {
-          background:
-            linear-gradient(90deg, #e4eef8 0%, #eef5fa 52%, #f5f8fb 100%);
+          background: rgba(255, 255, 255, 0.58);
+          backdrop-filter: blur(8px);
           padding: 74px 24px 68px;
           text-align: center;
         }
@@ -259,7 +263,7 @@ export default function Homepage() {
 
         /* Benefits */
         .sc-benefits {
-          background: #f1f2f3;
+          background: rgba(255, 255, 255, 0.6);
           padding: 36px 24px 72px;
         }
         .sc-benefit-cards {
@@ -311,7 +315,7 @@ export default function Homepage() {
 
         /* Community Impact */
         .sc-impact {
-          background: #ffffff;
+          background: rgba(255, 255, 255, 0.68);
           padding: 72px 24px 96px;
           text-align: center;
         }
@@ -498,7 +502,7 @@ export default function Homepage() {
                 <li><a href="#home">Home</a></li>
                 <li><a href="/report">Report a Violation</a></li>
                 <li><a href="/track">Track My Report</a></li>
-                <li><a href="#how">How It Works</a></li>
+                <li><a href="/how-it-works">How It Works</a></li>
               </ul>
             </div>
             <div>

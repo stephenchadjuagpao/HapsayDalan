@@ -6,11 +6,11 @@ const NAV_LINKS = [
   { label: "Home", href: "/", page: "home" },
   { label: "Report a Violation", href: "/report", page: "report" },
   { label: "Track My Report", href: "/track", page: "track" },
-  { label: "Hotspot Map", href: "/#map", page: "map" },
-  { label: "How It Works", href: "/#how", page: "how" },
+  { label: "Hotspot Map", href: "/hotspot-map", page: "map" },
+  { label: "How It Works", href: "/how-it-works", page: "how" },
   { label: "FAQs", href: "/#faqs", page: "faqs" },
   { label: "Contact/Help", href: "/#contact", page: "contact" },
-  { label: "Admin/CTMO", href: "/#admin", page: "admin" },
+  { label: "Admin/CTMO", href: "/admin-ctmo", page: "admin" },
 ];
 
 export default function Navbar({ currentPage = "home" }) {

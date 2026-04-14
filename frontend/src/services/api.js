@@ -11,6 +11,9 @@ const defaultBaseURL = `${browserProtocol}//${browserHostname}:8000/api/`;
 
 const API = axios.create({
   baseURL: process.env.REACT_APP_API_BASE_URL || defaultBaseURL,
+  withCredentials: true,
+  xsrfCookieName: "csrftoken",
+  xsrfHeaderName: "X-CSRFTOKEN",
 });
 
 export default API;

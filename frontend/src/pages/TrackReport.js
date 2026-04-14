@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Navbar from "../components/reusablecode/Navbar";
 import API from "../services/api";
 
@@ -6,7 +6,7 @@ const FAQ_ITEMS = [
   {
     question: "Where can I find my reference ID?",
     answer:
-      "Your reference ID was provided immediately after you submitted your report. You can also check your email if you provided contact information. The ID starts with 'SUP-' followed by numbers like SUP-001.",
+      "Your reference ID was provided immediately after you submitted your report. You can also check your email if you provided contact information. The ID starts with 'SUP-' followed by 8 random numbers like SUP-48291357.",
   },
   {
     question: "How often does the status update?",
@@ -63,7 +63,7 @@ const getStatusIndex = (status) => {
   return index >= 0 ? index : 0;
 };
 
-const formatReferenceId = (reportId) => `SUP-${String(reportId).padStart(3, "0")}`;
+const formatReferenceId = (reportId) => `SUP-${String(reportId).padStart(8, "0")}`;
 
 const formatDate = (value) => {
   if (!value) return "Feb 20, 2026";
@@ -92,35 +92,70 @@ export default function TrackReport() {
   const [isLoading, setIsLoading] = useState(false);
   const [reportResult, setReportResult] = useState(null);
   const [openFaq, setOpenFaq] = useState(null);
+  const [myReports, setMyReports] = useState([]);
+  const [myReportsData, setMyReportsData] = useState({});
 
-  const lookupReport = async (event) => {
-    event.preventDefault();
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("hapsaydalan_my_reports") || "[]");
+      setMyReports(saved);
+
+      // Fetch live status for all saved reports
+      saved.forEach(async (report) => {
+        try {
+          const response = await API.get(`reports/by-reference/${encodeURIComponent(report.referenceId)}/`);
+          const data = response.data;
+          setMyReportsData(prev => ({
+            ...prev,
+            [report.referenceId]: {
+              ...data,
+              referenceId: data.reference_id || formatReferenceId(data.id),
+              displayStatus: mapBackendStatus(data.status),
+            }
+          }));
+        } catch (e) {
+          console.error("Failed to fetch status for", report.referenceId);
+        }
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  }, []);
+
+  const lookupReport = async (eventOrId) => {
+    let searchId = referenceId;
+    if (typeof eventOrId === "string") {
+      searchId = eventOrId;
+      setReferenceId(searchId);
+    } else if (eventOrId && eventOrId.preventDefault) {
+      eventOrId.preventDefault();
+    }
+
     setLookupError("");
     setReportResult(null);
 
-    const trimmedValue = referenceId.trim();
+    const trimmedValue = searchId.trim();
     if (!trimmedValue) {
       setLookupError("Please enter your reference ID.");
       return;
     }
 
-    const matchedReference = trimmedValue.match(/^SUP-(\d{3})$/i);
+    const matchedReference = trimmedValue.match(/^SUP-\d+$/i);
     if (!matchedReference) {
-      setLookupError("Invalid reference ID. Please use a format like SUP-001 or SUP-002.");
+      setLookupError("Invalid reference ID. Please use a format like SUP-48291357.");
       return;
     }
-
-    const numericId = Number(matchedReference[1]);
+    const normalizedReferenceId = trimmedValue.toUpperCase();
 
     setIsLoading(true);
 
     try {
-      const response = await API.get(`reports/${numericId}/`);
+      const response = await API.get(`reports/by-reference/${encodeURIComponent(normalizedReferenceId)}/`);
       const report = response.data;
 
       setReportResult({
         ...report,
-        referenceId: report.reference_id || formatReferenceId(report.id ?? numericId),
+        referenceId: report.reference_id || formatReferenceId(report.id),
         displayStatus: mapBackendStatus(report.status),
       });
     } catch (error) {
@@ -136,23 +171,58 @@ export default function TrackReport() {
     }
   };
 
-  const renderStatusCard = () => {
-    if (!reportResult) {
-      return null;
-    }
-
-    const activeIndex = getStatusIndex(reportResult.status);
-    const assignedOfficer = reportResult.assigned_officer || "Officer Santos";
-    const sinceDate = formatDate(reportResult.date_reported || reportResult.dateReported);
+  const renderTimelineForReport = (reportItem) => {
+    const activeIndex = getStatusIndex(reportItem.status);
+    const assignedOfficer = reportItem.assigned_officer || "Officer Santos";
+    const sinceDate = formatDate(reportItem.date_reported || reportItem.dateReported);
     const timelineItems = STATUS_STEPS.slice(0, activeIndex + 1).map((step, index) => ({
       step,
-      date: formatIsoDate(reportResult.date_reported || reportResult.dateReported, index),
+      date: formatIsoDate(reportItem.date_reported || reportItem.dateReported, index),
       description:
         step === "Assigned" || step === "In Progress"
           ? `${STATUS_DESCRIPTIONS[step]}`
           : STATUS_DESCRIPTIONS[step],
     }));
 
+    return (
+      <div className="track-timeline">
+        {timelineItems.map((item, index) => (
+          <div key={item.step} className="track-timeline-item">
+            <div className="track-timeline-rail">
+              <span className={`track-timeline-node track-status-badge-${STATUS_COLORS[item.step]}`} />
+              {index < timelineItems.length - 1 ? <span className="track-timeline-line" /> : null}
+            </div>
+            <div className="track-timeline-content">
+              <div className="track-timeline-description">
+                {item.step === "Assigned"
+                  ? `Case assigned to ${assignedOfficer} for action.`
+                  : item.step === "In Progress"
+                    ? `Investigation in progress. Follow-up actions being taken.`
+                    : STATUS_DESCRIPTIONS[item.step]}
+              </div>
+              <div className="track-timeline-meta">
+                <span className="track-timeline-date">{item.date}</span>
+                <span className={`track-status-pill track-status-pill-${STATUS_COLORS[item.step]}`}>
+                  {item.step}
+                </span>
+                {item.step === "Assigned" || item.step === "In Progress" ? (
+                  <span className="track-timeline-officer">{assignedOfficer}</span>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const renderStatusCard = () => {
+    if (!reportResult) {
+      return null;
+    }
+
+    const assignedOfficer = reportResult.assigned_officer || "Officer Santos";
+    const sinceDate = formatDate(reportResult.date_reported || reportResult.dateReported);
     return (
       <>
         <section className="track-status-card">
@@ -173,34 +243,7 @@ export default function TrackReport() {
           </div>
 
           <div className="track-timeline-title">Timeline</div>
-          <div className="track-timeline">
-            {timelineItems.map((item, index) => (
-              <div key={item.step} className="track-timeline-item">
-                <div className="track-timeline-rail">
-                  <span className={`track-timeline-node track-status-badge-${STATUS_COLORS[item.step]}`} />
-                  {index < timelineItems.length - 1 ? <span className="track-timeline-line" /> : null}
-                </div>
-                <div className="track-timeline-content">
-                  <div className="track-timeline-description">
-                    {item.step === "Assigned"
-                      ? `Case assigned to ${assignedOfficer} for action.`
-                      : item.step === "In Progress"
-                        ? `Investigation in progress. Follow-up actions being taken.`
-                        : STATUS_DESCRIPTIONS[item.step]}
-                  </div>
-                  <div className="track-timeline-meta">
-                    <span className="track-timeline-date">{item.date}</span>
-                    <span className={`track-status-pill track-status-pill-${STATUS_COLORS[item.step]}`}>
-                      {item.step}
-                    </span>
-                    {item.step === "Assigned" || item.step === "In Progress" ? (
-                      <span className="track-timeline-officer">{assignedOfficer}</span>
-                    ) : null}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+          {renderTimelineForReport(reportResult)}
         </section>
 
         <section className="track-details-card">
@@ -235,7 +278,11 @@ export default function TrackReport() {
 
         .track-page {
           min-height: 100vh;
-          background: linear-gradient(90deg, #e4eef8 0%, #eaf3f8 50%, #f1f6fa 100%);
+          background:
+            radial-gradient(circle at 10% 18%, rgba(90, 127, 255, 0.34) 0, rgba(90, 127, 255, 0.34) 14%, transparent 36%),
+            radial-gradient(circle at 84% 14%, rgba(191, 174, 255, 0.28) 0, transparent 26%),
+            radial-gradient(circle at 16% 90%, rgba(200, 212, 255, 0.5) 0, transparent 30%),
+            linear-gradient(135deg, #dfe7ff 0%, #f7f8ff 44%, #e7e9ff 100%);
           font-family: 'Inter', sans-serif;
           color: #111827;
         }
@@ -243,7 +290,8 @@ export default function TrackReport() {
         .track-hero {
           text-align: center;
           padding: 72px 24px 98px;
-          background: linear-gradient(90deg, #e6f0f9 0%, #ffffff 52%, #f2f6f6 100%);
+          background: linear-gradient(90deg, rgba(105, 148, 255, 0.16) 0%, rgba(255, 255, 255, 0.74) 48%, rgba(200, 188, 255, 0.2) 100%);
+          backdrop-filter: blur(8px);
         }
 
         .track-hero-title {
@@ -273,10 +321,10 @@ export default function TrackReport() {
         .track-details-card {
           max-width: 760px;
           margin: 0 auto 34px;
-          background: #ffffff;
-          border: 1px solid #e4e4e4;
+          background: rgba(255, 255, 255, 0.96);
+          border: 1px solid rgba(221, 229, 243, 0.95);
           border-radius: 16px;
-          box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+          box-shadow: 0 18px 38px rgba(90, 108, 166, 0.12);
           padding: 30px;
         }
 
@@ -497,6 +545,38 @@ export default function TrackReport() {
           color: #0b0b0b;
         }
 
+        .track-my-reports-section {
+          max-width: 760px;
+          margin: 0 auto 54px;
+        }
+
+        .track-my-reports-title {
+          font-size: 20px;
+          font-weight: 800;
+          color: #0f172a;
+          margin-bottom: 24px;
+          text-align: center;
+        }
+
+        .my-report-card {
+          margin-bottom: 24px;
+        }
+
+        .track-clickable-card {
+          cursor: pointer;
+          transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .track-clickable-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 22px 44px rgba(90, 108, 166, 0.18);
+          border-color: #003d7f;
+        }
+
+        .track-timeline-wrap-compact .track-timeline-item {
+          margin-bottom: 8px;
+        }
+
         .track-faq-wrap {
           background: linear-gradient(180deg, rgba(255,255,255,0.72) 0%, rgba(255,255,255,0.42) 100%);
           padding: 26px 0 78px;
@@ -673,7 +753,7 @@ export default function TrackReport() {
               <input
                 id="reference-id"
                 className="track-input"
-                placeholder="e.g., SUP-001"
+                placeholder="e.g., SUP-48291357"
                 value={referenceId}
                 onChange={(event) => {
                   setReferenceId(event.target.value);
@@ -689,6 +769,46 @@ export default function TrackReport() {
           </section>
 
           {renderStatusCard()}
+
+          {myReports.length > 0 && !reportResult && (
+            <div className="track-my-reports-section">
+              <h2 className="track-my-reports-title">My Recent Reports</h2>
+              <div className="track-my-reports-grid">
+                {myReports.map((report) => {
+                  const liveData = myReportsData[report.referenceId];
+                  return (
+                    <section
+                      key={report.referenceId}
+                      className="track-status-card my-report-card track-clickable-card"
+                      onClick={() => {
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        setReferenceId(report.referenceId);
+                        setReportResult(null);
+                        setLookupError("");
+                      }}
+                    >
+                      <div className="track-status-header">
+                        <div>
+                          <h3 className="track-panel-title">{report.violation_type || "Violation Report"}</h3>
+                          <div className="track-status-reference-text">Reference ID: {report.referenceId}</div>
+                        </div>
+                        {liveData && (
+                          <div className={`track-status-badge track-status-badge-${STATUS_COLORS[liveData.displayStatus]}`}>
+                            {liveData.displayStatus}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="track-detail-block" style={{ marginBottom: '24px' }}>
+                        <span className="track-detail-label">Location</span>
+                        <span className="track-detail-value">{report.location || "Location provided"}</span>
+                      </div>
+                    </section>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </main>
 
         <section className="track-faq-wrap">
@@ -731,7 +851,7 @@ export default function TrackReport() {
                 <li><a href="/">Home</a></li>
                 <li><a href="/report">Report a Violation</a></li>
                 <li><a href="/track">Track My Report</a></li>
-                <li><a href="/#how">How It Works</a></li>
+                <li><a href="/how-it-works">How It Works</a></li>
               </ul>
             </div>
             <div>
