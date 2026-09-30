@@ -3,7 +3,7 @@ import AdminLogin from "../components/AdminLogin";
 
 export default function AdminLoginPage() {
   useEffect(() => {
-    document.title = "CTMO Admin Portal - Login";
+    document.title = "HapsayDalan | CTMO Portal";
 
     let robotsMeta = document.querySelector('meta[name="robots"]');
     let createdMeta = false;

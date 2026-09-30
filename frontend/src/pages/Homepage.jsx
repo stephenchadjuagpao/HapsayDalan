@@ -133,16 +133,20 @@ export default function Homepage() {
         .sc-btn-primary {
           background: #1e3a5f;
           color: #ffffff;
-          border: none;
+          border: 2px solid transparent;
           border-radius: 8px;
-          padding: 14px 28px;
-          font-size: 15px;
+          width: 260px;
+          display: inline-flex;
+          justify-content: center;
+          align-items: center;
+          padding: 20px 24px;
+          font-size: 18px;
           font-weight: 600;
           cursor: pointer;
           font-family: 'Inter', sans-serif;
           transition: background 0.18s ease, transform 0.12s ease;
           text-decoration: none;
-          display: inline-block;
+          text-decoration: none;
         }
 
         .sc-btn-primary:hover {
@@ -151,18 +155,22 @@ export default function Homepage() {
         }
 
         .sc-btn-secondary {
-          background: transparent;
+          background: #e2e8f0;
           color: #1e3a5f;
           border: 2px solid #1e3a5f;
           border-radius: 8px;
-          padding: 13px 28px;
-          font-size: 15px;
+          width: 260px;
+          display: inline-flex;
+          justify-content: center;
+          align-items: center;
+          padding: 20px 24px;
+          font-size: 18px;
           font-weight: 600;
           cursor: pointer;
           font-family: 'Inter', sans-serif;
           transition: background 0.18s ease, transform 0.12s ease;
           text-decoration: none;
-          display: inline-block;
+          text-decoration: none;
         }
 
         .sc-btn-secondary:hover {
@@ -201,6 +209,20 @@ export default function Homepage() {
             grid-template-columns: 1fr;
             padding: 40px 20px 60px;
             gap: 36px;
+          }
+          .sc-hero-actions {
+            width: 100%;
+            flex-direction: column;
+            gap: 12px;
+          }
+          .sc-btn-primary,
+          .sc-btn-secondary {
+            width: 100%;
+            min-width: 0;
+            justify-content: center;
+            text-align: center;
+            padding: 18px 24px;
+            font-size: 17px;
           }
           .sc-hero-right { order: -1; }
           .sc-accent-bar { display: none; }
@@ -291,15 +313,15 @@ export default function Homepage() {
 
         /* CTA Banner */
         .sc-cta {
-          background: #1e3a5f;
+          background: #003D7F;
           padding: 72px 24px;
           text-align: center;
         }
         .sc-cta-title { font-size: 30px; font-weight: 800; color: #fff; margin-bottom: 16px; }
-        .sc-cta-desc { font-size: 15px; color: #b8c8e0; line-height: 1.7; max-width: 560px; margin: 0 auto 32px; }
+        .sc-cta-desc { font-size: 15px; color: #d6e2f3; line-height: 1.7; max-width: 560px; margin: 0 auto 32px; }
         .sc-btn-white {
           background: #fff;
-          color: #1e3a5f;
+          color: #003D7F;
           border: none;
           border-radius: 8px;
           padding: 14px 32px;
@@ -355,6 +377,10 @@ export default function Homepage() {
           padding: 56px 24px 0;
           color: #b8c8e0;
           font-size: 14px;
+        }
+        .sc-footer-spacer {
+          height: 60px;
+          background: #ffffff;
         }
         .sc-footer-grid {
           max-width: 1100px;
@@ -490,6 +516,8 @@ export default function Homepage() {
         </section>
 
         {/* Footer */}
+        <div className="sc-footer-spacer" />
+
         <footer className="sc-footer">
           <div className="sc-footer-grid">
             <div>
@@ -508,8 +536,8 @@ export default function Homepage() {
             <div>
               <div className="sc-footer-col-title">Support</div>
               <ul className="sc-footer-links">
-                <li><a href="#faqs">FAQs</a></li>
-                <li><a href="#contact">Contact/Help</a></li>
+                <li><a href="/faqs">FAQs</a></li>
+                <li><a href="/contact">Contact/Help</a></li>
                 <li><a href="#privacy">Privacy Policy</a></li>
                 <li><a href="#terms">Terms of Service</a></li>
               </ul>

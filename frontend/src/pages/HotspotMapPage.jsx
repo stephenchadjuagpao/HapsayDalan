@@ -62,6 +62,14 @@ export default function HotspotMapPage() {
           padding: 64px 24px;
         }
 
+        .hotspot-impact-section {
+          padding: 58px 24px 64px;
+          background:
+            radial-gradient(circle at 18% 22%, rgba(214, 222, 235, 0.22) 0, transparent 22%),
+            radial-gradient(circle at 80% 74%, rgba(214, 224, 239, 0.18) 0, transparent 24%),
+            linear-gradient(180deg, #eef2f6 0%, #e8edf4 50%, #eef2f6 100%);
+        }
+
         .hotspot-grid-two,
         .hotspot-grid-three {
           display: grid;
@@ -206,6 +214,11 @@ export default function HotspotMapPage() {
           padding: 56px 24px 0;
           color: #b8c8e0;
           font-size: 14px;
+        }
+
+        .hotspot-footer-spacer {
+          height: 60px;
+          background: #ffffff;
         }
 
         .hotspot-footer-grid {
@@ -362,7 +375,7 @@ export default function HotspotMapPage() {
           </div>
         </section>
 
-        <section className="hotspot-section">
+        <section className="hotspot-section hotspot-impact-section">
           <div className="hotspot-section-inner">
             <h2 className="hotspot-impact-title">Data-Driven Safety</h2>
             <p className="hotspot-impact-text">
@@ -395,6 +408,8 @@ export default function HotspotMapPage() {
           </div>
         </section>
 
+        <div className="hotspot-footer-spacer" />
+
         <footer className="hotspot-footer">
           <div className="hotspot-footer-grid">
             <div>
@@ -416,8 +431,8 @@ export default function HotspotMapPage() {
             <div>
               <div className="hotspot-footer-col-title">Support</div>
               <ul className="hotspot-footer-links">
-                <li><a href="/#faqs">FAQs</a></li>
-                <li><a href="/#contact">Contact/Help</a></li>
+                <li><a href="/faqs">FAQs</a></li>
+                <li><a href="/contact">Contact/Help</a></li>
                 <li><a href="/#privacy">Privacy Policy</a></li>
                 <li><a href="/#terms">Terms of Service</a></li>
               </ul>

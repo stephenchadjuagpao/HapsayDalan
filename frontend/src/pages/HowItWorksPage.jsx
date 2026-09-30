@@ -429,32 +429,35 @@ export default function HowItWorksPage() {
         }
 
         .how-benefits {
-          background: #003d7f;
-          color: #ffffff;
+          background:
+            radial-gradient(circle at 18% 22%, rgba(219, 226, 237, 0.16) 0, transparent 22%),
+            radial-gradient(circle at 80% 74%, rgba(219, 227, 240, 0.14) 0, transparent 24%),
+            linear-gradient(180deg, #f1f4f8 0%, #ebf0f6 50%, #f1f4f8 100%);
+          color: #111827;
         }
 
         .how-benefits .how-section-title {
-          color: #ffffff;
+          color: #111827;
         }
 
         .how-benefits .how-card {
-          background: rgba(255, 255, 255, 0.08);
-          border-color: rgba(255, 255, 255, 0.12);
-          box-shadow: none;
+          background: rgba(255, 255, 255, 0.96);
+          border-color: rgba(221, 229, 243, 0.95);
+          box-shadow: 0 14px 28px rgba(90, 108, 166, 0.08);
         }
 
         .how-benefit-title {
           margin: 0 0 8px;
           font-size: 20px;
           font-weight: 800;
-          color: #ffffff;
+          color: #111827;
         }
 
         .how-benefit-text {
           margin: 0;
           font-size: 14px;
           line-height: 1.7;
-          color: rgba(255, 255, 255, 0.86);
+          color: #5f6b7a;
         }
 
         .how-footer {
@@ -696,8 +699,8 @@ export default function HowItWorksPage() {
             <div>
               <div className="how-footer-col-title">Support</div>
               <ul className="how-footer-links">
-                <li><a href="/#faqs">FAQs</a></li>
-                <li><a href="/#contact">Contact/Help</a></li>
+                <li><a href="/faqs">FAQs</a></li>
+                <li><a href="/contact">Contact/Help</a></li>
                 <li><a href="/#privacy">Privacy Policy</a></li>
                 <li><a href="/#terms">Terms of Service</a></li>
               </ul>

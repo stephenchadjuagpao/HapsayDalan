@@ -174,7 +174,6 @@ export default function TrackReport() {
   const renderTimelineForReport = (reportItem) => {
     const activeIndex = getStatusIndex(reportItem.status);
     const assignedOfficer = reportItem.assigned_officer || "Officer Santos";
-    const sinceDate = formatDate(reportItem.date_reported || reportItem.dateReported);
     const timelineItems = STATUS_STEPS.slice(0, activeIndex + 1).map((step, index) => ({
       step,
       date: formatIsoDate(reportItem.date_reported || reportItem.dateReported, index),
@@ -699,9 +698,15 @@ export default function TrackReport() {
           margin: 0 auto;
           border-top: 1px solid rgba(255,255,255,0.12);
           padding: 20px 0;
+          font-size: 0;
+          color: transparent;
+          text-align: center;
+        }
+
+        .track-footer-bottom::after {
+          content: "© 2026 HapsayDalan. All rights reserved.";
           font-size: 13px;
           color: #8fa3be;
-          text-align: center;
         }
 
         @media (max-width: 900px) {
@@ -737,8 +742,8 @@ export default function TrackReport() {
         <header className="track-hero">
           <h1 className="track-hero-title">Track My Report</h1>
           <p className="track-hero-text">
-            Check the status of your submitted report using your reference ID. Get real-time
-            updates on review, assignment, and resolution progress.
+            Check the status of your submitted report in HapsayDalan using your reference ID.
+            Get real-time updates on review, assignment, and resolution progress.
           </p>
         </header>
 
@@ -841,8 +846,8 @@ export default function TrackReport() {
             <div>
               <div className="track-footer-col-title">About</div>
               <p className="track-footer-about">
-                Together, we keep Surigao City's roads safe. Report violations and help achieve
-                faster CTMO response.
+                HapsayDalan helps keep Surigao City's roads safe by making traffic violation
+                reporting faster, clearer, and easier for the community.
               </p>
             </div>
             <div>
@@ -857,8 +862,8 @@ export default function TrackReport() {
             <div>
               <div className="track-footer-col-title">Support</div>
               <ul className="track-footer-links">
-                <li><a href="/#faqs">FAQs</a></li>
-                <li><a href="/#contact">Contact/Help</a></li>
+                <li><a href="/faqs">FAQs</a></li>
+                <li><a href="/contact">Contact/Help</a></li>
                 <li><a href="/#privacy">Privacy Policy</a></li>
                 <li><a href="/#terms">Terms of Service</a></li>
               </ul>

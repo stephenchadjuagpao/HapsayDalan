@@ -8,8 +8,8 @@ const NAV_LINKS = [
   { label: "Track My Report", href: "/track", page: "track" },
   { label: "Hotspot Map", href: "/hotspot-map", page: "map" },
   { label: "How It Works", href: "/how-it-works", page: "how" },
-  { label: "FAQs", href: "/#faqs", page: "faqs" },
-  { label: "Contact/Help", href: "/#contact", page: "contact" },
+  { label: "FAQs", href: "/faqs", page: "faqs" },
+  { label: "Contact/Help", href: "/contact", page: "contact" },
   { label: "Admin/CTMO", href: "/admin-ctmo", page: "admin" },
 ];
 

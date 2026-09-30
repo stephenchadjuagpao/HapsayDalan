@@ -1920,8 +1920,8 @@ function ReportForm() {
             <div>
               <div className="report-footer-col-title">Support</div>
               <ul className="report-footer-links">
-                <li><a href="/#faqs">FAQs</a></li>
-                <li><a href="/#contact">Contact/Help</a></li>
+                <li><a href="/faqs">FAQs</a></li>
+                <li><a href="/contact">Contact/Help</a></li>
                 <li><a href="/#privacy">Privacy Policy</a></li>
                 <li><a href="/#terms">Terms of Service</a></li>
               </ul>
