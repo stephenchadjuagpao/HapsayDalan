@@ -35,8 +35,13 @@ export default function AdminLogin() {
     setIsSubmitting(true);
 
     try {
-      const csrfResponse = await API.get("csrf/");
-      const csrfToken = csrfResponse?.data?.csrfToken;
+      let csrfToken = null;
+      try {
+        const csrfResponse = await API.get("csrf/");
+        csrfToken = csrfResponse?.data?.csrfToken;
+      } catch (csrfErr) {
+        // CSRF retrieval optional
+      }
 
       const response = await API.post("admin/login/", {
         username: formData.username.trim(),
@@ -44,20 +49,25 @@ export default function AdminLogin() {
       }, {
         headers: csrfToken
           ? {
-              "X-CSRFToken": csrfToken,
-            }
+            "X-CSRFToken": csrfToken,
+          }
           : undefined,
       });
 
-      const adminBaseUrl = API.defaults.baseURL?.replace(/\/api\/?$/, "/") || "/";
-      const adminUrl = response?.data?.admin_url || "/admin/";
+      sessionStorage.setItem("ctmo_admin_authenticated", "true");
+      sessionStorage.setItem(
+        "ctmo_admin_user",
+        response?.data?.username || formData.username.trim()
+      );
 
-      setMessage("Login successful. Opening CTMO admin portal...");
-      window.location.href = new URL(adminUrl.replace(/^\//, ""), adminBaseUrl).toString();
+      setMessage("Login successful. Opening CTMO admin dashboard...");
+      setTimeout(() => {
+        window.location.href = "/admin";
+      }, 500);
     } catch (apiError) {
       const nextError =
         apiError?.response?.data?.detail ||
-        "We could not log you in right now. Please try again.";
+        "Invalid email address or password. Access is restricted to authorized CTMO personnel.";
       setError(nextError);
     } finally {
       setIsSubmitting(false);

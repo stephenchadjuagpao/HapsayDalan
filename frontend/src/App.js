@@ -4,6 +4,7 @@ import Homepage from "./pages/Homepage";
 import TrackReport from "./pages/TrackReport";
 import HotspotMapPage from "./pages/HotspotMapPage";
 import AdminLoginPage from "./pages/AdminLoginPage";
+import AdminDashboardPage from "./pages/AdminDashboardPage";
 import HowItWorksPage from "./pages/HowItWorksPage";
 import FAQsPage from "./pages/FAQsPage";
 import ContactHelpPage from "./pages/ContactHelpPage";
@@ -20,6 +21,8 @@ function App() {
         <Route path="/faqs" element={<FAQsPage />} />
         <Route path="/contact" element={<ContactHelpPage />} />
         <Route path="/admin-ctmo" element={<AdminLoginPage />} />
+        <Route path="/admin" element={<AdminDashboardPage />} />
+        <Route path="/admin-dashboard" element={<AdminDashboardPage />} />
       </Routes>
     </BrowserRouter>
   );

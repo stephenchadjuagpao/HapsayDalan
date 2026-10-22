@@ -4,6 +4,7 @@ from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
 from django.contrib.auth import authenticate, login
+from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from django.middleware.csrf import get_token
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -176,6 +177,10 @@ def admin_login_view(request):
         )
 
     user = authenticate(request, username=username, password=password)
+    if user is None:
+        user_by_email = User.objects.filter(email__iexact=username).first()
+        if user_by_email:
+            user = authenticate(request, username=user_by_email.username, password=password)
 
     if user is None:
         return Response(

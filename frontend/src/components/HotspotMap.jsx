@@ -166,7 +166,7 @@ const geocodeLocation = async (location) => {
   return { lat, lng };
 };
 
-export default function HotspotMap() {
+export default function HotspotMap({ isEmbedded = false } = {}) {
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersLayerRef = useRef(null);
@@ -454,6 +454,16 @@ export default function HotspotMap() {
           align-items: start;
         }
 
+        .hotspot-shell.is-embedded {
+          gap: 18px;
+        }
+
+        .hotspot-shell.is-embedded .hotspot-map-panel,
+        .hotspot-shell.is-embedded .hotspot-side-panel {
+          box-shadow: none;
+          border: 1px solid #e2e8f0;
+        }
+
         .hotspot-map-panel,
         .hotspot-side-panel {
           background: #ffffff;
@@ -497,6 +507,8 @@ export default function HotspotMap() {
           overflow: hidden;
           background: #e9eef4;
           position: relative;
+          isolation: isolate;
+          z-index: 1;
         }
 
         .hotspot-live-map {
@@ -504,11 +516,18 @@ export default function HotspotMap() {
           height: 460px;
           pointer-events: auto;
           touch-action: none;
+          position: relative;
+          isolation: isolate;
+          z-index: 1;
         }
 
         .hotspot-live-map .leaflet-top,
         .hotspot-live-map .leaflet-bottom {
-          z-index: 400;
+          z-index: 20;
+        }
+
+        .hotspot-live-map .leaflet-pane {
+          z-index: 10;
         }
 
         .hotspot-live-map .leaflet-top .leaflet-control {
@@ -714,7 +733,7 @@ export default function HotspotMap() {
         }
       `}</style>
 
-      <div className="hotspot-shell">
+      <div className={`hotspot-shell ${isEmbedded ? "is-embedded" : ""}`}>
         <div className="hotspot-map-panel">
           <div className="hotspot-toolbar">
             <div className="hotspot-toolbar-title">Community Hotspot Overview</div>
