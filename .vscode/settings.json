@@ -1,6 +1,0 @@
-{
-    "python.defaultInterpreterPath": "c:\\Users\\User\\Documents\\HapsayDalan\\backend\\venv\\Scripts\\python.exe",
-    "python.analysis.extraPaths": [
-        "./backend"
-    ]
-}
