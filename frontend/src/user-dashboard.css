@@ -27,7 +27,7 @@
   .user-dashboard :is(.report-input,.track-input,.help-form-input,.help-form-textarea,.report-camera-select,.hotspot-select) { font-size:16px; }
 }
 @media(max-width:768px) {
-  .user-dashboard .sc-hero-actions { margin-top:32px; }
+  .user-dashboard .sc-hero-actions { margin-top:0; }
   .user-dashboard .sc-hero { grid-template-columns:minmax(0,1fr); }
   .user-dashboard :is(.report-shell,.track-shell,.hotspot-section,.contact-section,.contact-section-muted,.contact-feedback,.faq-section,.how-section) { padding-left:16px; padding-right:16px; }
   .user-dashboard :is(.report-hero,.track-hero,.hotspot-hero,.how-hero,.faq-hero,.contact-hero) { padding:36px 16px 40px; }
@@ -49,7 +49,7 @@
   .user-dashboard .report-camera-preview-shell { max-height:48dvh; }
 }
 @media(max-width:480px) {
-  .user-dashboard .sc-hero { padding:24px 16px 36px; gap:24px; }
+  .user-dashboard .sc-hero { padding:20px 16px 32px; gap:16px; }
   .user-dashboard .sc-hero-title { font-size:30px; }
   .user-dashboard :is(.report-card,.report-success-card,.track-form-card,.track-status-card,.track-details-card) { padding:16px; border-radius:12px; }
   .user-dashboard :is(.hotspot-map-panel,.hotspot-side-panel) { padding:14px; }

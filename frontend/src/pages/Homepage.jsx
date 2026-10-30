@@ -198,8 +198,8 @@ export default function Homepage() {
           .sc-hero {
             display: flex;
             flex-direction: column;
-            padding: 32px 20px 48px;
-            gap: 18px;
+            padding: 24px 20px 36px;
+            gap: 14px;
           }
           .sc-hero-left {
             display: contents;
@@ -208,25 +208,28 @@ export default function Homepage() {
             order: 1;
             font-size: clamp(28px, 6vw, 36px);
             line-height: 1.2;
+            margin: 0;
           }
           .sc-hero-desc {
             order: 2;
             font-size: 15px;
-            line-height: 1.65;
+            line-height: 1.6;
             max-width: 100%;
+            margin: 0;
           }
           .sc-hero-right {
             order: 3;
             width: 100%;
-            margin: 4px 0 8px;
+            margin: 0;
           }
-          .sc-hero-actions {
+          .sc-homepage .sc-hero-actions,
+          .user-dashboard .sc-hero-actions {
             order: 4;
             width: 100%;
             display: flex;
             flex-direction: column;
             gap: 12px;
-            margin-top: 4px;
+            margin-top: 0 !important;
           }
           .sc-homepage .sc-hero-actions .sc-btn-primary,
           .sc-homepage .sc-hero-actions .sc-btn-secondary {
@@ -234,7 +237,7 @@ export default function Homepage() {
             min-width: 0;
             justify-content: center;
             text-align: center;
-            padding: 16px 20px;
+            padding: 15px 20px;
             font-size: 16px;
             font-weight: 600;
             border-radius: 10px;
