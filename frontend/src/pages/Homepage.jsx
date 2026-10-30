@@ -8,7 +8,7 @@ function MapIllustration() {
     <svg
       viewBox="0 0 560 420"
       xmlns="http://www.w3.org/2000/svg"
-      style={{ width: "100%", height: "100%", maxHeight: 380 }}
+      style={{ width: "100%", height: "auto", display: "block", maxHeight: 380 }}
     >
       {/* Background */}
       <rect width="560" height="420" fill="#f0f7f4" rx="12" />
@@ -196,25 +196,49 @@ export default function Homepage() {
 
         @media (max-width: 768px) {
           .sc-hero {
-            grid-template-columns: 1fr;
-            padding: 40px 20px 60px;
-            gap: 36px;
+            display: flex;
+            flex-direction: column;
+            padding: 32px 20px 48px;
+            gap: 18px;
+          }
+          .sc-hero-left {
+            display: contents;
+          }
+          .sc-hero-title {
+            order: 1;
+            font-size: clamp(28px, 6vw, 36px);
+            line-height: 1.2;
+          }
+          .sc-hero-desc {
+            order: 2;
+            font-size: 15px;
+            line-height: 1.65;
+            max-width: 100%;
+          }
+          .sc-hero-right {
+            order: 3;
+            width: 100%;
+            margin: 4px 0 8px;
           }
           .sc-hero-actions {
+            order: 4;
             width: 100%;
+            display: flex;
             flex-direction: column;
             gap: 12px;
+            margin-top: 4px;
           }
-          .sc-btn-primary,
-          .sc-btn-secondary {
+          .sc-homepage .sc-hero-actions .sc-btn-primary,
+          .sc-homepage .sc-hero-actions .sc-btn-secondary {
             width: 100%;
             min-width: 0;
             justify-content: center;
             text-align: center;
-            padding: 18px 24px;
-            font-size: 17px;
+            padding: 16px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 10px;
           }
-          .sc-hero-right { order: -1; }
         }
 
         /* How It Works */

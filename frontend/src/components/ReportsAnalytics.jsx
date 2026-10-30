@@ -47,8 +47,8 @@ export default function ReportsAnalytics({ reports, loading, error, lastUpdated,
           <p className="admin-panel-subtitle">Understand report volume, case progress, and places that need attention.</p>
         </div>
         <div className="ra-export-actions" role="group" aria-label="Analytics exports">
-          <button className="ra-button" type="button" onClick={() => window.print()} disabled={!data || loading || !lastUpdated}>Print / PDF</button>
-          <button className="ra-button" type="button" onClick={exportCSV} disabled={!data?.total || loading}>Export CSV ↓</button>
+          <button className="ra-button ra-print-button" type="button" onClick={() => window.print()} disabled={!data || loading || !lastUpdated}>Print / PDF</button>
+          <button className="ra-button ra-csv-button" type="button" onClick={exportCSV} disabled={!data?.total || loading}>Export CSV ↓</button>
         </div>
       </div>
 

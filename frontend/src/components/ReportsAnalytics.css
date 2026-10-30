@@ -6,6 +6,14 @@
 .ra-eyebrow { color:#547498; font-size:10px; letter-spacing:1.8px; font-weight:800; margin-bottom:9px; }
 .ra-button { border:1px solid #c9d9ed; background:#fff; color:#174c97; border-radius:9px; padding:11px 16px; font:inherit; font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap; }
 .ra-button:disabled { opacity:.5; cursor:default; }
+.ra-export-actions .ra-button.ra-print-button { background:#2456a6; border-color:#2456a6; color:#fff; }
+.ra-export-actions .ra-button.ra-print-button:hover:not(:disabled) { background:#1b4283; border-color:#1b4283; }
+.ra-export-actions .ra-button.ra-csv-button { background:#13734c; border-color:#13734c; color:#fff; }
+.ra-export-actions .ra-button.ra-csv-button:hover:not(:disabled) { background:#0d583a; border-color:#0d583a; }
+html[data-theme=dark] .ra-export-actions .ra-button.ra-print-button { background:#345f9b; border-color:#6893cf; color:#fff; }
+html[data-theme=dark] .ra-export-actions .ra-button.ra-print-button:hover:not(:disabled) { background:#416fad; border-color:#86ade1; }
+html[data-theme=dark] .ra-export-actions .ra-button.ra-csv-button { background:#1f6a50; border-color:#62ac8b; color:#fff; }
+html[data-theme=dark] .ra-export-actions .ra-button.ra-csv-button:hover:not(:disabled) { background:#287e60; border-color:#81c8a8; }
 .ra-toolbar { display:flex; flex-wrap:wrap; gap:16px; align-items:flex-end; border-block:1px solid #e9eef6; padding:20px 0; margin:24px 0; }
 .ra-toolbar label { display:flex; flex-direction:column; gap:7px; font-size:12px; font-weight:700; }
 .ra-toolbar select,.ra-toolbar input { border:1px solid #cbd8e9; border-radius:8px; padding:9px 12px; font:inherit; color:#172b4d; background:#fff; min-height:40px; }

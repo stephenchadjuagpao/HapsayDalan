@@ -48,6 +48,7 @@
   .admin-dashboard-root[data-view=analytics] .ra-chart { padding:12px !important; margin-top:14px !important; background:#fff !important; border:1px solid #cbdbea !important; border-radius:10px !important; break-inside:avoid; }
   .admin-dashboard-root[data-view=analytics] .ra-volume { background:#f5f9ff !important; }
   .admin-dashboard-root[data-view=analytics] .ra-print-type-status>.ra-chart:last-child { background:#f2f8f5 !important; }
+  .admin-dashboard-root[data-view=analytics] .ra-print-type-status>.ra-chart { break-inside:auto; page-break-inside:auto; }
   .admin-dashboard-root[data-view=analytics] .ra-attention { background:#fff8e9 !important; border-color:#e7d2a3 !important; }
   .admin-dashboard-root[data-view=analytics] .ra-section-heading { margin-bottom:12px; padding-bottom:9px; border-bottom:1px solid #dce6ef; }
   .admin-dashboard-root[data-view=analytics] .ra-section-heading h3 { font-size:11pt !important; line-height:1.4; color:#153d5c !important; }
@@ -61,22 +62,32 @@
   .admin-dashboard-root[data-view=analytics] .ra-day-bar { height:calc(var(--ra-bar-scale) * 110px) !important; background:#3977ad !important; border-radius:4px 4px 0 0; }
   .admin-dashboard-root[data-view=analytics] :is(.ra-track,.ra-status-track) { background:#dfe9f2 !important; }
   .admin-dashboard-root[data-view=analytics] .ra-rankings { gap:9px; }
-  .admin-dashboard-root[data-view=analytics] .ra-ranking>div:first-child { font-size:8pt !important; gap:8px; }
+  .admin-dashboard-root[data-view=analytics] .ra-ranking>div:first-child { font-size:8pt !important; gap:8px; line-height:1.35 !important; margin-bottom:5px; }
   .admin-dashboard-root[data-view=analytics] .ra-ranking strong { font-size:8.5pt !important; }
   .admin-dashboard-root[data-view=analytics] :is(.ra-ranking small,.ra-status-list small,.ra-locations small) { font-size:7pt !important; }
   .admin-dashboard-root[data-view=analytics] .ra-status-list { gap:11px; }
   .admin-dashboard-root[data-view=analytics] .ra-status-list>div { font-size:8pt !important; gap:6px; }
   .admin-dashboard-root[data-view=analytics] .ra-status-list small { min-width:0; margin-left:6px; }
   .admin-dashboard-root[data-view=analytics] :is(.ra-section-heading,.ra-ranking,.ra-status-list>div,.ra-locations li) { break-inside:avoid; }
-  .admin-dashboard-root[data-view=analytics] .ra-locations li { padding:9px 0; font-size:8pt !important; }
-  .admin-dashboard-root[data-view=analytics] .ra-attention ul { font-size:9pt !important; gap:12px; line-height:1.6; }
-  .admin-dashboard-root[data-view=analytics] .ra-recent-reports { margin-top:18px !important; }
-  .admin-dashboard-root[data-view=analytics] .ra-table-scroll table { width:100% !important; font-size:8pt !important; }
+  .admin-dashboard-root[data-view=analytics] .ra-locations li { padding:6px 0; font-size:8pt !important; line-height:1.35 !important; gap:7px; }
+  .admin-dashboard-root[data-view=analytics] .ra-attention ul { font-size:8.5pt !important; gap:10px; line-height:1.45 !important; }
+  /* Let long registers continue row by row instead of moving the entire card
+     to a nearly empty page. Keep individual rows and repeated headings intact. */
+  .admin-dashboard-root[data-view=analytics] .ra-recent-reports { margin-top:12px !important; break-inside:auto; page-break-inside:auto; box-decoration-break:clone; -webkit-box-decoration-break:clone; }
+  .admin-dashboard-root[data-view=analytics] .ra-print-details .ra-chart { padding:10px !important; }
+  .admin-dashboard-root[data-view=analytics] .ra-print-details .ra-section-heading { margin-bottom:8px; padding-bottom:7px; }
+  .admin-dashboard-root[data-view=analytics] .ra-chart .ra-footnote { margin:9px 0 0 !important; line-height:1.4 !important; }
+  .admin-dashboard-root[data-view=analytics] .ra-section-heading p { margin:3px 0 0 !important; line-height:1.35 !important; }
+  .admin-dashboard-root[data-view=analytics] .ra-table-scroll table { width:100% !important; table-layout:fixed; font-size:8pt !important; }
+  .admin-dashboard-root[data-view=analytics] .ra-table-scroll th:nth-child(1) { width:20%; }
+  .admin-dashboard-root[data-view=analytics] .ra-table-scroll th:nth-child(2) { width:38%; }
+  .admin-dashboard-root[data-view=analytics] .ra-table-scroll th:nth-child(3) { width:16%; }
+  .admin-dashboard-root[data-view=analytics] .ra-table-scroll th:nth-child(4) { width:26%; }
   .admin-dashboard-root[data-view=analytics] .ra-table-scroll thead { display:table-header-group; }
   .admin-dashboard-root[data-view=analytics] .ra-table-scroll th { background:#204d70 !important; color:#fff !important; font-size:7pt !important; }
   .admin-dashboard-root[data-view=analytics] .ra-table-scroll tr { break-inside:avoid; }
   .admin-dashboard-root[data-view=analytics] .ra-table-scroll tbody tr:nth-child(even) { background:#edf4fa !important; }
-  .admin-dashboard-root[data-view=analytics] .ra-table-scroll :is(th,td) { padding:8px !important; overflow-wrap:anywhere; border-bottom-color:#d5e1ec !important; }
+  .admin-dashboard-root[data-view=analytics] .ra-table-scroll :is(th,td) { padding:6px 7px !important; line-height:1.35 !important; overflow-wrap:anywhere; border-bottom-color:#d5e1ec !important; }
   .admin-dashboard-root[data-view=analytics] .ra-table-scroll .ra-text-button { min-height:0 !important; text-decoration:none; font-size:inherit !important; font-weight:650; color:#205c86 !important; }
   .admin-dashboard-root[data-view=analytics] .ra-warning { background:#fff8e9 !important; border-color:#e7d2a3 !important; }
 }
