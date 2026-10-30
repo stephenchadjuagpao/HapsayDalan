@@ -425,10 +425,34 @@ export default function Homepage() {
         @media (max-width: 900px) {
           .sc-steps, .sc-benefit-cards { grid-template-columns: 1fr; max-width: 400px; }
           .sc-impact-grid { grid-template-columns: 1fr; gap: 28px; }
-          .sc-footer-grid { grid-template-columns: 1fr 1fr; }
+          .sc-footer { padding: 40px 20px 0; }
+          .sc-footer-spacer { height: 28px; }
+          .sc-footer-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 28px 20px;
+            padding-bottom: 28px;
+          }
+          .sc-footer-grid > div:nth-child(1),
+          .sc-footer-grid > div:nth-child(4) {
+            grid-column: 1 / -1;
+          }
+          .sc-footer-grid > div:nth-child(2) {
+            grid-column: 1;
+          }
+          .sc-footer-grid > div:nth-child(3) {
+            grid-column: 2;
+          }
         }
         @media (max-width: 560px) {
-          .sc-footer-grid { grid-template-columns: 1fr; }
+          .sc-footer { padding: 32px 16px 0; }
+          .sc-footer-spacer { height: 20px; }
+          .sc-footer-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 22px 16px;
+            padding-bottom: 24px;
+          }
+          .sc-footer-links { gap: 8px; }
+          .sc-footer-links li a { min-height: 36px; padding: 2px 0; display: inline-flex; align-items: center; }
         }
       `}</style>
 
