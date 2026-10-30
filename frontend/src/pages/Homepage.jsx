@@ -1,4 +1,6 @@
 import Navbar from "../components/reusablecode/Navbar";
+import MaterialIcon from "../components/MaterialIcon";
+import TrafficAdvisories from "../components/TrafficAdvisories";
 
 // Inline map illustration (SVG-based, no external deps)
 function MapIllustration() {
@@ -64,8 +66,6 @@ function MapIllustration() {
         <circle cx="0" cy="-18" r="5" fill="white" />
       </g>
 
-      {/* Yellow accent line (top right, as seen in screenshot) */}
-      <rect x="430" y="0" width="130" height="8" fill="#f5c842" rx="2" />
     </svg>
   );
 }
@@ -193,16 +193,6 @@ export default function Homepage() {
           box-shadow: 0 8px 32px rgba(30, 58, 95, 0.12);
         }
 
-        /* Yellow accent bar (top right) */
-        .sc-accent-bar {
-          position: absolute;
-          top: -12px;
-          right: -8px;
-          width: 120px;
-          height: 6px;
-          background: #f5c842;
-          border-radius: 3px;
-        }
 
         @media (max-width: 768px) {
           .sc-hero {
@@ -225,7 +215,6 @@ export default function Homepage() {
             font-size: 17px;
           }
           .sc-hero-right { order: -1; }
-          .sc-accent-bar { display: none; }
         }
 
         /* How It Works */
@@ -418,6 +407,7 @@ export default function Homepage() {
 
       <div className="sc-homepage">
         <Navbar />
+        <TrafficAdvisories />
 
         {/* Hero Section */}
         <section className="sc-hero" id="home">
@@ -437,7 +427,6 @@ export default function Homepage() {
           </div>
 
           <div className="sc-hero-right">
-            <div className="sc-accent-bar" />
             <div className="sc-map-wrapper">
               <MapIllustration />
             </div>
@@ -471,17 +460,17 @@ export default function Homepage() {
         <section className="sc-benefits">
           <div className="sc-benefit-cards">
             <div className="sc-benefit-card">
-              <span className="sc-benefit-icon">⚡</span>
+              <span className="sc-benefit-icon"><MaterialIcon name="bolt" /></span>
               <div className="sc-benefit-title">Faster Response</div>
               <p className="sc-benefit-desc">Reduced response times through streamlined verification and case assignment.</p>
             </div>
             <div className="sc-benefit-card">
-              <span className="sc-benefit-icon">🔒</span>
+              <span className="sc-benefit-icon"><MaterialIcon name="lock" /></span>
               <div className="sc-benefit-title">Secure Storage</div>
               <p className="sc-benefit-desc">Your data is stored securely in our online database with privacy protection.</p>
             </div>
             <div className="sc-benefit-card">
-              <span className="sc-benefit-icon">👥</span>
+              <span className="sc-benefit-icon"><MaterialIcon name="groups" /></span>
               <div className="sc-benefit-title">Community Action</div>
               <p className="sc-benefit-desc">Together, we keep Surigao City's roads safe for everyone.</p>
             </div>

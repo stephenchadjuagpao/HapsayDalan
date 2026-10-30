@@ -1,152 +1,140 @@
-import React, { useState, useEffect, useMemo } from "react";
+import ResponsiveSelect from "./ResponsiveSelect";
+import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import API from "../services/api";
-import ctmoShieldLogo from "../assets/ctmo-shield-logo.jpg";
+import ctmoShieldLogo from "../assets/ctmo-shield-logo-transparent.png";
 import HotspotMap from "./HotspotMap";
+import ReportDirections from "./ReportDirections";
+import DuplicateReportNotice, { DuplicateBadge } from "./DuplicateReportNotice";
+import SuspiciousReportNotice, { SuspiciousBadge } from "./SuspiciousReportNotice";
+import ReportsAnalytics from "./ReportsAnalytics";
+import AdminIcon from "./AdminIcon";
+import "./AdminDashboard.css";
+import AdditionalEvidence from "./AdditionalEvidence";
+import AdminActivityHistory from "./AdminActivityHistory";
+import AdminMessages from "./AdminMessages";
+import ThemeToggle from "./ThemeToggle";
+import TrafficAdvisories from "./TrafficAdvisories";
+import AdminStaffAccounts from "./AdminStaffAccounts";
+import OfficerEditor from "./OfficerEditor";
+import useOfficers from "../hooks/useOfficers";
 
-// Realistic baseline data matching mockups with rich Surigao City locations
-const INITIAL_REPORTS = [
-  {
-    id: 1,
-    reference_id: "SUP-24091201",
-    violation_type: "Illegal Parking",
-    location: "Rizal St corner Borromeo, Surigao City",
-    submitted: "2 hours ago",
-    date_reported: new Date(Date.now() - 2 * 3600000).toISOString(),
-    status: "Under Review",
-    assigned_officer: "",
-    description: "Vehicle parked obstructing the designated pedestrian lane and loading bay.",
-    latitude: 9.7843,
-    longitude: 125.4888,
-    reporter_name: "Citizen Witness",
-  },
-  {
-    id: 2,
-    reference_id: "SUP-24091202",
-    violation_type: "Speeding",
-    location: "Surigao-Davao Coastal Highway, Luna",
-    submitted: "4 hours ago",
-    date_reported: new Date(Date.now() - 4 * 3600000).toISOString(),
-    status: "Assigned",
-    assigned_officer: "Officer Santos",
-    description: "Motorcycle clocking over 80 km/h in a 40 km/h school safety zone.",
-    latitude: 9.7756,
-    longitude: 125.4921,
-    reporter_name: "Anonymous Citizen",
-  },
-  {
-    id: 3,
-    reference_id: "SUP-24091203",
-    violation_type: "Traffic Light Violation",
-    location: "Borromeo St intersection near City Hall",
-    submitted: "6 hours ago",
-    date_reported: new Date(Date.now() - 6 * 3600000).toISOString(),
-    status: "In Progress",
-    assigned_officer: "Officer Reyes",
-    description: "Delivery van ran red light during heavy morning rush hour.",
-    latitude: 9.7872,
-    longitude: 125.4865,
-    reporter_name: "City Traffic Cam",
-  },
-  {
-    id: 4,
-    reference_id: "SUP-24091204",
-    violation_type: "Obstruction",
-    location: "San Nicolas St Market Area",
-    submitted: "1 day ago",
-    date_reported: new Date(Date.now() - 24 * 3600000).toISOString(),
-    status: "Resolved",
-    assigned_officer: "Officer Dela Cruz",
-    description: "Commercial goods unloading blocking single open lane.",
-    latitude: 9.7831,
-    longitude: 125.4942,
-    reporter_name: "Local Merchant",
-  },
-  {
-    id: 5,
-    reference_id: "SUP-24091205",
-    violation_type: "Illegal Parking",
-    location: "Downtown Boulevard, Washington",
-    submitted: "1h ago",
-    date_reported: new Date(Date.now() - 1 * 3600000).toISOString(),
-    status: "Pending",
-    assigned_officer: "",
-    description: "SUV parked in clear No Parking zone near emergency clinic entrance.",
-    latitude: 9.7891,
-    longitude: 125.4912,
-    reporter_name: "Pedestrian",
-  },
-  {
-    id: 6,
-    reference_id: "SUP-24091206",
-    violation_type: "Speeding",
-    location: "Main St, Brgy. Taft",
-    submitted: "2h ago",
-    date_reported: new Date(Date.now() - 2 * 3600000).toISOString(),
-    status: "Pending",
-    assigned_officer: "",
-    description: "Modified motorcycle excessive speed through residential street.",
-    latitude: 9.7812,
-    longitude: 125.4855,
-    reporter_name: "Barangay Tanod",
-  },
-  {
-    id: 7,
-    reference_id: "SUP-24091207",
-    violation_type: "Reckless Driving",
-    location: "Highway Exit Lipata Ferry Terminal",
-    submitted: "3h ago",
-    date_reported: new Date(Date.now() - 3 * 3600000).toISOString(),
-    status: "Pending",
-    assigned_officer: "",
-    description: "Aggressive overtaking on blind curve near port entrance.",
-    latitude: 9.8034,
-    longitude: 125.4678,
-    reporter_name: "Port Security",
-  },
-  {
-    id: 8,
-    reference_id: "SUP-24091208",
-    violation_type: "Illegal Terminal",
-    location: "Surigao Bus & Jeepney Terminal Area",
-    submitted: "5h ago",
-    date_reported: new Date(Date.now() - 5 * 3600000).toISOString(),
-    status: "Pending",
-    assigned_officer: "",
-    description: "Colorum tricycle terminal operating without city permit.",
-    latitude: 9.7698,
-    longitude: 125.4985,
-    reporter_name: "Terminal Inspector",
-  },
-];
-
-const INITIAL_OFFICERS = [
-  { id: 1, name: "Officer Santos", badge: "CTMO-104", unit: "Traffic Enforcer Unit 1", activeCases: 6 },
-  { id: 2, name: "Officer Reyes", badge: "CTMO-118", unit: "Mobile Patrol Unit", activeCases: 8 },
-  { id: 3, name: "Officer Dela Cruz", badge: "CTMO-205", unit: "Central District Unit", activeCases: 5 },
-  { id: 4, name: "Officer Martinez", badge: "CTMO-312", unit: "Highway Patrol Unit", activeCases: 8 },
+const statusLabel = (status) => status === "Pending" ? "Pending Verification" : status;
+const formatCitizenRemarks = (description) => {
+  const remarks = description?.trim();
+  if (!remarks) return "No further details submitted.";
+  return /^Description\s*:/i.test(remarks) ? remarks : `Description: ${remarks}`;
+};
+const REJECTION_REASONS = [
+  ["insufficient_evidence", "Insufficient evidence"], ["unrelated_evidence", "Unrelated photo or video"],
+  ["duplicate_incident", "Duplicate incident"], ["inconsistent_details", "Inconsistent report details"],
+  ["unable_to_verify", "Unable to verify the incident"], ["other", "Other reason"],
 ];
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview"); // overview | queue | assignment | analytics | hotspot
-  const [reports, setReports] = useState(INITIAL_REPORTS);
-  const [officers, setOfficers] = useState(INITIAL_OFFICERS);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [unreadMessages, setUnreadMessages] = useState(0);
+  const [messageVersion, setMessageVersion] = useState(0);
+  const refreshMessageCount = useCallback(() => setMessageVersion((value) => value + 1), []);
+  useEffect(() => {
+    let alive = true;
+    let fetching = false;
+    const loadCount = async () => {
+      if (fetching) return;
+      fetching = true;
+      try {
+        const { data } = await API.get("admin/messages/unread-count/");
+        if (alive && Number.isInteger(data?.unread_count) && data.unread_count >= 0) {
+          setUnreadMessages(data.unread_count);
+        }
+      } catch { /* Retain the last count while the connection recovers. */ }
+      finally { fetching = false; }
+    };
+    loadCount();
+    const timer = setInterval(loadCount, 30000);
+    window.addEventListener("focus", loadCount);
+    return () => { alive = false; clearInterval(timer); window.removeEventListener("focus", loadCount); };
+  }, [messageVersion]);
+  const mobileMenuButton = useRef(null);
+  useEffect(() => {
+    const desktop = window.matchMedia?.("(min-width:1101px)");
+    const closeOnDesktop = (event) => { if (event.matches) setMobileMenuOpen(false); };
+    desktop?.addEventListener?.("change", closeOnDesktop);
+    return () => desktop?.removeEventListener?.("change", closeOnDesktop);
+  }, []);
+  useEffect(() => {
+    if (!mobileMenuOpen) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const closeOnEscape = (event) => {
+      if (event.key === "Escape") {
+        setMobileMenuOpen(false);
+        mobileMenuButton.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [mobileMenuOpen]);
+  const [reports, setReports] = useState([]);
+  const [reportLoad, setReportLoad] = useState({ loading: true, error: false, lastUpdated: null });
+  const [refreshVersion, setRefreshVersion] = useState(0);
+  const [officerVersion, setOfficerVersion] = useState(0);
+  const { officers, loading: officersLoading, error: officersError } = useOfficers(officerVersion);
+  const [officerEditor, setOfficerEditor] = useState(null);
   const [selectedReport, setSelectedReport] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deletingCase, setDeletingCase] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+  const deleteCancelRef = useRef(null);
   const [assigningOfficer, setAssigningOfficer] = useState(null);
+  const [assigningCaseId, setAssigningCaseId] = useState(null);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState("");
   const [notificationTarget, setNotificationTarget] = useState("all");
+  const [advisoryVersion, setAdvisoryVersion] = useState(0);
+  const [sendingAdvisory, setSendingAdvisory] = useState(false);
+  const [advisoryError, setAdvisoryError] = useState("");
   const [toast, setToast] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [duplicatesOnly, setDuplicatesOnly] = useState(false);
+  const [flaggedOnly, setFlaggedOnly] = useState(false);
+  const [savingReview, setSavingReview] = useState(false);
+  const [reviewError, setReviewError] = useState("");
   const [editStatus, setEditStatus] = useState("");
   const [editOfficer, setEditOfficer] = useState("");
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [rejectionDetails, setRejectionDetails] = useState("");
   const [adminNotes, setAdminNotes] = useState("");
-  const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString());
+  const [currentTime, setCurrentTime] = useState(() => new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
   const [adminUser] = useState(
     () => sessionStorage.getItem("ctmo_admin_user") || "Officer Admin"
   );
+  const [isSuperuser, setIsSuperuser] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    API.get("admin/me/").then(({ data }) => {
+      if (alive) setIsSuperuser(Boolean(data?.is_superuser));
+    }).catch(() => { if (alive) setIsSuperuser(false); });
+    return () => { alive = false; };
+  }, []);
+  const isDialogOpen = Boolean(selectedReport || assigningOfficer || showNotificationModal || officerEditor);
+
+  useEffect(() => {
+    if (confirmDelete) deleteCancelRef.current?.focus();
+  }, [confirmDelete]);
+
+  useEffect(() => {
+    if (!isDialogOpen) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = previousOverflow; };
+  }, [isDialogOpen]);
 
   // Require admin login: redirect to /admin-ctmo if unauthenticated
   useEffect(() => {
@@ -189,47 +177,47 @@ export default function AdminDashboard() {
     return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   };
 
-  // Live real-time fetch from Django API with polling
+  // Retain the last successful snapshot on a connection error; never substitute sample reports.
   useEffect(() => {
     let isMounted = true;
-
+    let fetching = false;
     const fetchLiveReports = async () => {
+      if (fetching) return;
+      fetching = true;
       try {
         const response = await API.get("reports/");
-        if (response?.data && Array.isArray(response.data)) {
-          if (!isMounted) return;
-          if (response.data.length > 0) {
-            const formatted = response.data.map((r) => ({
-              id: r.id,
-              reference_id: r.reference_id || `SUP-${r.id}`,
-              violation_type: r.violation_type || "Traffic Violation",
-              location: r.location || "Surigao City",
-              submitted: formatRelativeTime(r.date_reported),
-              date_reported: r.date_reported || new Date().toISOString(),
-              status: r.status || "Pending",
-              assigned_officer: r.assigned_officer || "",
-              description: r.description || "No citizen remarks provided.",
-              image: r.image || null,
-              latitude: r.latitude ? Number(r.latitude) : 9.7843,
-              longitude: r.longitude ? Number(r.longitude) : 125.4888,
-            }));
-            setReports(formatted);
-          }
-        }
-      } catch (err) {
-        console.warn("Using offline simulated reports data.", err?.message);
+        if (!Array.isArray(response.data)) throw new Error("Unexpected report response");
+        if (!isMounted) return;
+        const formatted = response.data.map((r) => ({
+          ...r,
+          reference_id: r.reference_id || `SUP-${r.id}`,
+          violation_type: r.violation_type || "Traffic Violation",
+          location: r.location || "Location not recorded",
+          submitted: formatRelativeTime(r.date_reported),
+          date_reported: r.date_reported || null,
+          status: r.status || "Pending",
+          assigned_officer: r.assigned_officer || "",
+          description: r.description || "No citizen remarks provided.",
+          image: r.image ? r.image.startsWith("http") ? r.image : `${window.location.origin}${r.image}` : null,
+          latitude: r.latitude != null ? Number(r.latitude) : null,
+          longitude: r.longitude != null ? Number(r.longitude) : null,
+        }));
+        setReports(formatted);
+        setReportLoad({ loading: false, error: false, lastUpdated: new Date().toISOString() });
+      } catch (error) {
+        if (isMounted) setReportLoad((current) => ({ ...current, loading: false, error: true }));
+      } finally {
+        fetching = false;
       }
     };
-
     fetchLiveReports();
-    // Real-time polling every 3 seconds for live user updates
     const intervalId = setInterval(fetchLiveReports, 3000);
+    return () => { isMounted = false; clearInterval(intervalId); };
+  }, [refreshVersion]);
 
-    return () => {
-      isMounted = false;
-      clearInterval(intervalId);
-    };
-  }, []);
+  const assignableReports = useMemo(() => reports.filter((report) =>
+    report.public_verified_at && report.status === "Validated" && !String(report.assigned_officer || "").trim()
+  ), [reports]);
 
   // Real-time exact stats calculations from user reports
   const stats = useMemo(() => {
@@ -257,47 +245,13 @@ export default function AdminDashboard() {
       resolved: resolvedCases,
       resolutionRate,
       todayCount,
-      avgResponse: totalReports > 0 ? "24h" : "--",
+      unassigned: reports.filter((report) => !["Resolved", "Rejected"].includes(report.status) && !String(report.assigned_officer || "").trim()).length,
       pendingReview: urgentCases,
+      flagged: reports.filter((report) => report.suspicious_flags?.length > 0).length,
+      duplicates: reports.filter((report) => report.possible_duplicate).length,
+      readyForAssignment: reports.filter((report) => report.public_verified_at && report.status === "Validated" && !String(report.assigned_officer || "").trim()).length,
+      rejected: reports.filter((report) => report.status === "Rejected").length,
     };
-  }, [reports]);
-
-  // Dynamic violation breakdown from real reports
-  const violationBreakdown = useMemo(() => {
-    if (!reports.length) return [];
-    const counts = {};
-    reports.forEach((r) => {
-      const type = r.violation_type || "Other";
-      counts[type] = (counts[type] || 0) + 1;
-    });
-
-    const palette = [
-      { color: "#003366" },
-      { color: "#eab308" },
-      { color: "#38bdf8" },
-      { color: "#6366f1" },
-      { color: "#94a3b8" },
-    ];
-
-    return Object.entries(counts)
-      .map(([name, count], idx) => ({
-        name,
-        count,
-        percentage: Math.round((count / reports.length) * 100),
-        color: palette[idx % palette.length].color,
-      }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 5);
-  }, [reports]);
-
-  // Dynamic status distribution from real reports
-  const statusDistribution = useMemo(() => {
-    const pending = reports.filter((r) => r.status === "Pending").length;
-    const reviewing = reports.filter((r) => r.status === "Under Review" || r.status === "Validated").length;
-    const inProgress = reports.filter((r) => r.status === "In Progress" || r.status === "Assigned").length;
-    const resolved = reports.filter((r) => r.status === "Resolved").length;
-
-    return { pending, reviewing, inProgress, resolved };
   }, [reports]);
 
   // Queue filtered items
@@ -315,72 +269,95 @@ export default function AdminDashboard() {
         (statusFilter === "pending" && (report.status === "Pending" || report.status === "Under Review")) ||
         report.status.toLowerCase() === statusFilter.toLowerCase();
 
-      return matchQuery && matchStatus;
+      return matchQuery && matchStatus && (!duplicatesOnly || report.possible_duplicate) &&
+        (!flaggedOnly || report.suspicious_flags?.length > 0);
     });
-  }, [reports, searchQuery, statusFilter]);
+  }, [reports, searchQuery, statusFilter, duplicatesOnly, flaggedOnly]);
 
   // Handle Review Click
   const handleOpenReview = (report) => {
     setSelectedReport(report);
+    setConfirmDelete(false);
+    setDeleteError("");
+    setReviewError("");
     setEditStatus(report.status || "Pending");
     setEditOfficer(report.assigned_officer || "");
+    setRejectionReason(report.rejection_reason || "");
+    setRejectionDetails(report.rejection_details || "");
     setAdminNotes("");
+  };
+
+  const closeCaseReview = () => {
+    if (deletingCase) return;
+    if (confirmDelete) {
+      setConfirmDelete(false);
+      setDeleteError("");
+    } else setSelectedReport(null);
+  };
+
+  const handleDeleteCase = async () => {
+    if (!selectedReport || deletingCase || !confirmDelete) return;
+    const report = selectedReport;
+    setDeletingCase(true);
+    setDeleteError("");
+    try {
+      await API.delete(`reports/${report.id}/`);
+      setReports((current) => current.filter((item) => item.id !== report.id));
+      setRefreshVersion((version) => version + 1);
+      setSelectedReport(null);
+      setConfirmDelete(false);
+      showToast(`Case ${report.reference_id} deleted.`);
+    } catch (error) {
+      setDeleteError(error.response?.data?.detail || "Could not delete this case. Please try again.");
+    } finally {
+      setDeletingCase(false);
+    }
   };
 
   // Save report status / assignment updates
   const handleSaveReportUpdate = async () => {
-    if (!selectedReport) return;
-
-    const updated = {
-      ...selectedReport,
-      status: editStatus,
-      assigned_officer: editOfficer,
-    };
-
-    // Optimistic UI update
-    setReports((prev) =>
-      prev.map((r) => (r.reference_id === selectedReport.reference_id ? updated : r))
-    );
-
-    // If assigned to officer, update officer's active count
-    if (editOfficer && editOfficer !== selectedReport.assigned_officer) {
-      setOfficers((prev) =>
-        prev.map((o) => (o.name === editOfficer ? { ...o, activeCases: o.activeCases + 1 } : o))
-      );
+    if (!selectedReport || savingReview) return;
+    if (editStatus === "Rejected" && (!rejectionReason || !rejectionDetails.trim())) {
+      setReviewError("Select a rejection reason and explain it to the reporter before saving.");
+      return;
     }
-
+    setSavingReview(true);
+    setReviewError("");
     try {
-      if (selectedReport.id) {
-        await API.patch(`reports/${selectedReport.id}/`, {
-          status: editStatus,
-          assigned_officer: editOfficer,
-        });
-      }
-    } catch (e) {
-      // Backend sync error handled silently
+      const response = await API.patch(`reports/${selectedReport.id}/`, {
+        status: editStatus, assigned_officer: editOfficer,
+        ...(adminNotes.trim() ? { admin_note: adminNotes.trim() } : {}),
+        ...(editStatus === "Rejected" ? { rejection_reason: rejectionReason, rejection_details: rejectionDetails.trim() } : {}),
+      });
+      setReports((prev) => prev.map((report) => report.id === selectedReport.id
+        ? { ...report, ...response.data } : report));
+      setRefreshVersion((version) => version + 1);
+      showToast(`Case ${selectedReport.reference_id} updated successfully!`);
+      setSelectedReport(null);
+    } catch (error) {
+      const detail = error.response?.data;
+      setReviewError(detail?.assigned_officer?.[0] || detail?.admin_note?.[0] || detail?.rejection_reason?.[0] || detail?.rejection_details?.[0] || detail?.status?.[0] || detail?.detail || "Could not save the review. Please try again.");
+    } finally {
+      setSavingReview(false);
     }
-
-    showToast(`Case ${selectedReport.reference_id} updated successfully!`);
-    setSelectedReport(null);
   };
 
-  // Handle quick assignment to officer
-  const handleAssignToOfficer = (officer, reportId) => {
-    setReports((prev) =>
-      prev.map((r) => {
-        if (r.id === reportId || r.reference_id === reportId) {
-          return { ...r, assigned_officer: officer.name, status: "Assigned" };
-        }
-        return r;
-      })
-    );
-
-    setOfficers((prev) =>
-      prev.map((o) => (o.id === officer.id ? { ...o, activeCases: o.activeCases + 1 } : o))
-    );
-
-    showToast(`Assigned case to ${officer.name}`);
-    setAssigningOfficer(null);
+  // Assignment is available only after the report has been verified.
+  const handleAssignToOfficer = async (officer, reportId) => {
+    const report = assignableReports.find((item) => item.id === reportId || item.reference_id === reportId);
+    if (!report || assigningCaseId !== null) return;
+    setAssigningCaseId(report.id);
+    try {
+      const response = await API.patch(`reports/${report.id}/`, { assigned_officer: officer.name, status: "Assigned" });
+      setReports((prev) => prev.map((item) => item.id === report.id ? { ...item, ...response.data } : item));
+      setRefreshVersion((version) => version + 1);
+      showToast(`Assigned case to ${officer.name}`);
+      setAssigningOfficer(null);
+    } catch (error) {
+      showToast(error.response?.data?.assigned_officer?.[0] || error.response?.data?.status?.[0] || "Could not assign this case. Please try again.");
+    } finally {
+      setAssigningCaseId(null);
+    }
   };
 
   // CSV Export
@@ -407,17 +384,29 @@ export default function AdminDashboard() {
   };
 
   // Broadcast Notification
-  const handleSendBroadcast = (e) => {
+  const handleSendBroadcast = async (e) => {
     e.preventDefault();
-    if (!notificationMessage.trim()) return;
-    showToast(`Advisory broadcasted to ${notificationTarget.toUpperCase()}`);
-    setNotificationMessage("");
-    setShowNotificationModal(false);
+    if (!notificationMessage.trim() || sendingAdvisory) return;
+    setSendingAdvisory(true);
+    setAdvisoryError("");
+    try {
+      await API.post("admin/advisories/", { message: notificationMessage.trim(), audience: notificationTarget });
+      setAdvisoryVersion((value) => value + 1);
+      setNotificationMessage("");
+      setShowNotificationModal(false);
+      showToast("Traffic advisory published.");
+    } catch (error) {
+      setAdvisoryError(error.response?.data?.message?.[0] || error.response?.data?.audience?.[0] ||
+        error.response?.data?.detail || "Could not publish the advisory. Please try again.");
+    } finally {
+      setSendingAdvisory(false);
+    }
   };
 
   // Get status badge styling
   const getStatusBadgeClass = (status) => {
     const s = String(status || "").toLowerCase();
+    if (s.includes("reject")) return "status-badge-rejected";
     if (s.includes("review") || s.includes("pending")) return "status-badge-reviewing";
     if (s.includes("assign")) return "status-badge-assigned";
     if (s.includes("progress")) return "status-badge-progress";
@@ -425,1123 +414,202 @@ export default function AdminDashboard() {
     return "status-badge-default";
   };
 
+  const openQueue = (filter = "all", flags = false, duplicates = false) => {
+    setStatusFilter(filter);
+    setFlaggedOnly(flags);
+    setDuplicatesOnly(duplicates);
+    setSearchQuery("");
+    setActiveTab("queue");
+  };
+  const navigation = [
+    { key: "overview", label: "Overview", icon: "overview" },
+    { key: "queue", label: "Reports Queue", icon: "reports" },
+    { key: "assignment", label: "Case Assignment", icon: "officers" },
+    { key: "analytics", label: "Analytics", icon: "analytics" },
+    { key: "hotspot", label: "Hotspot Map", icon: "map" },
+    { key: "activity", label: "Activity History", icon: "clock" },
+    { key: "messages", label: "Messages", icon: "reports" },
+    ...(isSuperuser ? [{ key: "accounts", label: "CTMO Accounts", icon: "officers" }] : []),
+  ];
+  const workflow = [
+    { label: "Pending review", count: stats.pendingReview, color: "#b18b45" },
+    { label: "Validated", count: reports.filter((report) => report.status === "Validated").length, color: "#8976b6" },
+    { label: "Assigned", count: reports.filter((report) => report.status === "Assigned").length, color: "#597fab" },
+    { label: "In progress", count: reports.filter((report) => report.status === "In Progress").length, color: "#b77c57" },
+    { label: "Resolved", count: stats.resolved, color: "#438d78" },
+    { label: "Rejected", count: stats.rejected, color: "#b96672" },
+  ];
+  const syncLabel = reportLoad.error ? "Connection interrupted" : reportLoad.loading ? "Connecting to reports" : "Auto-refresh active";
+  const hasSnapshot = Boolean(reportLoad.lastUpdated);
+  const displayCount = (count) => hasSnapshot ? count.toLocaleString() : "-";
+  const officerWorkload = (name) => reports.filter((report) => report.assigned_officer === name && !["Resolved", "Rejected"].includes(report.status)).length;
+  const handleLogout = async () => {
+    try { await API.post("admin/logout/"); } catch { /* Clear the local session even if the server is unavailable. */ }
+    sessionStorage.removeItem("ctmo_admin_authenticated");
+    sessionStorage.removeItem("ctmo_admin_user");
+    showToast("Logged out of CTMO session.");
+    setTimeout(() => navigate("/admin-ctmo", { replace: true }), 400);
+  };
+
   return (
     <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-
-        * {
-          box-sizing: border-box;
-          margin: 0;
-          padding: 0;
-        }
-
-        .admin-dashboard-root {
-          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-          min-height: 100vh;
-          /* Exact user dashboard signature ambient background */
-          background:
-            radial-gradient(circle at 10% 18%, rgba(90, 127, 255, 0.34) 0, rgba(90, 127, 255, 0.34) 14%, transparent 36%),
-            radial-gradient(circle at 84% 14%, rgba(191, 174, 255, 0.28) 0, transparent 26%),
-            radial-gradient(circle at 16% 90%, rgba(200, 212, 255, 0.5) 0, transparent 30%),
-            linear-gradient(135deg, #dfe7ff 0%, #f7f8ff 44%, #e7e9ff 100%);
-          color: #0f172a;
-          padding-bottom: 60px;
-        }
-
-        /* Top Header Navbar - High Contrast CTMO Official Dark Blue */
-        .admin-header {
-          background: #003366;
-          color: #ffffff;
-          padding: 16px 36px;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          box-shadow: 0 4px 18px rgba(0, 51, 102, 0.25);
-          position: sticky;
-          top: 0;
-          z-index: 99999;
-        }
-
-        .admin-header-brand {
-          display: flex;
-          align-items: center;
-          gap: 16px;
-        }
-
-        .admin-logo-img {
-          width: 44px;
-          height: 44px;
-          border-radius: 50%;
-          border: 2px solid rgba(255, 255, 255, 0.3);
-          object-fit: cover;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        .admin-header-title {
-          font-size: 20px;
-          font-weight: 800;
-          letter-spacing: -0.02em;
-          color: #ffffff;
-          line-height: 1.2;
-        }
-
-        .admin-header-subtitle {
-          font-size: 13px;
-          color: #93c5fd;
-          font-weight: 500;
-          margin-top: 2px;
-        }
-
-        .admin-header-right {
-          display: flex;
-          align-items: center;
-          gap: 14px;
-        }
-
-        .admin-time-pill {
-          background: rgba(255, 255, 255, 0.12);
-          border: 1px solid rgba(255, 255, 255, 0.18);
-          padding: 6px 14px;
-          border-radius: 999px;
-          font-size: 13px;
-          font-weight: 600;
-          color: #e2e8f0;
-          display: flex;
-          align-items: center;
-          gap: 6px;
-        }
-
-        .admin-pulse-dot {
-          width: 8px;
-          height: 8px;
-          background: #22c55e;
-          border-radius: 50%;
-          box-shadow: 0 0 8px #22c55e;
-          animation: pulseGreen 2s infinite;
-        }
-
-        @keyframes pulseGreen {
-          0%, 100% { opacity: 1; transform: scale(1); }
-          50% { opacity: 0.5; transform: scale(0.85); }
-        }
-
-        .admin-header-btn {
-          background: #ffffff;
-          color: #003366;
-          border: none;
-          padding: 8px 18px;
-          border-radius: 8px;
-          font-size: 13px;
-          font-weight: 700;
-          cursor: pointer;
-          transition: all 0.18s ease;
-          text-decoration: none;
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-        }
-
-        .admin-header-btn:hover {
-          background: #f1f5f9;
-          transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .admin-logout-btn {
-          background: transparent;
-          color: #cbd5e1;
-          border: 1px solid rgba(255, 255, 255, 0.25);
-          padding: 7px 14px;
-          border-radius: 8px;
-          font-size: 12px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.15s ease;
-        }
-
-        .admin-logout-btn:hover {
-          background: rgba(239, 68, 68, 0.2);
-          border-color: #ef4444;
-          color: #fca5a5;
-        }
-
-        /* Container */
-        .admin-container {
-          max-width: 1280px;
-          margin: 28px auto 0;
-          padding: 0 24px;
-        }
-
-        /* Top 4 KPI Metric Cards */
-        .admin-stats-grid {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 20px;
-          margin-bottom: 28px;
-        }
-
-        .admin-stat-card {
-          background: rgba(255, 255, 255, 0.96);
-          border: 1px solid rgba(221, 229, 243, 0.95);
-          border-radius: 14px;
-          padding: 22px 24px;
-          box-shadow: 0 10px 25px rgba(90, 108, 166, 0.08);
-          transition: transform 0.18s ease, box-shadow 0.18s ease;
-          display: flex;
-          flex-direction: column;
-          justify-content: space-between;
-        }
-
-        .admin-stat-card:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 14px 30px rgba(90, 108, 166, 0.14);
-        }
-
-        .admin-stat-title {
-          font-size: 13px;
-          font-weight: 600;
-          color: #64748b;
-          margin-bottom: 12px;
-          text-transform: capitalize;
-        }
-
-        .admin-stat-number {
-          font-size: 34px;
-          font-weight: 800;
-          line-height: 1;
-          margin-bottom: 10px;
-          letter-spacing: -0.02em;
-        }
-
-        .admin-stat-number.total {
-          color: #003366;
-        }
-
-        .admin-stat-number.open {
-          color: #d97706;
-        }
-
-        .admin-stat-number.resolved {
-          color: #059669;
-        }
-
-        .admin-stat-number.response {
-          color: #2563eb;
-        }
-
-        .admin-stat-footer {
-          font-size: 12px;
-          font-weight: 600;
-        }
-
-        .admin-stat-footer.green {
-          color: #16a34a;
-        }
-
-        .admin-stat-footer.amber {
-          color: #d97706;
-        }
-
-        .admin-stat-footer.blue {
-          color: #2563eb;
-        }
-
-        /* Nav Pills / Tabs bar */
-        .admin-nav-bar {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          background: rgba(255, 255, 255, 0.7);
-          backdrop-filter: blur(8px);
-          padding: 8px 10px;
-          border-radius: 999px;
-          border: 1px solid rgba(221, 229, 243, 0.95);
-          width: fit-content;
-          margin: 0 auto 30px;
-          box-shadow: 0 4px 14px rgba(90, 108, 166, 0.06);
-        }
-
-        .admin-tab-btn {
-          border: none;
-          background: transparent;
-          color: #475569;
-          font-size: 14px;
-          font-weight: 600;
-          padding: 8px 22px;
-          border-radius: 999px;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-
-        .admin-tab-btn:hover {
-          color: #003366;
-          background: rgba(255, 255, 255, 0.8);
-        }
-
-        .admin-tab-btn.active {
-          color: #003366;
-          background: #ffffff;
-          border: 1.5px solid #003366;
-          font-weight: 700;
-          box-shadow: 0 2px 8px rgba(0, 51, 102, 0.12);
-        }
-
-        .admin-tab-badge {
-          background: #ef4444;
-          color: #ffffff;
-          font-size: 10px;
-          font-weight: 800;
-          padding: 2px 6px;
-          border-radius: 999px;
-        }
-
-        /* Content Card Panel */
-        .admin-panel-card {
-          background: rgba(255, 255, 255, 0.96);
-          border: 1px solid rgba(221, 229, 243, 0.95);
-          border-radius: 16px;
-          padding: 28px;
-          box-shadow: 0 12px 34px rgba(90, 108, 166, 0.08);
-        }
-
-        .admin-panel-title {
-          font-size: 20px;
-          font-weight: 800;
-          color: #0f172a;
-          margin-bottom: 6px;
-        }
-
-        .admin-panel-subtitle {
-          font-size: 14px;
-          color: #64748b;
-          margin-bottom: 22px;
-        }
-
-        /* TAB 1: OVERVIEW 2-COLUMN LAYOUT */
-        .admin-overview-grid {
-          display: grid;
-          grid-template-columns: 1fr 340px;
-          gap: 24px;
-        }
-
-        .admin-recent-list {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-        }
-
-        .admin-recent-row {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 16px 20px;
-          border: 1px solid #e2e8f0;
-          border-radius: 12px;
-          background: #ffffff;
-          transition: all 0.15s ease;
-          cursor: pointer;
-        }
-
-        .admin-recent-row:hover {
-          border-color: #003366;
-          transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(0, 51, 102, 0.06);
-        }
-
-        .admin-recent-info {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-        }
-
-        .admin-recent-id {
-          font-size: 15px;
-          font-weight: 700;
-          color: #0f172a;
-        }
-
-        .admin-recent-meta {
-          font-size: 13px;
-          color: #64748b;
-        }
-
-        .admin-recent-right {
-          display: flex;
-          flex-direction: column;
-          align-items: flex-end;
-          gap: 6px;
-        }
-
-        .admin-recent-time {
-          font-size: 12px;
-          color: #94a3b8;
-        }
-
-        /* Status Pills */
-        .status-badge {
-          font-size: 12px;
-          font-weight: 700;
-          padding: 4px 12px;
-          border-radius: 999px;
-          display: inline-flex;
-          align-items: center;
-          letter-spacing: 0.01em;
-        }
-
-        .status-badge-reviewing {
-          background: #fef3c7;
-          color: #b45309;
-          border: 1px solid #fde68a;
-        }
-
-        .status-badge-assigned {
-          background: #dbeafe;
-          color: #1d4ed8;
-          border: 1px solid #bfdbfe;
-        }
-
-        .status-badge-progress {
-          background: #ffedd5;
-          color: #c2410c;
-          border: 1px solid #fed7aa;
-        }
-
-        .status-badge-resolved {
-          background: #dcfce7;
-          color: #15803d;
-          border: 1px solid #bbf7d0;
-        }
-
-        .status-badge-default {
-          background: #f1f5f9;
-          color: #475569;
-          border: 1px solid #e2e8f0;
-        }
-
-        /* Quick Actions Panel */
-        .admin-quick-actions-card {
-          background: #ffffff;
-          border: 1px solid #e2e8f0;
-          border-radius: 14px;
-          padding: 20px;
-        }
-
-        .admin-quick-actions-title {
-          font-size: 16px;
-          font-weight: 800;
-          color: #0f172a;
-          margin-bottom: 16px;
-        }
-
-        .admin-action-btn-list {
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-        }
-
-        .admin-action-item-btn {
-          width: 100%;
-          text-align: left;
-          background: #f8fafc;
-          border: 1px solid #e2e8f0;
-          border-radius: 10px;
-          padding: 12px 16px;
-          font-size: 13.5px;
-          font-weight: 600;
-          color: #1e293b;
-          cursor: pointer;
-          transition: all 0.15s ease;
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-
-        .admin-action-item-btn:hover {
-          background: #003366;
-          color: #ffffff;
-          border-color: #003366;
-          transform: translateY(-1px);
-          box-shadow: 0 4px 10px rgba(0, 51, 102, 0.15);
-        }
-
-        /* TAB 2: REPORTS QUEUE */
-        .admin-queue-toolbar {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          flex-wrap: wrap;
-          gap: 14px;
-          margin-bottom: 20px;
-        }
-
-        .admin-search-input {
-          flex: 1;
-          min-width: 240px;
-          max-width: 420px;
-          border: 1px solid #d9e2ec;
-          border-radius: 8px;
-          padding: 10px 14px;
-          font-size: 13.5px;
-          color: #0f172a;
-          outline: none;
-          background: #ffffff;
-          transition: border-color 0.15s ease;
-        }
-
-        .admin-search-input:focus {
-          border-color: #003366;
-          box-shadow: 0 0 0 3px rgba(0, 51, 102, 0.1);
-        }
-
-        .admin-filter-select {
-          border: 1px solid #d9e2ec;
-          border-radius: 8px;
-          padding: 10px 14px;
-          font-size: 13.5px;
-          color: #0f172a;
-          background: #ffffff;
-          outline: none;
-          cursor: pointer;
-        }
-
-        .admin-table-wrapper {
-          overflow-x: auto;
-          border: 1px solid #e2e8f0;
-          border-radius: 12px;
-          background: #ffffff;
-        }
-
-        .admin-table {
-          width: 100%;
-          border-collapse: collapse;
-          text-align: left;
-        }
-
-        .admin-table th {
-          background: #f8fafc;
-          padding: 14px 18px;
-          font-size: 12.5px;
-          font-weight: 700;
-          color: #64748b;
-          text-transform: uppercase;
-          letter-spacing: 0.04em;
-          border-bottom: 1px solid #e2e8f0;
-        }
-
-        .admin-table td {
-          padding: 16px 18px;
-          font-size: 14px;
-          color: #1e293b;
-          border-bottom: 1px solid #f1f5f9;
-          vertical-align: middle;
-        }
-
-        .admin-table tr:hover td {
-          background: #f8fbff;
-        }
-
-        .admin-table tr:last-child td {
-          border-bottom: none;
-        }
-
-        .admin-id-text {
-          font-weight: 700;
-          color: #003366;
-        }
-
-        .admin-review-btn {
-          background: #ffffff;
-          border: 1.5px solid #003366;
-          color: #003366;
-          font-size: 12.5px;
-          font-weight: 700;
-          padding: 6px 16px;
-          border-radius: 6px;
-          cursor: pointer;
-          transition: all 0.15s ease;
-        }
-
-        .admin-review-btn:hover {
-          background: #003366;
-          color: #ffffff;
-          box-shadow: 0 2px 8px rgba(0, 51, 102, 0.2);
-        }
-
-        /* TAB 3: CASE ASSIGNMENT (2x2 GRID MATCHING PICTURE) */
-        .admin-officer-grid {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 20px;
-        }
-
-        .admin-officer-card {
-          border: 1px solid #e2e8f0;
-          border-radius: 14px;
-          padding: 22px;
-          background: #ffffff;
-          box-shadow: 0 4px 14px rgba(0, 0, 0, 0.02);
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-          transition: all 0.18s ease;
-        }
-
-        .admin-officer-card:hover {
-          border-color: #003366;
-          box-shadow: 0 8px 24px rgba(0, 51, 102, 0.08);
-          transform: translateY(-2px);
-        }
-
-        .admin-officer-header {
-          display: flex;
-          align-items: flex-start;
-          justify-content: space-between;
-        }
-
-        .admin-officer-name {
-          font-size: 18px;
-          font-weight: 800;
-          color: #0f172a;
-          margin-bottom: 4px;
-        }
-
-        .admin-officer-unit {
-          font-size: 13px;
-          color: #64748b;
-          font-weight: 500;
-        }
-
-        .admin-officer-badge {
-          background: #eff6ff;
-          color: #1e40af;
-          border: 1px solid #bfdbfe;
-          font-size: 11px;
-          font-weight: 700;
-          padding: 3px 8px;
-          border-radius: 6px;
-        }
-
-        .admin-officer-cases {
-          font-size: 14px;
-          color: #475569;
-          font-weight: 600;
-        }
-
-        .admin-assign-btn {
-          width: 100%;
-          background: #f8fafc;
-          border: 1.5px solid #cbd5e1;
-          color: #1e293b;
-          font-size: 13.5px;
-          font-weight: 700;
-          padding: 10px 0;
-          border-radius: 8px;
-          cursor: pointer;
-          transition: all 0.15s ease;
-          text-align: center;
-        }
-
-        .admin-assign-btn:hover {
-          background: #003366;
-          border-color: #003366;
-          color: #ffffff;
-          box-shadow: 0 4px 12px rgba(0, 51, 102, 0.15);
-        }
-
-        /* TAB 4: ANALYTICS & TRENDS */
-        .admin-analytics-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 32px;
-        }
-
-        .admin-chart-box {
-          background: #ffffff;
-          border: 1px solid #e2e8f0;
-          border-radius: 14px;
-          padding: 24px;
-        }
-
-        .admin-chart-title {
-          font-size: 16px;
-          font-weight: 800;
-          color: #0f172a;
-          margin-bottom: 20px;
-        }
-
-        .admin-bar-list {
-          display: flex;
-          flex-direction: column;
-          gap: 18px;
-        }
-
-        .admin-bar-row {
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-        }
-
-        .admin-bar-label-row {
-          display: flex;
-          justify-content: space-between;
-          font-size: 13.5px;
-          font-weight: 600;
-          color: #334155;
-        }
-
-        .admin-bar-track {
-          width: 100%;
-          height: 10px;
-          background: #e2e8f0;
-          border-radius: 999px;
-          overflow: hidden;
-        }
-
-        .admin-bar-fill {
-          height: 100%;
-          border-radius: 999px;
-          transition: width 0.6s ease;
-        }
-
-        .admin-bar-fill.parking {
-          background: #003366;
-          width: 45%;
-        }
-
-        .admin-bar-fill.speeding {
-          background: #eab308;
-          width: 28%;
-        }
-
-        .admin-bar-fill.traffic-light {
-          background: #38bdf8;
-          width: 18%;
-        }
-
-        .admin-bar-fill.other {
-          background: #94a3b8;
-          width: 9%;
-        }
-
-        .admin-status-dist-list {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-        }
-
-        .admin-status-dist-row {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 14px 18px;
-          border: 1px solid #e2e8f0;
-          border-radius: 10px;
-          background: #ffffff;
-        }
-
-        .admin-status-dist-row.resolved-highlight {
-          background: #f0fdf4;
-          border-color: #86efac;
-        }
-
-        .admin-status-dist-name {
-          font-size: 14px;
-          font-weight: 700;
-          color: #0f172a;
-        }
-
-        .admin-status-dist-count {
-          font-size: 16px;
-          font-weight: 800;
-          color: #0f172a;
-        }
-
-        .admin-status-dist-row.resolved-highlight .admin-status-dist-count {
-          color: #15803d;
-        }
-
-        /* TAB 5: HOTSPOT MAP INTEGRATION */
-        .admin-hotspot-container {
-          position: relative;
-          isolation: isolate;
-          z-index: 1;
-          background: #ffffff;
-          border-radius: 14px;
-          overflow: hidden;
-          padding: 0;
-        }
-
-        /* MODALS */
-        .admin-modal-backdrop {
-          position: fixed;
-          inset: 0;
-          background: rgba(15, 23, 42, 0.6);
-          backdrop-filter: blur(4px);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 20px;
-          z-index: 999;
-          animation: fadeIn 0.15s ease;
-        }
-
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-
-        .admin-modal {
-          background: #ffffff;
-          border-radius: 18px;
-          width: 100%;
-          max-width: 640px;
-          max-height: 90vh;
-          overflow-y: auto;
-          padding: 28px;
-          box-shadow: 0 24px 50px rgba(0, 0, 0, 0.25);
-          position: relative;
-        }
-
-        .admin-modal-header {
-          display: flex;
-          align-items: flex-start;
-          justify-content: space-between;
-          margin-bottom: 20px;
-          padding-bottom: 14px;
-          border-bottom: 1px solid #e2e8f0;
-        }
-
-        .admin-modal-title {
-          font-size: 20px;
-          font-weight: 800;
-          color: #003366;
-        }
-
-        .admin-modal-close-btn {
-          border: none;
-          background: #f1f5f9;
-          color: #64748b;
-          width: 32px;
-          height: 32px;
-          border-radius: 50%;
-          cursor: pointer;
-          font-size: 18px;
-          line-height: 1;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: background 0.15s ease;
-        }
-
-        .admin-modal-close-btn:hover {
-          background: #e2e8f0;
-          color: #0f172a;
-        }
-
-        .admin-modal-body {
-          display: flex;
-          flex-direction: column;
-          gap: 18px;
-        }
-
-        .admin-detail-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 14px;
-          background: #f8fafc;
-          padding: 16px;
-          border-radius: 12px;
-          border: 1px solid #e2e8f0;
-        }
-
-        .admin-detail-cell {
-          display: flex;
-          flex-direction: column;
-          gap: 2px;
-        }
-
-        .admin-detail-label {
-          font-size: 11.5px;
-          text-transform: uppercase;
-          color: #64748b;
-          font-weight: 700;
-        }
-
-        .admin-detail-val {
-          font-size: 14px;
-          color: #0f172a;
-          font-weight: 600;
-        }
-
-        .admin-field-group {
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-        }
-
-        .admin-field-label {
-          font-size: 13px;
-          font-weight: 700;
-          color: #334155;
-        }
-
-        .admin-modal-select,
-        .admin-modal-textarea,
-        .admin-modal-input {
-          width: 100%;
-          border: 1px solid #d9e2ec;
-          border-radius: 8px;
-          padding: 10px 12px;
-          font-size: 14px;
-          color: #0f172a;
-          background: #ffffff;
-          outline: none;
-          font-family: inherit;
-        }
-
-        .admin-modal-select:focus,
-        .admin-modal-textarea:focus,
-        .admin-modal-input:focus {
-          border-color: #003366;
-          box-shadow: 0 0 0 3px rgba(0, 51, 102, 0.1);
-        }
-
-        .admin-modal-footer {
-          display: flex;
-          align-items: center;
-          justify-content: flex-end;
-          gap: 12px;
-          margin-top: 24px;
-          padding-top: 16px;
-          border-top: 1px solid #e2e8f0;
-        }
-
-        .admin-modal-cancel {
-          background: #f1f5f9;
-          border: 1px solid #cbd5e1;
-          color: #475569;
-          font-size: 13px;
-          font-weight: 700;
-          padding: 10px 18px;
-          border-radius: 8px;
-          cursor: pointer;
-        }
-
-        .admin-modal-save {
-          background: #003366;
-          border: none;
-          color: #ffffff;
-          font-size: 13px;
-          font-weight: 700;
-          padding: 10px 22px;
-          border-radius: 8px;
-          cursor: pointer;
-          transition: background 0.15s ease;
-        }
-
-        .admin-modal-save:hover {
-          background: #002244;
-        }
-
-        /* Toast notification */
-        .admin-toast {
-          position: fixed;
-          bottom: 24px;
-          right: 24px;
-          background: #003366;
-          color: #ffffff;
-          padding: 14px 22px;
-          border-radius: 10px;
-          font-size: 14px;
-          font-weight: 600;
-          box-shadow: 0 10px 25px rgba(0, 51, 102, 0.3);
-          z-index: 1000;
-          animation: slideUp 0.2s ease;
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-
-        @keyframes slideUp {
-          from { transform: translateY(20px); opacity: 0; }
-          to { transform: translateY(0); opacity: 1; }
-        }
-
-        /* Responsive */
-        @media (max-width: 1024px) {
-          .admin-stats-grid {
-            grid-template-columns: repeat(2, 1fr);
-          }
-          .admin-overview-grid {
-            grid-template-columns: 1fr;
-          }
-          .admin-analytics-grid {
-            grid-template-columns: 1fr;
-          }
-        }
-
-        @media (max-width: 680px) {
-          .admin-header {
-            padding: 14px 18px;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 12px;
-          }
-          .admin-header-right {
-            width: 100%;
-            justify-content: space-between;
-          }
-          .admin-stats-grid {
-            grid-template-columns: 1fr;
-          }
-          .admin-officer-grid {
-            grid-template-columns: 1fr;
-          }
-          .admin-nav-bar {
-            width: 100%;
-            overflow-x: auto;
-            border-radius: 12px;
-            justify-content: flex-start;
-          }
-          .admin-tab-btn {
-            white-space: nowrap;
-            padding: 8px 14px;
-            font-size: 13px;
-          }
-        }
-      `}</style>
-
-      <div className="admin-dashboard-root">
-        {/* Top High-Authority Header */}
+      <div className="admin-dashboard-root" data-view={activeTab}>
+        <a className="admin-skip-link" href="#admin-main">Skip to dashboard content</a>
+        {mobileMenuOpen && <div className="admin-menu-backdrop" aria-hidden="true" onClick={() => {
+          setMobileMenuOpen(false);
+          mobileMenuButton.current?.focus();
+        }} />}
+        <aside className={`admin-sidebar${mobileMenuOpen ? " is-menu-open" : ""}`}>
+          <div className="admin-sidebar-brand">
+            <img src={ctmoShieldLogo} alt="CTMO Shield" className="admin-logo-img" />
+            <div><strong>Hapsay<span>Dalan</span></strong><small>CTMO OPERATIONS</small></div>
+            <button ref={mobileMenuButton} type="button" className="admin-mobile-menu-toggle"
+              aria-label={mobileMenuOpen ? "Close admin navigation" : "Open admin navigation"}
+              aria-expanded={mobileMenuOpen} aria-controls="admin-navigation"
+              onClick={() => setMobileMenuOpen((open) => !open)}>
+              <AdminIcon name={mobileMenuOpen ? "close" : "menu"} /><span>{mobileMenuOpen ? "Close" : "Menu"}</span>
+            </button>
+          </div>
+          <div className="admin-sidebar-label">WORKSPACE</div>
+          <nav className="admin-nav-bar" id="admin-navigation" aria-label="Admin Navigation">
+            <div className="admin-mobile-nav-heading"><strong>Your workspace</strong><span>CTMO MENU</span></div>
+            {navigation.map((item) => <button key={item.key}
+              className={`admin-tab-btn ${activeTab === item.key ? "active" : ""}`}
+              aria-current={activeTab === item.key ? "page" : undefined}
+              onClick={() => {
+                setActiveTab(item.key);
+                setMobileMenuOpen(false);
+              }}>
+              <span className="admin-nav-icon"><AdminIcon name={item.icon} /></span>
+              <span className="admin-nav-copy"><span>{item.label}</span><small aria-hidden="true">{{
+                overview: "Summary & updates", queue: "Review citizen reports", assignment: "Coordinate officers",
+                analytics: "Trends & statistics", hotspot: "Verified locations", activity: "Admin actions & notes", messages: "Citizen questions & help", accounts: "Manage staff access",
+              }[item.key]}</small></span>
+              {item.key === "queue" && stats.pendingReview > 0 && <span className="admin-tab-badge">{stats.pendingReview}</span>}
+              {item.key === "messages" && unreadMessages > 0 && <span className="admin-tab-badge" aria-label={`${unreadMessages} unread messages`}>{unreadMessages}</span>}
+            </button>)}
+            <div className="admin-mobile-actions">
+              <div className="admin-mobile-actions-time"><AdminIcon name="clock" /><span>Local time</span><strong>{currentTime}</strong></div>
+              <ThemeToggle showLabel />
+              <div className="admin-mobile-actions-buttons">
+                <Link to="/" className="admin-header-btn" onClick={() => setMobileMenuOpen(false)}><AdminIcon name="home" /><span>User Dashboard</span></Link>
+                <button type="button" className="admin-logout-btn" onClick={handleLogout}><AdminIcon name="logout" /><span>Log Out</span></button>
+              </div>
+            </div>
+          </nav>
+          <div className="admin-sidebar-note"><AdminIcon name="shield" /><strong>Verify before publishing.</strong>
+            <p>Only approved reports appear on the public hotspot map.</p></div>
+          <div className="admin-sidebar-footer"><span className="admin-avatar">{adminUser.trim().charAt(0).toUpperCase()}</span>
+            <div><strong>{adminUser}</strong><small>CTMO administrator</small></div></div>
+        </aside>
         <header className="admin-header">
           <div className="admin-header-brand">
-            <img src={ctmoShieldLogo} alt="CTMO Shield" className="admin-logo-img" />
-            <div>
-              <h1 className="admin-header-title">CTMO Admin Dashboard</h1>
-              <div className="admin-header-subtitle">Welcome, {adminUser} • Surigao City Portal</div>
-            </div>
+            <div><span className="admin-breadcrumb">Workspace / {navigation.find((item) => item.key === activeTab)?.label}</span>
+              <h1 className="admin-header-title">CTMO Admin Dashboard</h1></div>
           </div>
-
           <div className="admin-header-right">
-            <div className="admin-time-pill">
-              <span className="admin-pulse-dot" />
-              <span>{currentTime}</span>
+              <ThemeToggle showLabel />
+            <div className="admin-time-pill" title="Current time on your device">
+              <span className="admin-clock-icon"><AdminIcon name="clock" /></span>
+              <span className="admin-clock-copy"><small>LOCAL TIME</small><strong>{currentTime}</strong></span>
             </div>
-            <Link to="/" className="admin-header-btn">
-              ← User Dashboard
-            </Link>
-            <button
-              className="admin-logout-btn"
-              onClick={() => {
-                sessionStorage.removeItem("ctmo_admin_authenticated");
-                sessionStorage.removeItem("ctmo_admin_user");
-                showToast("Logged out of CTMO session.");
-                setTimeout(() => navigate("/admin-ctmo", { replace: true }), 400);
-              }}
-            >
-              Log Out
-            </button>
+            <Link to="/" className="admin-header-btn"><AdminIcon name="home" /><span>User Dashboard</span><AdminIcon name="arrow" className="admin-header-link-arrow" /></Link>
+            <button className="admin-logout-btn" onClick={handleLogout}><AdminIcon name="logout" /><span>Log Out</span></button>
           </div>
         </header>
 
-        <div className="admin-container">
+        <main className="admin-container" id="admin-main" tabIndex={-1}>
+          <section className="admin-welcome" aria-labelledby="admin-welcome-title">
+            <div><span className="admin-eyebrow">SURIGAO CITY | TRAFFIC OPERATIONS</span>
+              <h2 id="admin-welcome-title">Traffic operations overview</h2>
+              <p>Review citizen submissions, verify incidents, and coordinate case assignments.</p>
+              <div className="admin-welcome-meta"><span>{new Date().toLocaleDateString("en-PH", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}</span>
+                <span className={`admin-sync-status ${reportLoad.error ? "is-offline" : reportLoad.loading ? "is-connecting" : ""}`}><i />{syncLabel}</span></div>
+            </div>
+            <button className="admin-primary-action" onClick={() => openQueue("pending")}><AdminIcon name="reports" />Review pending reports<AdminIcon name="arrow" /></button>
+          </section>
+          {reportLoad.error && activeTab !== "analytics" ? <div className="admin-connection-notice" role="alert">
+            <span>{hasSnapshot ? "Connection interrupted. Showing the last loaded reports." : "Reports could not be loaded. Check your connection and retry."}</span>
+            <button onClick={() => setRefreshVersion((value) => value + 1)}>Retry connection</button>
+          </div> : null}
           {/* Top 4 KPI Metric Summary Cards */}
-          <div className="admin-stats-grid">
-            <div className="admin-stat-card">
-              <div className="admin-stat-title">Total Reports</div>
-              <div className="admin-stat-number total">{stats.total.toLocaleString()}</div>
+          {activeTab === "overview" && <div className="admin-stats-grid">
+            <div className="admin-stat-card" data-tone="blue">
+              <div className="admin-stat-title">Total Reports<AdminIcon name="reports" /></div>
+              <div className="admin-stat-number total">{displayCount(stats.total)}</div>
               <div className="admin-stat-footer green">
-                {stats.todayCount > 0 ? `+${stats.todayCount} new today` : `Real-time synced (${stats.total} total)`}
+                {hasSnapshot ? `${stats.todayCount} received today` : "Waiting for report data"}
               </div>
             </div>
 
-            <div className="admin-stat-card">
-              <div className="admin-stat-title">Open Cases</div>
-              <div className="admin-stat-number open">{stats.open.toLocaleString()}</div>
-              <div className="admin-stat-footer amber">{stats.urgent} pending review</div>
+            <div className="admin-stat-card" data-tone="amber">
+              <div className="admin-stat-title">Open Cases<AdminIcon name="clock" /></div>
+              <div className="admin-stat-number open">{displayCount(stats.open)}</div>
+              <div className="admin-stat-footer amber">{hasSnapshot ? `${stats.urgent} pending review` : "Waiting for report data"}</div>
             </div>
 
-            <div className="admin-stat-card">
-              <div className="admin-stat-title">Resolved Cases</div>
-              <div className="admin-stat-number resolved">{stats.resolved.toLocaleString()}</div>
-              <div className="admin-stat-footer green">{stats.resolutionRate} resolution rate</div>
+            <div className="admin-stat-card" data-tone="green">
+              <div className="admin-stat-title">Resolved Cases<AdminIcon name="check" /></div>
+              <div className="admin-stat-number resolved">{displayCount(stats.resolved)}</div>
+              <div className="admin-stat-footer green">{hasSnapshot ? `${stats.resolutionRate} resolution rate` : "Waiting for report data"}</div>
             </div>
 
-            <div className="admin-stat-card">
-              <div className="admin-stat-title">Avg Response Time</div>
-              <div className="admin-stat-number response">{stats.avgResponse}</div>
-              <div className="admin-stat-footer blue">Live monitoring</div>
+            <div className="admin-stat-card" data-tone="purple">
+              <div className="admin-stat-title">Unassigned Cases<AdminIcon name="officers" /></div>
+              <div className="admin-stat-number response">{displayCount(stats.unassigned)}</div>
+              <div className="admin-stat-footer blue">{hasSnapshot ? "Open reports without an officer" : "Waiting for report data"}</div>
             </div>
-          </div>
-
-          {/* Navigation Pill Tabs */}
-          <nav className="admin-nav-bar" aria-label="Admin Navigation">
-            <button
-              className={`admin-tab-btn ${activeTab === "overview" ? "active" : ""}`}
-              onClick={() => setActiveTab("overview")}
-            >
-              Overview
-            </button>
-            <button
-              className={`admin-tab-btn ${activeTab === "queue" ? "active" : ""}`}
-              onClick={() => setActiveTab("queue")}
-            >
-              Reports Queue
-              {stats.pendingReview > 0 && <span className="admin-tab-badge">{stats.pendingReview}</span>}
-            </button>
-            <button
-              className={`admin-tab-btn ${activeTab === "assignment" ? "active" : ""}`}
-              onClick={() => setActiveTab("assignment")}
-            >
-              Case Assignment
-            </button>
-            <button
-              className={`admin-tab-btn ${activeTab === "analytics" ? "active" : ""}`}
-              onClick={() => setActiveTab("analytics")}
-            >
-              Analytics
-            </button>
-            <button
-              className={`admin-tab-btn ${activeTab === "hotspot" ? "active" : ""}`}
-              onClick={() => setActiveTab("hotspot")}
-            >
-              Hotspot Map
-            </button>
-          </nav>
+          </div>}
 
           {/* TAB 1: OVERVIEW */}
           {activeTab === "overview" && (
+            <div className="admin-overview-content">
+              <TrafficAdvisories admin refreshKey={advisoryVersion} />
+              <div className="admin-attention-grid">
+                <button className="admin-attention-card" onClick={() => openQueue("all", true)}><span className="admin-attention-icon"><AdminIcon name="flag" /></span>
+                  <span><strong>{displayCount(stats.flagged)} {stats.flagged === 1 ? "report" : "reports"} with review flags</strong><small>Check details that may need a closer look</small></span><AdminIcon name="arrow" /></button>
+                <button className="admin-attention-card" onClick={() => openQueue("all", false, true)}><span className="admin-attention-icon"><AdminIcon name="reports" /></span>
+                  <span><strong>{displayCount(stats.duplicates)} possible {stats.duplicates === 1 ? "duplicate" : "duplicates"}</strong><small>Compare evidence before making a decision</small></span><AdminIcon name="arrow" /></button>
+              </div>
+              <section className="admin-workflow-card" aria-labelledby="case-progress-title">
+                <div className="admin-section-heading"><div><span className="admin-eyebrow">THE BIG PICTURE</span><h2 id="case-progress-title">Case progress</h2></div>
+                  <span className="admin-section-note">{hasSnapshot ? `${stats.total} total reports` : "Waiting for data"}</span></div>
+                <div className="admin-workflow-track" aria-hidden="true">{workflow.filter((item) => item.count > 0).map((item) =>
+                  <span key={item.label} style={{ width: `${item.count / stats.total * 100}%`, background: item.color }} />)}</div>
+                <div className="admin-workflow-legend">{workflow.map((item) => <div key={item.label}><i style={{ background: item.color }} />
+                  <span>{item.label}</span><strong>{displayCount(item.count)}</strong></div>)}</div>
+              </section>
             <div className="admin-overview-grid">
               {/* Left Column: Recent Reports */}
               <div className="admin-panel-card">
-                <h2 className="admin-panel-title">Recent Reports</h2>
-                <p className="admin-panel-subtitle">Latest citizen incident submissions requiring verification</p>
+                <div className="admin-section-heading"><div><span className="admin-eyebrow">CITIZEN SUBMISSIONS</span><h2 className="admin-panel-title">Recent Reports</h2></div>
+                  <button className="admin-text-action" onClick={() => openQueue()}>View all<AdminIcon name="arrow" /></button></div>
+                <p className="admin-panel-subtitle">The latest reports, ready for your attention.</p>
 
-                <div className="admin-recent-list">
+                <div className="admin-recent-list" aria-busy={reportLoad.loading}>
+                  {!reports.length ? <div className="admin-empty-state"><AdminIcon name="reports" /><strong>{reportLoad.loading ? "Loading recent reports..." : reportLoad.error ? "Reports are currently unavailable" : "No reports yet"}</strong>
+                    <p>{reportLoad.error ? "Retry the connection to load citizen reports." : "New citizen submissions will appear here."}</p></div> : null}
                   {reports.slice(0, 5).map((report) => (
-                    <div
+                    <button type="button"
                       key={report.reference_id}
                       className="admin-recent-row"
                       onClick={() => handleOpenReview(report)}
                       title="Click to view & review report"
                     >
-                      <div className="admin-recent-info">
+                      <span className="admin-report-icon"><AdminIcon name="reports" /></span>
+                      <span className="admin-recent-info">
                         <span className="admin-recent-id">{report.reference_id}</span>
-                        <span className="admin-recent-meta">
-                          {report.violation_type} • {report.location}
-                        </span>
-                      </div>
-                      <div className="admin-recent-right">
+                        <span className="admin-recent-type">{report.violation_type}</span>
+                        <span className="admin-recent-meta admin-report-location"><AdminIcon name="map" /><span>{report.location}</span></span>
+                        {report.evidence_status ? <span className={`ae-badge${report.evidence_status === "submitted" ? " is-submitted" : ""}`}>{report.evidence_status === "submitted" ? "New evidence received" : "Evidence requested"}</span> : null}
+                      </span>
+                      <span className="admin-recent-right">
                         <span className={`status-badge ${getStatusBadgeClass(report.status)}`}>
-                          {report.status}
+                          {statusLabel(report.status)}
                         </span>
                         <span className="admin-recent-time">{report.submitted}</span>
-                      </div>
-                    </div>
+                      </span>
+                    </button>
                   ))}
                 </div>
               </div>
@@ -1550,38 +618,40 @@ export default function AdminDashboard() {
               <div className="admin-quick-actions-card">
                 <h3 className="admin-quick-actions-title">Quick Actions</h3>
                 <div className="admin-action-btn-list">
-                  <button className="admin-action-item-btn" onClick={() => setActiveTab("queue")}>
-                    <span>📋</span>
+                  <button className="admin-action-item-btn" onClick={() => openQueue("pending")}>
+                    <AdminIcon name="reports" />
                     <span>Review New Reports ({stats.pendingReview})</span>
                   </button>
                   <button className="admin-action-item-btn" onClick={() => setActiveTab("assignment")}>
-                    <span>👮</span>
+                    <AdminIcon name="officers" />
                     <span>Assign Cases to Officers</span>
                   </button>
                   <button className="admin-action-item-btn" onClick={() => setShowNotificationModal(true)}>
-                    <span>🔔</span>
+                    <AdminIcon name="bell" />
                     <span>Send Advisory Alert</span>
                   </button>
                   <button className="admin-action-item-btn" onClick={() => setActiveTab("analytics")}>
-                    <span>📊</span>
+                    <AdminIcon name="analytics" />
                     <span>View Analytics & Trends</span>
                   </button>
                   <button className="admin-action-item-btn" onClick={() => setActiveTab("hotspot")}>
-                    <span>🗺️</span>
+                    <AdminIcon name="map" />
                     <span>View Live Hotspot Map</span>
                   </button>
                   <button className="admin-action-item-btn" onClick={handleExportCSV}>
-                    <span>📥</span>
+                    <AdminIcon name="download" />
                     <span>Export Reports (CSV)</span>
                   </button>
                 </div>
               </div>
+            </div>
             </div>
           )}
 
           {/* TAB 2: REPORTS QUEUE */}
           {activeTab === "queue" && (
             <div className="admin-panel-card">
+              <span className="admin-eyebrow">CASE REVIEW</span>
               <h2 className="admin-panel-title">Reports Queue</h2>
               <p className="admin-panel-subtitle">
                 {stats.pendingReview} new reports waiting for review
@@ -1592,53 +662,66 @@ export default function AdminDashboard() {
                 <input
                   type="text"
                   className="admin-search-input"
-                  placeholder="Search by ID (e.g. SUP-24091205), violation, or location..."
+                  aria-label="Search reports"
+                  placeholder="Search reference, violation, or location..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
 
-                <select
+                <ResponsiveSelect
                   className="admin-filter-select"
-                  value={statusFilter}
+                  aria-label="Filter case status" value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
                 >
                   <option value="all">All Statuses</option>
-                  <option value="pending">Pending & Under Review</option>
+                  <option value="pending">Pending Verification</option>
+                  <option value="Validated">Validated</option>
                   <option value="assigned">Assigned</option>
                   <option value="in progress">In Progress</option>
                   <option value="resolved">Resolved</option>
-                </select>
+                  <option value="rejected">Rejected</option>
+                </ResponsiveSelect>
               </div>
 
-              {/* Table */}
+              <div className="admin-queue-filters">
+              <label className="duplicate-filter"><input type="checkbox" checked={duplicatesOnly}
+                onChange={(event) => setDuplicatesOnly(event.target.checked)} />Show possible duplicates only</label>
+              <label className="duplicate-filter"><input type="checkbox" checked={flaggedOnly}
+                onChange={(event) => setFlaggedOnly(event.target.checked)} />Show reports with review flags only</label>
+              </div>
+              <div className="admin-results-meta"><span>{filteredQueue.length} of {reports.length} reports</span>
+                {(searchQuery || statusFilter !== "all" || flaggedOnly || duplicatesOnly) ? <button className="admin-text-action" onClick={() => openQueue()}>Clear filters</button> : null}</div>
               <div className="admin-table-wrapper">
-                <table className="admin-table">
+                <table className="admin-table" role="table" aria-label="Reports queue">
                   <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>Violation</th>
-                      <th>Location</th>
-                      <th>Submitted</th>
-                      <th>Status</th>
-                      <th>Action</th>
+                    <tr role="row">
+                      <th scope="col" role="columnheader">ID</th>
+                      <th scope="col" role="columnheader">Violation</th>
+                      <th scope="col" role="columnheader">Location</th>
+                      <th scope="col" role="columnheader">Submitted</th>
+                      <th scope="col" role="columnheader">Status</th>
+                      <th scope="col" role="columnheader">Action</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredQueue.length > 0 ? (
                       filteredQueue.map((report) => (
-                        <tr key={report.reference_id}>
-                          <td className="admin-id-text">{report.reference_id}</td>
-                          <td>
+                        <tr key={report.reference_id} role="row">
+                          <td className="admin-id-text" role="cell" data-label="Reference ID">{report.reference_id}</td>
+                          <td role="cell" data-label="Violation">
                             <strong>{report.violation_type}</strong>
+                            {report.possible_duplicate ? <div><DuplicateBadge /></div> : null}
+                            <div><SuspiciousBadge flags={report.suspicious_flags} /></div>
+                            {report.evidence_status ? <span className={`ae-badge${report.evidence_status === "submitted" ? " is-submitted" : ""}`}>{report.evidence_status === "submitted" ? "New evidence received" : "Evidence requested"}</span> : null}
                           </td>
-                          <td>{report.location}</td>
-                          <td>{report.submitted}</td>
-                          <td>
+                          <td role="cell" data-label="Location">{report.location}</td>
+                          <td role="cell" data-label="Submitted">{report.submitted}</td>
+                          <td role="cell" data-label="Status">
                             <span className={`status-badge ${getStatusBadgeClass(report.status)}`}>
-                              {report.status}
+                              {statusLabel(report.status)}
                             </span>
                           </td>
-                          <td>
+                          <td role="cell" data-label="Action">
                             <button
                               className="admin-review-btn"
                               onClick={() => handleOpenReview(report)}
@@ -1651,7 +734,7 @@ export default function AdminDashboard() {
                     ) : (
                       <tr>
                         <td colSpan="6" style={{ textAlign: "center", padding: "30px", color: "#64748b" }}>
-                          No reports match your search query.
+                          {reportLoad.loading ? "Loading reports..." : reportLoad.error && !hasSnapshot ? "Reports are currently unavailable." : "No reports match your filters."}
                         </td>
                       </tr>
                     )}
@@ -1664,22 +747,28 @@ export default function AdminDashboard() {
           {/* TAB 3: CASE ASSIGNMENT (2x2 GRID MATCHING SCREENSHOT) */}
           {activeTab === "assignment" && (
             <div className="admin-panel-card">
+              <span className="admin-eyebrow">OFFICER COORDINATION</span>
               <h2 className="admin-panel-title">Case Assignment</h2>
-              <p className="admin-panel-subtitle">{stats.open} active cases ready for assignment</p>
+              <p className="admin-panel-subtitle">{stats.readyForAssignment} verified, unassigned reports ready for an officer.</p>
+              <div className="admin-officer-toolbar">
+                <button type="button" className="admin-modal-save" onClick={() => setOfficerEditor({ officer: null })}>Add Officer</button>
+                <button type="button" className="admin-modal-cancel" disabled={officersLoading} onClick={() => setOfficerVersion((v) => v + 1)}>Refresh Officers</button>
+              </div>
+              {officersError && <p role="alert">{officersError}</p>}
+              {officersLoading && <p role="status">Loading officers...</p>}
+              {!officersLoading && !officersError && officers.length === 0 && <p>No officers yet. Add an officer to start assigning cases.</p>}
 
               <div className="admin-officer-grid">
                 {officers.map((officer) => {
-                  const officerCases = reports.filter(
-                    (r) => r.assigned_officer === officer.name && r.status !== "Resolved"
-                  ).length;
+                  const officerCases = officerWorkload(officer.name);
 
                   return (
                     <div key={officer.id} className="admin-officer-card">
                       <div className="admin-officer-header">
-                        <div>
+                        <div className="admin-officer-identity"><span className="admin-officer-avatar"><AdminIcon name="officers" /></span><div>
                           <div className="admin-officer-name">{officer.name}</div>
                           <div className="admin-officer-unit">{officer.unit}</div>
-                        </div>
+                        </div></div>
                         <span className="admin-officer-badge">{officer.badge}</span>
                       </div>
 
@@ -1689,10 +778,15 @@ export default function AdminDashboard() {
 
                       <button
                         className="admin-assign-btn"
+                        disabled={officersLoading || !!officersError}
                         onClick={() => setAssigningOfficer(officer)}
                       >
                         Assign Cases
                       </button>
+                      <div className="admin-officer-actions">
+                        <button type="button" className="admin-modal-cancel admin-officer-edit" onClick={() => setOfficerEditor({ officer })} aria-label={`Edit ${officer.name}`}>Edit</button>
+                        <button type="button" className="admin-modal-delete admin-modal-delete-trigger" onClick={() => setOfficerEditor({ officer, deleting: true })} aria-label={`Delete ${officer.name}`}>Delete</button>
+                      </div>
                     </div>
                   );
                 })}
@@ -1702,73 +796,14 @@ export default function AdminDashboard() {
 
           {/* TAB 4: ANALYTICS & TRENDS */}
           {activeTab === "analytics" && (
-            <div className="admin-panel-card">
-              <h2 className="admin-panel-title">Analytics & Trends</h2>
-              <p className="admin-panel-subtitle">Key performance metrics and violation trends from live reports</p>
-
-              <div className="admin-analytics-grid">
-                {/* Violations by Type */}
-                <div className="admin-chart-box">
-                  <h3 className="admin-chart-title">Violations by Type</h3>
-                  <div className="admin-bar-list">
-                    {violationBreakdown.length > 0 ? (
-                      violationBreakdown.map((item) => (
-                        <div key={item.name} className="admin-bar-row">
-                          <div className="admin-bar-label-row">
-                            <span>{item.name} ({item.count})</span>
-                            <span>{item.percentage}%</span>
-                          </div>
-                          <div className="admin-bar-track">
-                            <div
-                              className="admin-bar-fill"
-                              style={{
-                                width: `${Math.max(item.percentage, 5)}%`,
-                                background: item.color,
-                              }}
-                            />
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <div style={{ color: "#64748b", fontSize: "14px", padding: "16px 0" }}>
-                        No violation data recorded yet.
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Status Distribution */}
-                <div className="admin-chart-box">
-                  <h3 className="admin-chart-title">Status Distribution</h3>
-                  <div className="admin-status-dist-list">
-                    <div className="admin-status-dist-row">
-                      <span className="admin-status-dist-name">Submitted (Pending)</span>
-                      <span className="admin-status-dist-count">{statusDistribution.pending}</span>
-                    </div>
-
-                    <div className="admin-status-dist-row">
-                      <span className="admin-status-dist-name">Reviewing & Validated</span>
-                      <span className="admin-status-dist-count">{statusDistribution.reviewing}</span>
-                    </div>
-
-                    <div className="admin-status-dist-row">
-                      <span className="admin-status-dist-name">Assigned & In Progress</span>
-                      <span className="admin-status-dist-count">{statusDistribution.inProgress}</span>
-                    </div>
-
-                    <div className="admin-status-dist-row resolved-highlight">
-                      <span className="admin-status-dist-name">Resolved</span>
-                      <span className="admin-status-dist-count">{statusDistribution.resolved}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <ReportsAnalytics reports={reports} loading={reportLoad.loading} error={reportLoad.error}
+              lastUpdated={reportLoad.lastUpdated} onRetry={() => setRefreshVersion((value) => value + 1)}
+              onOpenReport={handleOpenReview} />
           )}
 
           {/* TAB 5: HOTSPOT MAP */}
           {activeTab === "hotspot" && (
-            <div className="admin-panel-card" style={{ padding: "24px" }}>
+            <div className="admin-panel-card admin-hotspot-panel">
               <div style={{ marginBottom: "16px" }}>
                 <h2 className="admin-panel-title">Live Traffic & Violation Hotspots</h2>
                 <p className="admin-panel-subtitle" style={{ margin: 0 }}>
@@ -1780,25 +815,49 @@ export default function AdminDashboard() {
               </div>
             </div>
           )}
-        </div>
+          {activeTab === "messages" && <AdminMessages onRead={refreshMessageCount} />}
+          {activeTab === "accounts" && isSuperuser && <AdminStaffAccounts />}
+          {activeTab === "activity" && <AdminActivityHistory refreshKey={refreshVersion} onOpenReport={(id) => {
+            const report = reports.find((item) => item.id === id);
+            if (report) handleOpenReview(report);
+            else showToast("This report is no longer available.");
+          }} />}
+          <footer className="admin-workspace-footer"><span>HapsayDalan | CTMO, Surigao City</span><span>{reportLoad.lastUpdated ? `Last synced ${new Date(reportLoad.lastUpdated).toLocaleTimeString("en-PH", { hour: "2-digit", minute: "2-digit" })}` : "Awaiting report data"}</span></footer>
+        </main>
 
         {/* REVIEW REPORT MODAL */}
         {selectedReport && (
-          <div className="admin-modal-backdrop" onClick={() => setSelectedReport(null)}>
-            <div className="admin-modal" onClick={(e) => e.stopPropagation()}>
+          <div className="admin-modal-backdrop" onClick={closeCaseReview}>
+            <div className="admin-modal" role={confirmDelete ? "alertdialog" : "dialog"} aria-modal="true" aria-labelledby="admin-case-dialog-title" onClick={(e) => e.stopPropagation()}>
               <div className="admin-modal-header">
                 <div>
-                  <h3 className="admin-modal-title">Review Case {selectedReport.reference_id}</h3>
+                  <h3 id="admin-case-dialog-title" className="admin-modal-title">{confirmDelete ? "Delete Case" : "Review Case"} {selectedReport.reference_id}</h3>
                   <div style={{ fontSize: "13px", color: "#64748b", marginTop: "2px" }}>
                     Reported on {selectedReport.submitted}
                   </div>
                 </div>
-                <button className="admin-modal-close-btn" onClick={() => setSelectedReport(null)}>
+                <button type="button" className="admin-modal-close-btn" aria-label="Close case review" onClick={closeCaseReview} disabled={deletingCase}>
                   ×
                 </button>
               </div>
 
               <div className="admin-modal-body">
+                {confirmDelete ? <div className="admin-delete-warning">
+                  <strong>Permanently delete this case?</strong>
+                  <p>Case {selectedReport.reference_id} will be removed from the reports queue and public map. This cannot be undone. The deletion will remain in Activity History.</p>
+                  {deleteError && <p role="alert" className="admin-delete-error">{deleteError}</p>}
+                </div> : <>
+                <p role="status">{selectedReport.public_verified_at && !["Pending", "Rejected"].includes(selectedReport.status)
+                  ? "Verified: included in the public hotspot map."
+                  : "Not public. Review the evidence, then save as Validated to approve this report for the public hotspot map."}</p>
+                <SuspiciousReportNotice report={selectedReport} onReviewRelated={(id) => {
+                  const related = reports.find((item) => item.id === id);
+                  if (related) handleOpenReview(related);
+                }} />
+                <DuplicateReportNotice key={`duplicates-${selectedReport.id}`} report={selectedReport} onReviewMatch={(id) => {
+                  const match = reports.find((item) => item.id === id);
+                  if (match) handleOpenReview(match);
+                }} />
                 <div className="admin-detail-grid">
                   <div className="admin-detail-cell">
                     <span className="admin-detail-label">Violation</span>
@@ -1806,19 +865,39 @@ export default function AdminDashboard() {
                   </div>
                   <div className="admin-detail-cell">
                     <span className="admin-detail-label">Current Status</span>
-                    <span className="admin-detail-val">{selectedReport.status}</span>
+                    <span className="admin-detail-val">{statusLabel(selectedReport.status)}</span>
                   </div>
                   <div className="admin-detail-cell" style={{ gridColumn: "span 2" }}>
                     <span className="admin-detail-label">Location</span>
                     <span className="admin-detail-val">{selectedReport.location}</span>
+                    {selectedReport.location_captured_at ? (
+                      <span className="admin-detail-val" style={{ fontWeight: 400 }}>
+                        Violation pin: {selectedReport.location_source === "manual" ? "Selected by reporter" : "Automatic GPS"}
+                        <br />Coordinates: {selectedReport.latitude}, {selectedReport.longitude}
+                        <br /><a target="_blank" rel="noreferrer"
+                          href={`https://www.openstreetmap.org/?mlat=${selectedReport.latitude}&mlon=${selectedReport.longitude}#map=18/${selectedReport.latitude}/${selectedReport.longitude}`}>
+                          View violation pin on map
+                        </a>
+                        <br />Reporter device location: {selectedReport.reporter_latitude ?? selectedReport.latitude}, {selectedReport.reporter_longitude ?? selectedReport.longitude}
+                        <br />Device GPS accuracy: {Math.ceil(selectedReport.location_accuracy)} m
+                        <br />GPS captured: {new Date(selectedReport.location_captured_at).toLocaleString()}
+                        <br /><a target="_blank" rel="noreferrer"
+                          href={`https://www.openstreetmap.org/?mlat=${selectedReport.reporter_latitude ?? selectedReport.latitude}&mlon=${selectedReport.reporter_longitude ?? selectedReport.longitude}`}>
+                          View reporter device location on map
+                        </a>
+                      </span>
+                    ) : null}
                   </div>
                   <div className="admin-detail-cell" style={{ gridColumn: "span 2" }}>
                     <span className="admin-detail-label">Citizen Remarks</span>
-                    <span className="admin-detail-val" style={{ fontWeight: 400 }}>
-                      {selectedReport.description || "No further details submitted."}
+                    <span className="admin-detail-val admin-detail-remarks">
+                      {formatCitizenRemarks(selectedReport.description)}
                     </span>
                   </div>
                 </div>
+
+                <ReportDirections latitude={selectedReport.latitude} longitude={selectedReport.longitude}
+                  label={selectedReport.location} />
 
                 {selectedReport.image && (
                   <div className="admin-field-group">
@@ -1828,98 +907,144 @@ export default function AdminDashboard() {
                       alt="Violation Evidence"
                       style={{
                         width: "100%",
-                        maxHeight: "220px",
-                        objectFit: "cover",
+                        maxHeight: "400px",
+                        objectFit: "contain",
                         borderRadius: "10px",
                         border: "1px solid #e2e8f0",
+                        background: "#f8fafc",
                       }}
                     />
                   </div>
                 )}
 
+                <AdditionalEvidence key={`evidence-${selectedReport.id}`} report={selectedReport} admin onChanged={(evidenceStatus) => {
+                  setSelectedReport((current) => current ? { ...current, evidence_status: evidenceStatus } : current);
+                  setReports((current) => current.map((item) => item.id === selectedReport.id ? { ...item, evidence_status: evidenceStatus } : item));
+                  setRefreshVersion((version) => version + 1);
+                }} />
+
                 <div className="admin-field-group">
                   <label className="admin-field-label">Update Case Status</label>
-                  <select
+                  <ResponsiveSelect
                     className="admin-modal-select"
-                    value={editStatus}
+                    aria-label="Update Case Status" value={editStatus}
                     onChange={(e) => setEditStatus(e.target.value)}
                   >
-                    <option value="Pending">Pending</option>
-                    <option value="Under Review">Under Review</option>
-                    <option value="Assigned">Assigned</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Resolved">Resolved</option>
+                    <option value="Pending">Pending Verification</option>
+                    <option value="Validated">Validated: approve for public map</option>
+                    <option value="Assigned" disabled={!selectedReport.public_verified_at}>Assigned</option>
+                    <option value="In Progress" disabled={!selectedReport.public_verified_at}>In Progress</option>
+                    <option value="Resolved" disabled={!selectedReport.public_verified_at}>Resolved</option>
                     <option value="Rejected">Rejected</option>
-                  </select>
+                  </ResponsiveSelect>
                 </div>
+
+                {editStatus === "Rejected" ? <>
+                  <div className="admin-field-group">
+                    <label className="admin-field-label" htmlFor="rejection-reason">Rejection reason *</label>
+                    <ResponsiveSelect id="rejection-reason" className="admin-modal-select" required value={rejectionReason}
+                      onChange={(event) => setRejectionReason(event.target.value)}>
+                      <option value="">Select a rejection reason</option>
+                      {REJECTION_REASONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                    </ResponsiveSelect>
+                  </div>
+                  <div className="admin-field-group">
+                    <label className="admin-field-label" htmlFor="rejection-details">Explanation for the reporter *</label>
+                    <textarea id="rejection-details" className="admin-modal-textarea" required rows="3" maxLength={1000}
+                      value={rejectionDetails} onChange={(event) => setRejectionDetails(event.target.value)}
+                      placeholder="Explain the decision clearly. This will be visible on Track My Report." />
+                    <p style={{ fontSize: 12, color: "#526b86" }}>Visible to the reporter. Include only information appropriate to share.</p>
+                  </div>
+                </> : null}
 
                 <div className="admin-field-group">
                   <label className="admin-field-label">Assign Traffic Enforcer / Officer</label>
-                  <select
+                  <ResponsiveSelect
                     className="admin-modal-select"
-                    value={editOfficer}
+                    aria-label="Assign Traffic Enforcer / Officer" value={editOfficer}
                     onChange={(e) => setEditOfficer(e.target.value)}
                   >
                     <option value="">-- Select Officer --</option>
+                    {editOfficer && !officers.some((officer) => officer.name === editOfficer) &&
+                      <option value={editOfficer}>{editOfficer} (not in current directory)</option>}
                     {officers.map((o) => (
                       <option key={o.id} value={o.name}>
-                        {o.name} ({o.unit} - {o.activeCases} active cases)
+                        {o.name} ({o.unit} - {officerWorkload(o.name)} active cases)
                       </option>
                     ))}
-                  </select>
+                  </ResponsiveSelect>
                 </div>
 
                 <div className="admin-field-group">
-                  <label className="admin-field-label">Officer Admin Action Notes</label>
+                  <label className="admin-field-label" htmlFor="admin-action-notes">Officer Admin Action Notes</label>
                   <textarea
+                    id="admin-action-notes" maxLength={2000}
                     className="admin-modal-textarea"
                     rows="3"
                     placeholder="Enter verification notes, dispatch instructions, or citation ticket number..."
                     value={adminNotes}
                     onChange={(e) => setAdminNotes(e.target.value)}
                   />
+                  <small>Private note saved in admin activity history. Not shown to the reporter.</small>
                 </div>
+                <AdminActivityHistory key={`activity-${selectedReport.id}`} reportId={selectedReport.id} compact refreshKey={refreshVersion} />
+                </>}
               </div>
 
-              <div className="admin-modal-footer">
-                <button className="admin-modal-cancel" onClick={() => setSelectedReport(null)}>
-                  Cancel
+              {!confirmDelete && reviewError && <p role="alert" style={{ color: "#b91c1c", margin: "12px 0 0", flexShrink: 0 }}>{reviewError}</p>}
+              {confirmDelete ? <div className="admin-modal-footer">
+                <button ref={deleteCancelRef} type="button" className="admin-modal-cancel" onClick={closeCaseReview} disabled={deletingCase}>Keep Case</button>
+                <button type="button" className="admin-modal-delete" onClick={handleDeleteCase} disabled={deletingCase}>
+                  {deletingCase ? "Deleting..." : "Delete Case Permanently"}
                 </button>
-                <button className="admin-modal-save" onClick={handleSaveReportUpdate}>
-                  Save & Update Case
+              </div> : <div className="admin-modal-footer admin-modal-footer-with-delete">
+                <button type="button" className="admin-modal-save" onClick={handleSaveReportUpdate} disabled={savingReview}>
+                  {savingReview ? "Saving..." : "Save & Update Case"}
                 </button>
-              </div>
+                <button type="button" className="admin-modal-cancel" onClick={closeCaseReview} disabled={savingReview}>Cancel</button>
+                <button type="button" className="admin-modal-delete admin-modal-delete-trigger" onClick={() => setConfirmDelete(true)} disabled={savingReview}>Delete Case</button>
+              </div>}
             </div>
           </div>
         )}
 
+        {officerEditor && <OfficerEditor {...officerEditor} onClose={() => setOfficerEditor(null)} onSaved={(message) => {
+          setOfficerEditor(null);
+          setOfficerVersion((v) => v + 1);
+          setRefreshVersion((v) => v + 1);
+          showToast(message);
+        }} />}
+
         {/* ASSIGN CASE TO OFFICER MODAL */}
         {assigningOfficer && (
           <div className="admin-modal-backdrop" onClick={() => setAssigningOfficer(null)}>
-            <div className="admin-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="admin-modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
               <div className="admin-modal-header">
                 <div>
                   <h3 className="admin-modal-title">Assign Cases to {assigningOfficer.name}</h3>
                   <div style={{ fontSize: "13px", color: "#64748b", marginTop: "2px" }}>
-                    {assigningOfficer.unit} • Current active workload: {assigningOfficer.activeCases}
+                    {assigningOfficer.unit} • Current active workload: {officerWorkload(assigningOfficer.name)}
                   </div>
                 </div>
-                <button className="admin-modal-close-btn" onClick={() => setAssigningOfficer(null)}>
+                <button type="button" className="admin-modal-close-btn" aria-label="Close case assignment" onClick={() => setAssigningOfficer(null)}>
                   ×
                 </button>
               </div>
 
               <div className="admin-modal-body">
                 <p style={{ fontSize: "13.5px", color: "#475569" }}>
-                  Select an unassigned or pending report from the queue to assign immediately:
+                  Select a verified, unassigned case. Cases already assigned to another officer stay with that officer.
                 </p>
+                {assignableReports.length === 0 && <p role="status" className="admin-empty-state">
+                  No verified, unassigned cases are available. Validate a new report in Reports Queue first.
+                </p>}
 
                 <div style={{ display: "flex", flexDirection: "column", gap: "10px", maxHeight: "300px", overflowY: "auto" }}>
-                  {reports
-                    .filter((r) => r.status !== "Resolved" && (!r.assigned_officer || r.assigned_officer !== assigningOfficer.name))
+                  {assignableReports
                     .map((report) => (
                       <div
                         key={report.reference_id}
+                        className="admin-assignment-row"
                         style={{
                           border: "1px solid #e2e8f0",
                           borderRadius: "10px",
@@ -1938,9 +1063,10 @@ export default function AdminDashboard() {
                         </div>
                         <button
                           className="admin-review-btn"
+                          disabled={assigningCaseId !== null}
                           onClick={() => handleAssignToOfficer(assigningOfficer, report.reference_id)}
                         >
-                          Assign
+                          {assigningCaseId === report.id ? "Assigning..." : "Assign"}
                         </button>
                       </div>
                     ))}
@@ -1959,13 +1085,13 @@ export default function AdminDashboard() {
         {/* SEND ADVISORY MODAL */}
         {showNotificationModal && (
           <div className="admin-modal-backdrop" onClick={() => setShowNotificationModal(false)}>
-            <div className="admin-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="admin-modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
               <form onSubmit={handleSendBroadcast}>
                 <div className="admin-modal-header">
                   <div>
                     <h3 className="admin-modal-title">Broadcast Traffic Advisory</h3>
                     <div style={{ fontSize: "13px", color: "#64748b", marginTop: "2px" }}>
-                      Send official CTMO alert to public portal & field enforcers
+                      Publish an advisory on the public portal and/or CTMO workspace
                     </div>
                   </div>
                   <button
@@ -1980,15 +1106,16 @@ export default function AdminDashboard() {
                 <div className="admin-modal-body">
                   <div className="admin-field-group">
                     <label className="admin-field-label">Target Audience</label>
-                    <select
+                    <ResponsiveSelect
                       className="admin-modal-select"
-                      value={notificationTarget}
+                      aria-label="Notification audience" value={notificationTarget}
                       onChange={(e) => setNotificationTarget(e.target.value)}
                     >
-                      <option value="all">Public Portal & All Field Enforcers</option>
+                      <option value="all">Public Portal & CTMO Workspace</option>
                       <option value="public">Citizens & Commuters Only</option>
-                      <option value="officers">Active Field Officers Only</option>
-                    </select>
+                      <option value="officers">CTMO Workspace Only</option>
+                    </ResponsiveSelect>
+                    <small>CTMO workspace advisories are visible to staff who sign in here.</small>
                   </div>
 
                   <div className="admin-field-group">
@@ -1997,11 +1124,13 @@ export default function AdminDashboard() {
                       className="admin-modal-textarea"
                       rows="4"
                       required
+                      maxLength={1000}
                       placeholder="e.g. Heavy congestion along Rizal St due to ongoing utility maintenance. Alternative route via Borromeo St recommended."
                       value={notificationMessage}
                       onChange={(e) => setNotificationMessage(e.target.value)}
                     />
                   </div>
+                  {advisoryError && <p className="traffic-advisories-error" role="alert">{advisoryError}</p>}
                 </div>
 
                 <div className="admin-modal-footer">
@@ -2012,8 +1141,8 @@ export default function AdminDashboard() {
                   >
                     Cancel
                   </button>
-                  <button type="submit" className="admin-modal-save">
-                    Broadcast Advisory
+                  <button type="submit" className="admin-modal-save" disabled={sendingAdvisory}>
+                    {sendingAdvisory ? "Publishing..." : "Broadcast Advisory"}
                   </button>
                 </div>
               </form>
@@ -2023,8 +1152,8 @@ export default function AdminDashboard() {
 
         {/* Toast Alert */}
         {toast && (
-          <div className="admin-toast">
-            <span>✓</span>
+          <div className="admin-toast" role="status">
+            <AdminIcon name="check" />
             <span>{toast.msg}</span>
           </div>
         )}

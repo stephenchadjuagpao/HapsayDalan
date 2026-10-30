@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Navbar from "../components/reusablecode/Navbar";
 import API from "../services/api";
+import ReportRecovery from "../components/ReportRecovery";
+import AdditionalEvidence from "../components/AdditionalEvidence";
 
 const FAQ_ITEMS = [
   {
     question: "Where can I find my reference ID?",
     answer:
-      "Your reference ID was provided immediately after you submitted your report. You can also check your email if you provided contact information. The ID starts with 'SUP-' followed by 8 random numbers like SUP-48291357.",
+      "Your reference ID appears after submission. If you forgot it, use Forgot Reference ID? below and verify the email address you provided to see My Reports. Reports without an email require the original reference ID.",
   },
   {
     question: "How often does the status update?",
@@ -16,7 +18,7 @@ const FAQ_ITEMS = [
   {
     question: "What do the different status levels mean?",
     answer:
-      "Submitted: Your report has been received and registered.\n\nUnder Review: CTMO is verifying the evidence and details.\n\nAssigned: The case has been assigned to a CTMO officer.\n\nIn Progress: Action is being taken on the violation.\n\nResolved: The case has been completed.",
+      "Pending Verification: Your report is awaiting admin review and is not on the public map.\n\nValidated: CTMO has verified the report and approved it for the public hotspot map.\n\nAssigned: The case has been assigned to a CTMO officer.\n\nIn Progress: Action is being taken on the violation.\n\nResolved: The case has been completed.",
   },
   {
     question: "How long does it typically take to resolve a report?",
@@ -25,36 +27,38 @@ const FAQ_ITEMS = [
   },
 ];
 
-const STATUS_STEPS = ["Submitted", "Under Review", "Assigned", "In Progress", "Resolved"];
+const STATUS_STEPS = ["Pending Verification", "Validated", "Assigned", "In Progress", "Resolved"];
 const STATUS_COLORS = {
-  Submitted: "blue",
-  "Under Review": "yellow",
+  "Pending Verification": "blue",
+  "Validated": "yellow",
   Assigned: "purple",
   "In Progress": "orange",
   Resolved: "green",
+  Rejected: "red",
 };
 
 const STATUS_DESCRIPTIONS = {
-  Submitted: "Report received and registered in the system.",
-  "Under Review": "CTMO team is verifying the evidence and details.",
+  "Pending Verification": "Awaiting admin verification. Not yet visible on the public hotspot map.",
+  "Validated": "CTMO has verified this report and approved it for the public hotspot map.",
   Assigned: "Case assigned to a CTMO officer for action.",
   "In Progress": "Investigation in progress. Follow-up actions being taken.",
   Resolved: "Case has been completed and resolved.",
+  Rejected: "CTMO has rejected this report. See the explanation above.",
 };
 
 const mapBackendStatus = (status) => {
-  if (!status) return "Submitted";
+  if (!status) return "Pending Verification";
 
   const normalized = String(status).trim().toLowerCase();
 
-  if (normalized === "pending") return "Submitted";
-  if (normalized === "validated") return "Under Review";
+  if (normalized === "pending" || normalized === "pending verification") return "Pending Verification";
+  if (normalized === "validated") return "Validated";
   if (normalized === "assigned") return "Assigned";
   if (normalized === "in progress") return "In Progress";
-  if (normalized === "rejected") return "Assigned";
+  if (normalized === "rejected") return "Rejected";
   if (normalized === "resolved") return "Resolved";
 
-  return "Submitted";
+  return "Pending Verification";
 };
 
 const getStatusIndex = (status) => {
@@ -92,35 +96,9 @@ export default function TrackReport() {
   const [isLoading, setIsLoading] = useState(false);
   const [reportResult, setReportResult] = useState(null);
   const [openFaq, setOpenFaq] = useState(null);
-  const [myReports, setMyReports] = useState([]);
-  const [myReportsData, setMyReportsData] = useState({});
+  const [showRecovery, setShowRecovery] = useState(false);
+  const [reportAccess, setReportAccess] = useState("");
 
-  useEffect(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem("hapsaydalan_my_reports") || "[]");
-      setMyReports(saved);
-
-      // Fetch live status for all saved reports
-      saved.forEach(async (report) => {
-        try {
-          const response = await API.get(`reports/by-reference/${encodeURIComponent(report.referenceId)}/`);
-          const data = response.data;
-          setMyReportsData(prev => ({
-            ...prev,
-            [report.referenceId]: {
-              ...data,
-              referenceId: data.reference_id || formatReferenceId(data.id),
-              displayStatus: mapBackendStatus(data.status),
-            }
-          }));
-        } catch (e) {
-          console.error("Failed to fetch status for", report.referenceId);
-        }
-      });
-    } catch (err) {
-      console.error(err);
-    }
-  }, []);
 
   const lookupReport = async (eventOrId) => {
     let searchId = referenceId;
@@ -173,10 +151,13 @@ export default function TrackReport() {
 
   const renderTimelineForReport = (reportItem) => {
     const activeIndex = getStatusIndex(reportItem.status);
-    const assignedOfficer = reportItem.assigned_officer || "Officer Santos";
-    const timelineItems = STATUS_STEPS.slice(0, activeIndex + 1).map((step, index) => ({
+    const assignedOfficer = String(reportItem.assigned_officer || "").trim();
+    const steps = mapBackendStatus(reportItem.status) === "Rejected"
+      ? ["Pending Verification", "Rejected"] : STATUS_STEPS.slice(0, activeIndex + 1);
+    const timelineItems = steps.map((step, index) => ({
       step,
-      date: formatIsoDate(reportItem.date_reported || reportItem.dateReported, index),
+      date: step === "Rejected" ? formatIsoDate(reportItem.updated_at || reportItem.date_reported)
+        : formatIsoDate(reportItem.date_reported || reportItem.dateReported, index),
       description:
         step === "Assigned" || step === "In Progress"
           ? `${STATUS_DESCRIPTIONS[step]}`
@@ -194,7 +175,7 @@ export default function TrackReport() {
             <div className="track-timeline-content">
               <div className="track-timeline-description">
                 {item.step === "Assigned"
-                  ? `Case assigned to ${assignedOfficer} for action.`
+                  ? assignedOfficer ? `Case assigned to ${assignedOfficer} for action.` : "Awaiting officer assignment."
                   : item.step === "In Progress"
                     ? `Investigation in progress. Follow-up actions being taken.`
                     : STATUS_DESCRIPTIONS[item.step]}
@@ -204,7 +185,7 @@ export default function TrackReport() {
                 <span className={`track-status-pill track-status-pill-${STATUS_COLORS[item.step]}`}>
                   {item.step}
                 </span>
-                {item.step === "Assigned" || item.step === "In Progress" ? (
+                {assignedOfficer && (item.step === "Assigned" || item.step === "In Progress") ? (
                   <span className="track-timeline-officer">{assignedOfficer}</span>
                 ) : null}
               </div>
@@ -220,7 +201,7 @@ export default function TrackReport() {
       return null;
     }
 
-    const assignedOfficer = reportResult.assigned_officer || "Officer Santos";
+    const assignedOfficer = String(reportResult.assigned_officer || "").trim();
     const sinceDate = formatDate(reportResult.date_reported || reportResult.dateReported);
     return (
       <>
@@ -230,7 +211,9 @@ export default function TrackReport() {
               <h2 className="track-panel-title">Report Status</h2>
               <div className="track-status-reference-text">Reference ID: {reportResult.referenceId}</div>
             </div>
-            <div className="track-status-badge track-status-badge-green">Active</div>
+            <div className={`track-status-badge track-status-badge-${reportResult.displayStatus === "Rejected" ? "red" : "green"}`}>
+              {reportResult.displayStatus === "Rejected" ? "Closed" : "Active"}
+            </div>
           </div>
 
           <div className="track-current-status-label">Current Status</div>
@@ -240,6 +223,15 @@ export default function TrackReport() {
             </div>
             <div className="track-current-status-since">Since {sinceDate}</div>
           </div>
+
+          {reportResult.displayStatus === "Rejected" ? <aside className="track-rejection-note" aria-label="Rejection explanation">
+            <h3>Reason for rejection</h3>
+            {reportResult.rejection_reason_label ? <strong>{reportResult.rejection_reason_label}</strong> : null}
+            <p>{reportResult.rejection_details || "No rejection explanation was recorded for this report. Please contact CTMO for details."}</p>
+          </aside> : null}
+
+          {reportResult.evidence_status ? <AdditionalEvidence key={reportResult.id} report={reportResult} accessToken={reportAccess}
+            onVerified={setReportAccess} onChanged={(evidenceStatus) => setReportResult((current) => ({ ...current, evidence_status: evidenceStatus }))} /> : null}
 
           <div className="track-timeline-title">Timeline</div>
           {renderTimelineForReport(reportResult)}
@@ -260,10 +252,10 @@ export default function TrackReport() {
               <span className="track-detail-label">Location</span>
               <span className="track-detail-value">{reportResult.location}</span>
             </div>
-            <div className="track-detail-block">
+            {assignedOfficer ? <div className="track-detail-block">
               <span className="track-detail-label">Assigned Officer</span>
               <span className="track-detail-value">{assignedOfficer}</span>
-            </div>
+            </div> : null}
           </div>
         </section>
       </>
@@ -374,6 +366,51 @@ export default function TrackReport() {
           text-align: left;
         }
 
+        .track-recovery-link {
+          display: block;
+          width: fit-content;
+          margin-top: 10px;
+          padding: 0;
+          border: 0;
+          background: transparent;
+          color: #003d7f;
+          font: inherit;
+          font-size: 13px;
+          font-weight: 600;
+          text-align: left;
+          text-decoration: underline;
+          text-underline-offset: 3px;
+          cursor: pointer;
+        }
+
+        .track-recovery-link:focus-visible {
+          outline: 2px solid #003d7f;
+          outline-offset: 4px;
+        }
+
+        .track-recovery-close-row {
+          display: flex;
+          justify-content: flex-end;
+          margin-bottom: 12px;
+        }
+
+        .track-recovery-close {
+          border: 1px solid #cbd5e1;
+          border-radius: 6px;
+          padding: 7px 14px;
+          background: #ffffff;
+          color: #003d7f;
+          font: inherit;
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+        }
+
+        .track-recovery-close:focus-visible {
+          outline: 2px solid #003d7f;
+          outline-offset: 3px;
+        }
+
         .track-submit {
           margin-top: 16px;
           width: 100%;
@@ -461,6 +498,10 @@ export default function TrackReport() {
         .track-status-badge-purple, .track-status-pill-purple { background: #f3e8ff; color: #7e22ce; }
         .track-status-badge-orange, .track-status-pill-orange { background: #ffedd5; color: #c2410c; }
         .track-status-badge-green, .track-status-pill-green { background: #dcfce7; color: #15803d; }
+        .track-status-badge-red, .track-status-pill-red { background: #fee2e2; color: #b91c1c; }
+        .track-rejection-note { margin:20px 0; padding:16px; border:1px solid #fecaca; border-radius:12px; background:#fff5f5; color:#991b1b; overflow-wrap:anywhere; }
+        .track-rejection-note h3 { margin:0 0 10px; font-size:16px; }
+        .track-rejection-note p { margin:8px 0 0; line-height:1.6; white-space:pre-wrap; }
 
         .track-current-status-since {
           font-size: 14px;
@@ -749,6 +790,21 @@ export default function TrackReport() {
 
         <main className="track-shell">
           <section className="track-form-card">
+            {showRecovery ? (
+              <div id="report-recovery-panel">
+                <div className="track-recovery-close-row">
+                  <button type="button" className="track-recovery-close" autoFocus
+                    onClick={() => setShowRecovery(false)}>
+                    Close
+                  </button>
+                </div>
+                <ReportRecovery embedded onVerified={setReportAccess} onSelect={(id) => {
+                  setShowRecovery(false);
+                  lookupReport(id);
+                }} />
+              </div>
+            ) : (
+              <>
             <h2 className="track-form-title">Enter Your Reference ID</h2>
 
             <form onSubmit={lookupReport}>
@@ -766,54 +822,23 @@ export default function TrackReport() {
                 }}
               />
               <div className="track-help">You received this ID when you submitted your report</div>
+              <button type="button" className="track-recovery-link"
+                onClick={() => setShowRecovery(true)}>
+                Forgot Reference ID?
+              </button>
               <button type="submit" className="track-submit" disabled={isLoading}>
                 {isLoading ? "Checking..." : "View Status"}
               </button>
               {lookupError ? <div className="track-error">{lookupError}</div> : null}
             </form>
+              </>
+            )}
           </section>
 
           {renderStatusCard()}
 
-          {myReports.length > 0 && !reportResult && (
-            <div className="track-my-reports-section">
-              <h2 className="track-my-reports-title">My Recent Reports</h2>
-              <div className="track-my-reports-grid">
-                {myReports.map((report) => {
-                  const liveData = myReportsData[report.referenceId];
-                  return (
-                    <section
-                      key={report.referenceId}
-                      className="track-status-card my-report-card track-clickable-card"
-                      onClick={() => {
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                        setReferenceId(report.referenceId);
-                        setReportResult(null);
-                        setLookupError("");
-                      }}
-                    >
-                      <div className="track-status-header">
-                        <div>
-                          <h3 className="track-panel-title">{report.violation_type || "Violation Report"}</h3>
-                          <div className="track-status-reference-text">Reference ID: {report.referenceId}</div>
-                        </div>
-                        {liveData && (
-                          <div className={`track-status-badge track-status-badge-${STATUS_COLORS[liveData.displayStatus]}`}>
-                            {liveData.displayStatus}
-                          </div>
-                        )}
-                      </div>
 
-                      <div className="track-detail-block" style={{ marginBottom: '24px' }}>
-                        <span className="track-detail-label">Location</span>
-                        <span className="track-detail-value">{report.location || "Location provided"}</span>
-                      </div>
-                    </section>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+
         </main>
 
         <section className="track-faq-wrap">

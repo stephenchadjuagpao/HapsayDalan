@@ -1,0 +1,6 @@
+Tool: built-in image_gen (imagegen skill)
+Edit target: ctmo-shield-logo.jpg
+Output: ctmo-shield-logo-transparent.png (RGBA PNG)
+
+Final prompt:
+BACKGROUND REMOVAL ONLY. This is an existing official logo, not a design request. Make a faithful cutout of exactly the supplied logo. Preserve the ORIGINAL pixels/look, flat muted royal-blue color, muted green, yellow sun geometry/ray count, original exact three stars and skyline shapes, original road curve and gray segments. Keep all original white details inside the shield opaque. Remove only the outside white paper rectangle with true alpha transparency. Do NOT redraw, polish, recolor, shade, add gradients, make 3D, change shapes, or upscale the artwork stylistically. Return the original shield as-is on a transparent canvas.

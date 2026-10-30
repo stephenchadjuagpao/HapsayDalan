@@ -1,0 +1,83 @@
+@media print {
+  @page {
+    size:A4 portrait; margin:12mm 12mm 16mm;
+    @top-left { content:""; }
+    @top-center { content:""; }
+    @top-right { content:""; }
+    @bottom-left { content:"HapsayDalan  |  CTMO, Surigao City"; font:7.5pt Arial,sans-serif; color:#52677e; border-top:1px solid #c9d8e7; }
+    @bottom-right { content:"Page " counter(page) " / " counter(pages); font:7.5pt Arial,sans-serif; color:#24597b; border-top:1px solid #c9d8e7; }
+  }
+  html,body { margin:0 !important; padding:0 !important; background:#fff !important; }
+  .admin-dashboard-root[data-view=analytics] { padding:0 !important; min-height:0 !important; width:100% !important; background:#fff !important; color:#22344b !important; }
+  .admin-dashboard-root[data-view=analytics]>:not(.admin-container),
+  .admin-dashboard-root[data-view=analytics] .admin-container>:not(.ra-panel) { display:none !important; }
+  .admin-dashboard-root[data-view=analytics] .admin-container { width:100% !important; max-width:none !important; padding:0 !important; margin:0 !important; }
+  .admin-dashboard-root[data-view=analytics] .ra-panel { border:0 !important; border-radius:0 !important; padding:0 !important; background:#fff !important; box-shadow:none !important; font-size:9pt !important; }
+  .admin-dashboard-root[data-view=analytics] .ra-panel * { color:#22344b !important; text-shadow:none !important; box-shadow:none !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .admin-dashboard-root[data-view=analytics] .ra-print-page { min-height:0; }
+  .admin-dashboard-root[data-view=analytics] .ra-print-details { break-before:page; page-break-before:always; }
+  .admin-dashboard-root[data-view=analytics] .ra-print-header { display:block !important; margin-bottom:14px; }
+  .admin-dashboard-root[data-view=analytics] .ra-print-brand { display:flex; align-items:center; gap:12px; padding:10px 14px; border-radius:10px; background:#153d5c !important; border-bottom:4px solid #4db29a; }
+  .admin-dashboard-root[data-view=analytics] .ra-print-brand * { color:#fff !important; }
+  .admin-dashboard-root[data-view=analytics] .ra-print-brand img { width:36px; height:40px; object-fit:contain; padding:4px; border-radius:8px; background:#fff !important; }
+  .admin-dashboard-root[data-view=analytics] .ra-print-brand-name { display:flex; flex-direction:column; gap:3px; }
+  .admin-dashboard-root[data-view=analytics] .ra-print-brand-name strong { font-size:18pt; letter-spacing:-.5px; }
+  .admin-dashboard-root[data-view=analytics] .ra-print-brand-name span { font-size:8pt; }
+  .admin-dashboard-root[data-view=analytics] .ra-print-document { margin-left:auto; text-align:right; font-size:7pt; letter-spacing:1px; line-height:1.8; }
+  .admin-dashboard-root[data-view=analytics] .ra-print-document span { display:block; font-weight:700; }
+  .admin-dashboard-root[data-view=analytics] .ra-print-page-title { margin:10px 0 8px; }
+  .admin-dashboard-root[data-view=analytics] .ra-print-page-title>span { display:block; margin-bottom:5px; font-size:7.5pt; font-weight:750; letter-spacing:1.4px; text-transform:uppercase; color:#297c70 !important; }
+  .admin-dashboard-root[data-view=analytics] .ra-print-page-title h2 { margin:0; font-size:19pt !important; line-height:1.15; letter-spacing:-.5px; color:#153d5c !important; }
+  .admin-dashboard-root[data-view=analytics] .ra-print-metadata { display:grid; grid-template-columns:1.3fr 1fr; gap:16px; padding:10px 14px; border:1px solid #d2dfec; border-radius:8px; background:#edf4fb !important; }
+  .admin-dashboard-root[data-view=analytics] .ra-print-metadata>div { display:flex; flex-direction:column; gap:4px; min-width:0; }
+  .admin-dashboard-root[data-view=analytics] .ra-print-metadata span { font-size:6.8pt; text-transform:uppercase; letter-spacing:.8px; color:#53728d !important; }
+  .admin-dashboard-root[data-view=analytics] .ra-print-metadata strong { font-size:8pt; font-weight:600; line-height:1.5; }
+  .admin-dashboard-root[data-view=analytics] .ra-print-only { display:block !important; }
+  .admin-dashboard-root[data-view=analytics] :is(.ra-heading,.ra-toolbar,.ra-screen-hint,.ra-warning button,.ra-chart>.ra-text-button,.ra-section-heading>.ra-text-button) { display:none !important; }
+  .admin-dashboard-root[data-view=analytics] .ra-metrics { display:grid !important; grid-template-columns:repeat(4,minmax(0,1fr)) !important; gap:9px !important; }
+  .admin-dashboard-root[data-view=analytics] .ra-metric { padding:12px 10px !important; background:#f1f6fd !important; border:1px solid #ccdaeb !important; border-top:3px solid #3d70aa !important; border-radius:8px !important; break-inside:avoid; }
+  .admin-dashboard-root[data-view=analytics] .ra-metric:nth-child(2) { background:#eef8f6 !important; border-top-color:#319582 !important; }
+  .admin-dashboard-root[data-view=analytics] .ra-metric:nth-child(3) { background:#f0f8ef !important; border-top-color:#5b9950 !important; }
+  .admin-dashboard-root[data-view=analytics] .ra-metric:nth-child(4) { background:#fff8e9 !important; border-top-color:#d69b31 !important; }
+  .admin-dashboard-root[data-view=analytics] .ra-metric>strong { font-size:26pt !important; margin-top:7px; color:#153d5c !important; }
+  .admin-dashboard-root[data-view=analytics] .ra-metric>span { font-size:8pt !important; font-weight:650; }
+  .admin-dashboard-root[data-view=analytics] .ra-metric>p { font-size:7pt !important; line-height:1.5; margin-top:7px; color:#52677e !important; }
+  .admin-dashboard-root[data-view=analytics] :is(.ra-method,.ra-footnote) { font-size:7.2pt !important; line-height:1.5; color:#52677e !important; }
+  .admin-dashboard-root[data-view=analytics] .ra-method { margin:10px 0 12px; }
+  .admin-dashboard-root[data-view=analytics] .ra-two-columns { display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:12px !important; align-items:start; }
+  .admin-dashboard-root[data-view=analytics] .ra-chart { padding:12px !important; margin-top:14px !important; background:#fff !important; border:1px solid #cbdbea !important; border-radius:10px !important; break-inside:avoid; }
+  .admin-dashboard-root[data-view=analytics] .ra-volume { background:#f5f9ff !important; }
+  .admin-dashboard-root[data-view=analytics] .ra-print-type-status>.ra-chart:last-child { background:#f2f8f5 !important; }
+  .admin-dashboard-root[data-view=analytics] .ra-attention { background:#fff8e9 !important; border-color:#e7d2a3 !important; }
+  .admin-dashboard-root[data-view=analytics] .ra-section-heading { margin-bottom:12px; padding-bottom:9px; border-bottom:1px solid #dce6ef; }
+  .admin-dashboard-root[data-view=analytics] .ra-section-heading h3 { font-size:11pt !important; line-height:1.4; color:#153d5c !important; }
+  .admin-dashboard-root[data-view=analytics] .ra-section-heading p { font-size:7.4pt !important; margin-top:4px; color:#52677e !important; }
+  .admin-dashboard-root[data-view=analytics] .ra-tag { background:#e2ecf8 !important; color:#245a88 !important; font-size:7.5pt !important; }
+  .admin-dashboard-root[data-view=analytics] :is(.ra-chart-scroll,.ra-table-scroll) { overflow:visible !important; }
+  .admin-dashboard-root[data-view=analytics] .ra-bars { display:flex !important; gap:2px !important; }
+  .admin-dashboard-root[data-view=analytics] .ra-day { flex:1; min-width:0 !important; background:transparent !important; outline:0 !important; }
+  .admin-dashboard-root[data-view=analytics] .ra-bar-space { height:130px; }
+  .admin-dashboard-root[data-view=analytics] :is(.ra-day-label,.ra-day-count) { font-size:6.5pt !important; }
+  .admin-dashboard-root[data-view=analytics] .ra-day-bar { height:calc(var(--ra-bar-scale) * 110px) !important; background:#3977ad !important; border-radius:4px 4px 0 0; }
+  .admin-dashboard-root[data-view=analytics] :is(.ra-track,.ra-status-track) { background:#dfe9f2 !important; }
+  .admin-dashboard-root[data-view=analytics] .ra-rankings { gap:9px; }
+  .admin-dashboard-root[data-view=analytics] .ra-ranking>div:first-child { font-size:8pt !important; gap:8px; }
+  .admin-dashboard-root[data-view=analytics] .ra-ranking strong { font-size:8.5pt !important; }
+  .admin-dashboard-root[data-view=analytics] :is(.ra-ranking small,.ra-status-list small,.ra-locations small) { font-size:7pt !important; }
+  .admin-dashboard-root[data-view=analytics] .ra-status-list { gap:11px; }
+  .admin-dashboard-root[data-view=analytics] .ra-status-list>div { font-size:8pt !important; gap:6px; }
+  .admin-dashboard-root[data-view=analytics] .ra-status-list small { min-width:0; margin-left:6px; }
+  .admin-dashboard-root[data-view=analytics] :is(.ra-section-heading,.ra-ranking,.ra-status-list>div,.ra-locations li) { break-inside:avoid; }
+  .admin-dashboard-root[data-view=analytics] .ra-locations li { padding:9px 0; font-size:8pt !important; }
+  .admin-dashboard-root[data-view=analytics] .ra-attention ul { font-size:9pt !important; gap:12px; line-height:1.6; }
+  .admin-dashboard-root[data-view=analytics] .ra-recent-reports { margin-top:18px !important; }
+  .admin-dashboard-root[data-view=analytics] .ra-table-scroll table { width:100% !important; font-size:8pt !important; }
+  .admin-dashboard-root[data-view=analytics] .ra-table-scroll thead { display:table-header-group; }
+  .admin-dashboard-root[data-view=analytics] .ra-table-scroll th { background:#204d70 !important; color:#fff !important; font-size:7pt !important; }
+  .admin-dashboard-root[data-view=analytics] .ra-table-scroll tr { break-inside:avoid; }
+  .admin-dashboard-root[data-view=analytics] .ra-table-scroll tbody tr:nth-child(even) { background:#edf4fa !important; }
+  .admin-dashboard-root[data-view=analytics] .ra-table-scroll :is(th,td) { padding:8px !important; overflow-wrap:anywhere; border-bottom-color:#d5e1ec !important; }
+  .admin-dashboard-root[data-view=analytics] .ra-table-scroll .ra-text-button { min-height:0 !important; text-decoration:none; font-size:inherit !important; font-weight:650; color:#205c86 !important; }
+  .admin-dashboard-root[data-view=analytics] .ra-warning { background:#fff8e9 !important; border-color:#e7d2a3 !important; }
+}
+

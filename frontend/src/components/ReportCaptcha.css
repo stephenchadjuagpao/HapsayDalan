@@ -1,0 +1,19 @@
+.report-captcha-backdrop { position:fixed; inset:0; z-index:10000; display:flex; align-items:center; justify-content:center; padding:16px; background:rgba(15,23,42,.6); backdrop-filter:blur(4px); }
+.report-captcha-dialog { background:#fff; color:#172b4d; width:100%; max-width:460px; max-height:calc(100dvh - 32px); overflow-y:auto; border-radius:16px; padding:24px; box-shadow:0 24px 64px rgba(15,23,42,.24); }
+.report-captcha-header { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+.report-captcha-eyebrow { color:#5c7596; font-size:10px; font-weight:800; letter-spacing:1.5px; }
+.report-captcha-header h2 { margin:8px 0 0; font-size:22px; color:#003d7f; }
+.report-captcha-close { flex-shrink:0; height:40px; width:40px; border:0; border-radius:50%; background:#eef3fa; color:#345473; font-size:24px; cursor:pointer; }
+.report-captcha-dialog>p { font-size:13px; line-height:1.7; margin:18px 0; }
+.report-captcha-widget { display:flex; justify-content:center; margin:20px 0; min-height:1px; }
+.report-captcha-error { color:#a62c38; background:#fff2f2; border-radius:8px; padding:12px; }
+.report-captcha-actions { display:flex; gap:10px; margin-top:24px; }
+.report-captcha-actions button { flex:1; min-height:44px; border:1px solid #cfdaea; padding:10px; border-radius:8px; background:white; color:#24466c; font-weight:700; cursor:pointer; }
+.report-captcha-actions button:last-child { background:#003d7f; border-color:#003d7f; color:white; }
+.report-captcha-actions button:disabled { opacity:.5; cursor:default; }
+.report-captcha-retry { background:transparent; border:0; padding:8px 0; color:#174c97; text-decoration:underline; cursor:pointer; }
+.report-captcha-dialog button:focus-visible { outline:2px solid #2458a0; outline-offset:3px; }
+.submission-email-code { display:block; box-sizing:border-box; width:100%; margin-top:10px; padding:12px; border:1px solid #b8cbe1; border-radius:8px; font-size:24px; letter-spacing:.35em; text-align:center; }
+.submission-email-note { font-size:12px; color:#526b86; line-height:1.6; }
+.report-captcha-dialog strong { overflow-wrap:anywhere; }
+@media(max-width:420px) { .report-captcha-dialog { padding:18px; } .report-captcha-actions { flex-direction:column-reverse; } }

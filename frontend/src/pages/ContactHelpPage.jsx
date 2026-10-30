@@ -1,28 +1,29 @@
 import { useEffect } from "react";
 import Navbar from "../components/reusablecode/Navbar";
 import HelpForm from "../components/HelpForm";
+import MaterialIcon from "../components/MaterialIcon";
 
 const QUICK_HELP_ITEMS = [
   {
-    icon: "📝",
+    icon: "assignment",
     title: "Report a Violation",
     text: "Submit a new violation report",
     href: "/report",
   },
   {
-    icon: "📍",
+    icon: "place",
     title: "Track My Report",
     text: "Check status with reference ID",
     href: "/track",
   },
   {
-    icon: "❓",
+    icon: "help_outline",
     title: "FAQs",
     text: "Common questions answered",
     href: "/faqs",
   },
   {
-    icon: "⚙️",
+    icon: "settings",
     title: "How It Works",
     text: "Learn about our process",
     href: "/how-it-works",
@@ -31,19 +32,19 @@ const QUICK_HELP_ITEMS = [
 
 const RESOURCE_ITEMS = [
   {
-    icon: "📚",
+    icon: "book",
     title: "Traffic Rules",
     text: "Understand local traffic rules and regulations.",
     href: "/faqs",
   },
   {
-    icon: "🛣️",
+    icon: "directions_car",
     title: "Road Safety",
     text: "Tips for safe driving and road awareness.",
     href: "/hotspot-map",
   },
   {
-    icon: "📋",
+    icon: "article",
     title: "Policies",
     text: "Privacy policy and terms of service.",
     href: "/faqs",
@@ -655,7 +656,7 @@ export default function ContactHelpPage() {
                 <div className="contact-quick-links">
                   {QUICK_HELP_ITEMS.map((item) => (
                     <a key={item.title} href={item.href} className="contact-quick-link">
-                      <span className="contact-quick-icon">{item.icon}</span>
+                      <span className="contact-quick-icon"><MaterialIcon name={item.icon} /></span>
                       <div>
                         <p className="contact-quick-title">{item.title}</p>
                         <p className="contact-quick-text">{item.text}</p>
@@ -678,7 +679,7 @@ export default function ContactHelpPage() {
           <div className="contact-section-inner">
             <div className="contact-emergency-wrap">
               <div className="contact-emergency-card">
-                <div className="contact-emergency-icon">🚨</div>
+                <div className="contact-emergency-icon"><MaterialIcon name="warning_amber" /></div>
                 <div>
                   <h2 className="contact-emergency-title">Emergency Situations</h2>
                   <p className="contact-emergency-text">
@@ -701,7 +702,7 @@ export default function ContactHelpPage() {
             <div className="contact-resources">
               {RESOURCE_ITEMS.map((item) => (
                 <div key={item.title} className="contact-resource-card">
-                  <div className="contact-resource-icon">{item.icon}</div>
+                  <div className="contact-resource-icon"><MaterialIcon name={item.icon} /></div>
                   <h3 className="contact-resource-title">{item.title}</h3>
                   <p className="contact-resource-text">{item.text}</p>
                   <a href={item.href} className="contact-resource-link">

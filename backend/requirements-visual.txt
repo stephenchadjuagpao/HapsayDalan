@@ -1,0 +1,2 @@
+# Local visual duplicate detection. Install into the backend virtual environment.
+Pillow>=12.1.1

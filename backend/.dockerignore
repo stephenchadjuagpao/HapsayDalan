@@ -1,0 +1,8 @@
+venv/
+.env
+media/
+private_evidence/
+staticfiles/
+__pycache__/
+*.pyc
+*.log

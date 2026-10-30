@@ -1,0 +1,31 @@
+/* Scale content density with the viewport; keep controls large enough to tap. */
+.user-dashboard, .admin-dashboard-root, .admin-login-page { -webkit-text-size-adjust:100%; text-size-adjust:100%; }
+@media(min-width:481px) and (max-width:1023px) {
+  .user-dashboard :is(.sc-section-title,.how-section-title,.faq-section-title,.contact-section-title,.contact-feedback-title,.faq-cta-title) { font-size:26px; line-height:1.3; }
+  .user-dashboard :is(.sc-hero-text,.report-hero-text,.track-hero-text,.hotspot-hero-text,.how-hero-text,.faq-hero-text,.contact-hero-text) { font-size:15px; }
+  .user-dashboard :is(.contact-card-title,.help-form-title,.contact-emergency-title,.contact-resource-title) { font-size:22px; }
+}
+@media(max-width:480px) {
+  .user-dashboard :is(.sc-hero-title,.report-hero-title,.track-hero-title,.hotspot-hero-title,.how-hero-title,.faq-hero-title,.contact-hero-title) { font-size:clamp(26px,7vw,32px); line-height:1.2; }
+  .user-dashboard :is(.sc-hero-text,.report-hero-text,.track-hero-text,.hotspot-hero-text,.how-hero-text,.faq-hero-text,.contact-hero-text) { font-size:14px; line-height:1.6; }
+  .user-dashboard :is(.sc-section-title,.how-section-title,.faq-section-title,.contact-section-title,.contact-feedback-title,.faq-cta-title) { font-size:22px; line-height:1.3; }
+  .user-dashboard :is(.report-card-title,.track-panel-title,.track-faq-title,.contact-card-title,.help-form-title,.contact-emergency-title,.hotspot-panel-title) { font-size:19px; line-height:1.35; }
+  .user-dashboard .track-form-card:not(.my-reports) > .track-form-title { font-size:20px; }
+  .user-dashboard :is(.sc-step-title,.sc-benefit-title,.contact-resource-title,.contact-quick-title,.how-step-title) { font-size:16px; line-height:1.4; }
+  .user-dashboard :is(.faq-trigger,.track-faq-trigger,.contact-info-link) { font-size:14px; line-height:1.5; }
+  .user-dashboard :is(.faq-answer,.track-timeline-description,.track-detail-value,.help-form-text,.contact-resource-text,.contact-quick-text,.contact-emergency-text,.contact-feedback-text,.sc-section-subtitle) { font-size:13px; line-height:1.6; }
+  .user-dashboard :is(.report-label,.track-label,.help-form-label,.contact-info-label,.track-detail-label) { font-size:12px; }
+  .user-dashboard :is(.track-help,.report-helper-text,.report-reference-help,.report-upload-hint) { font-size:12px; line-height:1.55; }
+  .user-dashboard :is(.report-button,.track-submit,.contact-btn,.faq-cta-link,.help-form-submit,.sc-btn-primary,.sc-btn-secondary,.report-upload-action) { font-size:13px; padding:10px 14px; }
+  .user-dashboard :is(.report-card,.track-form-card,.track-status-card,.track-details-card,.contact-card,.help-form-card,.contact-resource-card) { border-radius:12px; }
+  .report-captcha-dialog h2 { font-size:20px; }
+  .report-captcha-dialog p, .report-captcha-dialog label { font-size:13px; line-height:1.6; }
+  .report-captcha-actions button { font-size:12px; padding:10px; }
+  .admin-dashboard-root :is(.admin-panel-title,.admin-modal-title) { font-size:18px; line-height:1.35; }
+  .admin-dashboard-root :is(.admin-panel-subtitle,.admin-detail-val,.admin-modal-textarea,.admin-search-input) { font-size:13px; line-height:1.5; }
+  .admin-dashboard-root :is(.admin-detail-label,.admin-field-label,.admin-filter-select,.admin-modal-select,.admin-modal-save,.admin-modal-cancel) { font-size:12px; }
+  .admin-dashboard-root .admin-table { font-size:12px; }
+  .admin-dashboard-root :is(.admin-modal-body,.admin-modal-header,.admin-modal-footer) { min-width:0; }
+  .admin-login-page .admin-login-title { font-size:24px; }
+  .admin-login-page :is(.admin-login-subtitle,.admin-login-label,.admin-login-footer,.admin-login-row,.admin-login-link) { font-size:12px; }
+}

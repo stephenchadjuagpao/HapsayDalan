@@ -1,0 +1,4 @@
+Material Icons (Outlined), 24px. Copyright Google LLC.
+Source: https://github.com/google/material-design-icons
+Licensed under the Apache License, Version 2.0; see LICENSE.
+SVG fill colors changed to currentColor to inherit the application theme.

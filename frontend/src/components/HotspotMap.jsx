@@ -1,5 +1,9 @@
+import ResponsiveSelect from "./ResponsiveSelect";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import API from "../services/api";
+import ReportDirections from "./ReportDirections";
+import MaterialIcon from "./MaterialIcon";
+import { MAP_TILE_URL, MAP_TILE_OPTIONS } from "../utils/mapTiles";
 
 const MAP_CENTER = [9.7843, 125.4888];
 const VIOLATION_OPTIONS = [
@@ -185,7 +189,7 @@ export default function HotspotMap({ isEmbedded = false } = {}) {
       setMapError("");
 
       try {
-        const response = await API.get("reports/");
+        const response = await API.get(isEmbedded ? "reports/" : "reports/hotspots/");
         const reports = Array.isArray(response.data)
           ? response.data
           : Array.isArray(response.data?.results)
@@ -279,7 +283,7 @@ export default function HotspotMap({ isEmbedded = false } = {}) {
           setSelectedHotspotId(nextHotspots[0]?.id || null);
 
           if (!nextHotspots.length) {
-            setMapError("No report locations could be mapped yet from the current backend data.");
+            setMapError("No verified report locations are available yet. Reports appear here after admin verification.");
           }
         }
       } catch (error) {
@@ -301,7 +305,7 @@ export default function HotspotMap({ isEmbedded = false } = {}) {
     return () => {
       isCancelled = true;
     };
-  }, []);
+  }, [isEmbedded]);
 
   const violationTypes = useMemo(() => {
     const extraBackendTypes = reportViolationTypes.filter((type) => !VIOLATION_OPTIONS.includes(type));
@@ -356,9 +360,7 @@ export default function HotspotMap({ isEmbedded = false } = {}) {
             zoomControl: true,
           });
 
-          L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-          }).addTo(mapInstanceRef.current);
+          L.tileLayer(MAP_TILE_URL, MAP_TILE_OPTIONS).addTo(mapInstanceRef.current);
 
           markersLayerRef.current = L.layerGroup().addTo(mapInstanceRef.current);
         }
@@ -398,8 +400,8 @@ export default function HotspotMap({ isEmbedded = false } = {}) {
     filteredHotspots.forEach((hotspot) => {
       const marker = L.circleMarker([hotspot.lat, hotspot.lng], {
         radius: hotspot.severity === "High" ? 14 : hotspot.severity === "Medium" ? 11 : 9,
-        color: "#ffffff",
-        weight: 2,
+        color: hotspot.id === selectedHotspotId ? "#153f80" : "#ffffff",
+        weight: hotspot.id === selectedHotspotId ? 4 : 2,
         fillColor: getSeverityColor(hotspot.severity),
         fillOpacity: hotspot.id === selectedHotspotId ? 0.95 : 0.72,
       });
@@ -407,6 +409,9 @@ export default function HotspotMap({ isEmbedded = false } = {}) {
       marker.bindPopup(
         `<strong>${hotspot.title}</strong><br />${hotspot.violationType}<br />${hotspot.reports} reports`
       );
+      const tooltip = document.createElement("span");
+      tooltip.textContent = `${hotspot.title} · Click to view hotspot`;
+      marker.bindTooltip(tooltip, { direction: "top" });
       marker.on("click", () => {
         setSelectedHotspotId(hotspot.id);
       });
@@ -443,6 +448,45 @@ export default function HotspotMap({ isEmbedded = false } = {}) {
       minute: "2-digit",
     });
   };
+
+  const hotspotDetails = selectedHotspot ? (
+            <div className="hotspot-detail">
+              <div className="hotspot-side-title">Selected Hotspot Details</div>
+              <div className="hotspot-card-text">{selectedHotspot.description}</div>
+              {isEmbedded ? <ReportDirections latitude={selectedHotspot.lat} longitude={selectedHotspot.lng}
+                label={selectedHotspot.title} /> : null}
+              <div className="hotspot-detail-grid">
+                <div className="hotspot-detail-item">
+                  <span className="hotspot-detail-label">Most Common Violation</span>
+                  <span className="hotspot-detail-value">{selectedHotspot.violationType}</span>
+                </div>
+                <div className="hotspot-detail-item">
+                  <span className="hotspot-detail-label">Severity</span>
+                  <span className="hotspot-detail-value">{selectedHotspot.severity}</span>
+                </div>
+                <div className="hotspot-detail-item">
+                  <span className="hotspot-detail-label">Report Count</span>
+                  <span className="hotspot-detail-value">{selectedHotspot.reports}</span>
+                </div>
+                <div className="hotspot-detail-item">
+                  <span className="hotspot-detail-label">Latest Report</span>
+                  <span className="hotspot-detail-value">
+                    {formatDateTime(selectedHotspot.latestReportedAt)}
+                  </span>
+                </div>
+                <div className="hotspot-detail-item">
+                  <span className="hotspot-detail-label">Full Location</span>
+                  <span className="hotspot-detail-value">{selectedHotspot.fullLocation}</span>
+                </div>
+                <div className="hotspot-detail-item">
+                  <span className="hotspot-detail-label">Coordinates</span>
+                  <span className="hotspot-detail-value">
+                    {selectedHotspot.lat.toFixed(4)}, {selectedHotspot.lng.toFixed(4)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ) : null;
 
   return (
     <>
@@ -502,7 +546,7 @@ export default function HotspotMap({ isEmbedded = false } = {}) {
         }
 
         .hotspot-map-box {
-          min-height: 460px;
+          min-height: 380px;
           border-radius: 16px;
           overflow: hidden;
           background: #e9eef4;
@@ -513,7 +557,7 @@ export default function HotspotMap({ isEmbedded = false } = {}) {
 
         .hotspot-live-map {
           width: 100%;
-          height: 460px;
+          height: 380px;
           pointer-events: auto;
           touch-action: none;
           position: relative;
@@ -581,7 +625,12 @@ export default function HotspotMap({ isEmbedded = false } = {}) {
         .hotspot-card-list {
           display: grid;
           gap: 12px;
-          margin-bottom: 18px;
+          max-height: 760px;
+          overflow-y: auto;
+          scrollbar-width: thin;
+          padding: 4px;
+          margin: 0 -4px;
+          overscroll-behavior: contain;
         }
 
         .hotspot-card {
@@ -604,6 +653,11 @@ export default function HotspotMap({ isEmbedded = false } = {}) {
           border-color: #0f4c97;
           box-shadow: 0 0 0 3px rgba(15, 76, 151, 0.08);
         }
+
+        .hotspot-selection-hint { display:flex; gap:9px; align-items:flex-start; margin:-4px 0 18px; color:#405b7c; font-size:13px; line-height:1.65; }
+        .hotspot-selection-hint .material-icon { flex-shrink:0; margin-top:2px; }
+        .hotspot-card-action { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:12px; padding-top:11px; border-top:1px solid #bdcfe7; color:#245ba3; font-size:13px; font-weight:700; }
+        .hotspot-card:focus-visible { outline:3px solid #3975c4; outline-offset:3px; }
 
         .hotspot-card-top {
           display: flex;
@@ -654,7 +708,8 @@ export default function HotspotMap({ isEmbedded = false } = {}) {
 
         .hotspot-detail {
           border-top: 1px solid #e6edf5;
-          padding-top: 18px;
+          margin-top: 20px;
+          padding-top: 20px;
         }
 
         .hotspot-detail-grid {
@@ -686,6 +741,7 @@ export default function HotspotMap({ isEmbedded = false } = {}) {
         }
 
         @media (max-width: 900px) {
+          .hotspot-card-list { max-height: 520px; }
           .hotspot-shell {
             grid-template-columns: 1fr;
           }
@@ -737,9 +793,9 @@ export default function HotspotMap({ isEmbedded = false } = {}) {
         <div className="hotspot-map-panel">
           <div className="hotspot-toolbar">
             <div className="hotspot-toolbar-title">Community Hotspot Overview</div>
-            <select
+            <ResponsiveSelect
               className="hotspot-select"
-              value={selectedType}
+              aria-label="Filter violation types" value={selectedType}
               onChange={(event) => setSelectedType(event.target.value)}
             >
               {violationTypes.map((type) => (
@@ -747,7 +803,7 @@ export default function HotspotMap({ isEmbedded = false } = {}) {
                   {type === "All" ? "All Violation Types" : type}
                 </option>
               ))}
-            </select>
+            </ResponsiveSelect>
           </div>
 
           <div className="hotspot-map-box">
@@ -757,10 +813,12 @@ export default function HotspotMap({ isEmbedded = false } = {}) {
             ) : null}
             {!isLoading && mapError ? <div className="hotspot-map-overlay">{mapError}</div> : null}
           </div>
+          {hotspotDetails}
         </div>
 
         <aside className="hotspot-side-panel">
           <div className="hotspot-side-title">Reported Hotspots</div>
+          <p className="hotspot-selection-hint"><MaterialIcon name="place" /><span>Click a map pin or a location card to view its details. Your selection will be highlighted on the map.</span></p>
           <div className="hotspot-card-list">
             {filteredHotspots.length ? (
               filteredHotspots.map((hotspot) => (
@@ -768,6 +826,7 @@ export default function HotspotMap({ isEmbedded = false } = {}) {
                   key={hotspot.id}
                   type="button"
                   className={`hotspot-card ${hotspot.id === selectedHotspotId ? "is-active" : ""}`}
+                  aria-pressed={hotspot.id === selectedHotspotId}
                   onClick={() => setSelectedHotspotId(hotspot.id)}
                 >
                   <div className="hotspot-card-top">
@@ -778,6 +837,8 @@ export default function HotspotMap({ isEmbedded = false } = {}) {
                   </div>
                   <div className="hotspot-card-meta">{hotspot.violationType}</div>
                   <div className="hotspot-card-text">{hotspot.reports} reports recorded</div>
+                  <span className="hotspot-card-action"><span>{hotspot.id === selectedHotspotId ? "Selected hotspot" : "View hotspot details"}</span>
+                    <MaterialIcon name={hotspot.id === selectedHotspotId ? "check_circle" : "arrow_forward"} /></span>
                 </button>
               ))
             ) : (
@@ -789,42 +850,6 @@ export default function HotspotMap({ isEmbedded = false } = {}) {
             )}
           </div>
 
-          {selectedHotspot ? (
-            <div className="hotspot-detail">
-              <div className="hotspot-side-title">Selected Hotspot Details</div>
-              <div className="hotspot-card-text">{selectedHotspot.description}</div>
-              <div className="hotspot-detail-grid">
-                <div className="hotspot-detail-item">
-                  <span className="hotspot-detail-label">Most Common Violation</span>
-                  <span className="hotspot-detail-value">{selectedHotspot.violationType}</span>
-                </div>
-                <div className="hotspot-detail-item">
-                  <span className="hotspot-detail-label">Severity</span>
-                  <span className="hotspot-detail-value">{selectedHotspot.severity}</span>
-                </div>
-                <div className="hotspot-detail-item">
-                  <span className="hotspot-detail-label">Report Count</span>
-                  <span className="hotspot-detail-value">{selectedHotspot.reports}</span>
-                </div>
-                <div className="hotspot-detail-item">
-                  <span className="hotspot-detail-label">Latest Report</span>
-                  <span className="hotspot-detail-value">
-                    {formatDateTime(selectedHotspot.latestReportedAt)}
-                  </span>
-                </div>
-                <div className="hotspot-detail-item">
-                  <span className="hotspot-detail-label">Full Location</span>
-                  <span className="hotspot-detail-value">{selectedHotspot.fullLocation}</span>
-                </div>
-                <div className="hotspot-detail-item">
-                  <span className="hotspot-detail-label">Coordinates</span>
-                  <span className="hotspot-detail-value">
-                    {selectedHotspot.lat.toFixed(4)}, {selectedHotspot.lng.toFixed(4)}
-                  </span>
-                </div>
-              </div>
-            </div>
-          ) : null}
         </aside>
       </div>
     </>

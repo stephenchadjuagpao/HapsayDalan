@@ -10,6 +10,7 @@
 
 # production
 /build
+/.npm-cache/
 
 # misc
 .DS_Store
@@ -21,3 +22,7 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Local HTTPS certificates and public development CA download
+/.certs/
+/public/hapsaydalan-local-ca.cer

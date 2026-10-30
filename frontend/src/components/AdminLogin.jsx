@@ -1,8 +1,31 @@
 import React, { useState } from "react";
 import API from "../services/api";
-import ctmoShieldLogo from "../assets/ctmo-shield-logo.jpg";
+import ctmoShieldLogo from "../assets/ctmo-shield-logo-transparent.png";
+import ThemeToggle from "./ThemeToggle";
+import MaterialIcon from "./MaterialIcon";
+
+function PasswordInput({ id, ...props }) {
+  const [visible, setVisible] = useState(false);
+  return (
+    <div className="admin-password-wrap">
+      <input {...props} id={id} type={visible ? "text" : "password"} />
+      <button type="button" className="admin-password-toggle"
+        aria-label={`${visible ? "Hide" : "Show"} ${id === "confirm-password" ? "confirmation password" : "password"}`}
+        aria-pressed={visible} aria-controls={id}
+        onClick={() => setVisible((current) => !current)}>
+        <MaterialIcon name={visible ? "visibility_off" : "visibility"} />
+      </button>
+    </div>
+  );
+}
 
 export default function AdminLogin() {
+  const [resetLink] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return { uid: params.get("uid") || "", token: params.get("token") || "" };
+  });
+  const [mode, setMode] = useState(() => new URLSearchParams(window.location.search).has("token") ? "reset" : "login");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -27,8 +50,12 @@ export default function AdminLogin() {
     setMessage("");
     setError("");
 
-    if (!formData.username.trim() || !formData.password) {
-      setError("Please enter both email address and password.");
+    if ((mode !== "reset" && !formData.username.trim()) || (mode !== "forgot" && !formData.password)) {
+      setError(mode === "forgot" ? "Please enter your CTMO account email." : "Please complete the required fields.");
+      return;
+    }
+    if (mode === "reset" && formData.password !== confirmPassword) {
+      setError("The passwords do not match.");
       return;
     }
 
@@ -43,6 +70,23 @@ export default function AdminLogin() {
         // CSRF retrieval optional
       }
 
+      const requestOptions = { headers: csrfToken ? { "X-CSRFToken": csrfToken } : undefined };
+      if (mode === "forgot") {
+        const response = await API.post("admin/password-reset/", { email: formData.username.trim() }, requestOptions);
+        setMessage(response.data.detail);
+        return;
+      }
+      if (mode === "reset") {
+        const response = await API.post("admin/password-reset/confirm/", {
+          ...resetLink, password: formData.password,
+        }, requestOptions);
+        setMode("login");
+        setFormData((current) => ({ ...current, password: "" }));
+        setConfirmPassword("");
+        window.history.replaceState(null, "", window.location.pathname);
+        setMessage(response.data.detail);
+        return;
+      }
       const response = await API.post("admin/login/", {
         username: formData.username.trim(),
         password: formData.password,
@@ -62,12 +106,22 @@ export default function AdminLogin() {
 
       setMessage("Login successful. Opening CTMO admin dashboard...");
       setTimeout(() => {
-        window.location.href = "/admin";
+        window.location.href = "/admin-dashboard";
       }, 500);
     } catch (apiError) {
-      const nextError =
-        apiError?.response?.data?.detail ||
-        "Invalid email address or password. Access is restricted to authorized CTMO personnel.";
+      const status = apiError?.response?.status;
+      const detail = apiError?.response?.data?.detail;
+      const nextError = (typeof detail === "string" && detail) ||
+        (status === 400 && typeof apiError?.response?.data === "string"
+          ? "This website address is no longer accepted by the server. Open the current site address and try again."
+          : status === 403
+            ? "Your login session could not be verified. Refresh this page, allow cookies, and try again."
+            : status >= 500
+              ? "The CTMO server could not complete your login. Please try again in a moment."
+              : null) ||
+        (!status || [502, 503, 504].includes(status)
+          ? "Cannot connect to the CTMO server. Please wait a moment and try again."
+          : "Unable to continue. Please try again.");
       setError(nextError);
     } finally {
       setIsSubmitting(false);
@@ -157,13 +211,11 @@ export default function AdminLogin() {
           height: 92px;
           margin: 0 auto 10px;
           border-radius: 32px;
-          background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(239, 244, 255, 0.9) 100%);
+          background: transparent;
           display: flex;
           align-items: center;
           justify-content: center;
-          box-shadow:
-            inset 0 1px 0 rgba(255, 255, 255, 0.9),
-            0 16px 34px rgba(73, 99, 172, 0.16);
+          box-shadow: none;
           position: relative;
           z-index: 1;
         }
@@ -225,6 +277,43 @@ export default function AdminLogin() {
           transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, transform 0.15s ease;
           margin-bottom: 14px;
           box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+
+        .admin-password-wrap {
+          position: relative;
+          margin-bottom: 14px;
+        }
+
+        .admin-password-wrap .admin-login-input {
+          margin-bottom: 0;
+          padding-right: 52px;
+        }
+
+        .admin-password-toggle {
+          position: absolute;
+          right: 6px;
+          top: 50%;
+          transform: translateY(-50%);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 40px;
+          height: 36px;
+          border: none;
+          border-radius: 8px;
+          background: transparent;
+          color: #5f6b7a;
+          cursor: pointer;
+        }
+
+        .admin-password-toggle:hover {
+          color: #0f4c97;
+          background: #eef4ff;
+        }
+
+        .admin-password-toggle:focus-visible {
+          outline: 2px solid #0f4c97;
+          outline-offset: 1px;
         }
 
         .admin-login-input::placeholder {
@@ -477,15 +566,17 @@ export default function AdminLogin() {
 
       <div className="admin-login-page">
         <form className="admin-login-card" onSubmit={handleSubmit}>
+          <div className="admin-login-appearance"><ThemeToggle showLabel /></div>
           <div className="admin-login-logo-shell">
             <div className="admin-login-logo">
               <img src={ctmoShieldLogo} alt="CTMO shield logo" />
             </div>
           </div>
 
-          <h1 className="admin-login-title">CTMO Portal</h1>
-          <p className="admin-login-subtitle">Authorized Personnel Only</p>
+          <h1 className="admin-login-title">{mode === "login" ? "CTMO Portal" : "Reset CTMO Password"}</h1>
+          <p className="admin-login-subtitle">{mode === "forgot" ? "Receive a reset link at your account email" : "Authorized Personnel Only"}</p>
 
+          {mode !== "reset" ? <>
           <label className="admin-login-label" htmlFor="username">
             Email Address
           </label>
@@ -497,21 +588,34 @@ export default function AdminLogin() {
             placeholder="officer@ctmo.gov.ph"
             value={formData.username}
             onChange={handleChange}
+            autoComplete="username"
+            required
           />
+          </> : null}
 
+          {mode !== "forgot" ? <>
           <label className="admin-login-label" htmlFor="password">
-            Password
+            {mode === "reset" ? "New Password" : "Password"}
           </label>
-          <input
+          <PasswordInput
+            key={mode}
             id="password"
             name="password"
-            type="password"
             className="admin-login-input"
             placeholder="Password"
             value={formData.password}
             onChange={handleChange}
+            required
+            autoComplete={mode === "reset" ? "new-password" : "current-password"}
           />
+          </> : null}
+          {mode === "reset" ? <>
+            <label className="admin-login-label" htmlFor="confirm-password">Confirm New Password</label>
+            <PasswordInput id="confirm-password" className="admin-login-input" autoComplete="new-password"
+              required value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} />
+          </> : null}
 
+          {mode === "login" ? (
           <div className="admin-login-row">
             <label className="admin-login-checkbox" htmlFor="rememberMe">
               <input
@@ -524,14 +628,23 @@ export default function AdminLogin() {
               <span>Remember me</span>
             </label>
 
-            <button type="button" className="admin-login-link">
+            <button type="button" className="admin-login-link" onClick={() => {
+              setMode("forgot"); setError(""); setMessage("");
+              setFormData((current) => ({ ...current, password: "" }));
+            }}>
               Forgot password?
             </button>
           </div>
+          ) : null}
 
           <button type="submit" className="admin-login-button" disabled={isSubmitting}>
-            {isSubmitting ? "Logging In..." : "Log In"}
+            {isSubmitting ? "Please wait..." : mode === "forgot" ? "Send Reset Link" : mode === "reset" ? "Save New Password" : "Log In"}
           </button>
+          {mode !== "login" ? <button type="button" className="admin-login-link" disabled={isSubmitting} onClick={() => {
+            setMode("login"); setError(""); setMessage(""); setConfirmPassword("");
+            setFormData((current) => ({ ...current, password: "" }));
+            window.history.replaceState(null, "", window.location.pathname);
+          }}>Back to Log In</button> : null}
 
           {error ? <div className="admin-login-error">{error}</div> : null}
           {message ? <div className="admin-login-message">{message}</div> : null}

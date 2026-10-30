@@ -12,6 +12,9 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 import os
 from pathlib import Path
+from corsheaders.defaults import default_headers
+from django.core.exceptions import ImproperlyConfigured
+from .network import LocalNetworkHosts
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -43,7 +46,8 @@ def load_env_file(path):
         os.environ[key] = value
 
 
-load_env_file(BASE_DIR / ".env")
+if os.getenv("DJANGO_LOAD_ENV_FILE", "True").lower() not in {"false", "0", "no"}:
+    load_env_file(BASE_DIR / ".env")
 
 
 def env_bool(name, default=False):
@@ -71,8 +75,12 @@ SECRET_KEY = os.getenv(
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env_bool("DJANGO_DEBUG", True)
+if not DEBUG and (not os.getenv("DJANGO_SECRET_KEY") or SECRET_KEY.startswith("django-insecure-")):
+    raise ImproperlyConfigured("Set a new production DJANGO_SECRET_KEY when DJANGO_DEBUG=False.")
 
-ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", ["localhost", "127.0.0.1"])
+CONFIGURED_ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", ["localhost", "127.0.0.1"])
+AUTO_LAN_HOSTS = env_bool("DJANGO_AUTO_LAN_HOSTS", DEBUG)
+ALLOWED_HOSTS = LocalNetworkHosts(CONFIGURED_ALLOWED_HOSTS) if AUTO_LAN_HOSTS else CONFIGURED_ALLOWED_HOSTS
 
 
 # Application definition
@@ -92,6 +100,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'config.migration_gate.CloudMigrationGate',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -170,11 +179,14 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = os.getenv('DJANGO_STATIC_ROOT', str(BASE_DIR / 'staticfiles'))
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = os.getenv('DJANGO_MEDIA_ROOT', str(BASE_DIR / 'media'))
+PRIVATE_EVIDENCE_ROOT = os.getenv('DJANGO_PRIVATE_EVIDENCE_ROOT', str(BASE_DIR / 'private_evidence'))
 
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_HEADERS = (*default_headers, "x-report-access")
 CORS_ALLOWED_ORIGINS = env_list(
     "DJANGO_CORS_ALLOWED_ORIGINS",
     [
@@ -194,6 +206,33 @@ SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_HTTPONLY = True
+
+# Recovery requires a delivery backend; never silently substitute console output.
+EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend")
+EMAIL_HOST = os.getenv("EMAIL_HOST", "")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+EMAIL_USE_TLS = env_bool("EMAIL_USE_TLS", True)
+EMAIL_USE_SSL = env_bool("EMAIL_USE_SSL", False)
+EMAIL_TIMEOUT = 10
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL") or EMAIL_HOST_USER
+SEMAPHORE_API_KEY = os.getenv("SEMAPHORE_API_KEY", "").strip()
+SEMAPHORE_SENDERNAME = os.getenv("SEMAPHORE_SENDERNAME", "").strip()
+FRONTEND_URL = os.getenv("FRONTEND_URL", CORS_ALLOWED_ORIGINS[0]).rstrip("/")
+PASSWORD_RESET_TIMEOUT = 900
+OPENROUTESERVICE_API_KEY = os.getenv("OPENROUTESERVICE_API_KEY", "").strip()
+REPORT_EMAIL_SUBMISSION_LIMIT = max(1, int(os.getenv("REPORT_EMAIL_SUBMISSION_LIMIT", "3")))
+REPORT_EMAIL_SUBMISSION_WINDOW_SECONDS = max(1, int(os.getenv("REPORT_EMAIL_SUBMISSION_WINDOW_SECONDS", "600")))
+RECAPTCHA_SITE_KEY = os.getenv("RECAPTCHA_SITE_KEY", "").strip()
+RECAPTCHA_SECRET_KEY = os.getenv("RECAPTCHA_SECRET_KEY", "").strip()
+RECAPTCHA_ALLOWED_HOSTNAMES = env_list(
+    "RECAPTCHA_ALLOWED_HOSTNAMES", [host.lower() for host in CONFIGURED_ALLOWED_HOSTS if host != "*"],
+)
+
+# Enable only when Django is bound to loopback behind our HTTPS development proxy.
+if env_bool("DJANGO_TRUST_HTTPS_PROXY", False):
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True

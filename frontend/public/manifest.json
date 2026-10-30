@@ -3,9 +3,9 @@
   "name": "HapsayDalan",
   "icons": [
     {
-      "src": "ctmo-shield-logo.jpg",
-      "type": "image/jpeg",
-      "sizes": "257x307"
+      "src": "ctmo-shield-logo-transparent.png",
+      "type": "image/png",
+      "sizes": "1148x1371"
     }
   ],
   "start_url": ".",

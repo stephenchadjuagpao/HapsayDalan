@@ -1,6 +1,14 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import ResponsiveSelect from "../components/ResponsiveSelect";
+import React, { useEffect, useRef, useState } from "react";
 import Navbar from "../components/reusablecode/Navbar";
+import MaterialIcon from "../components/MaterialIcon";
 import API from "../services/api";
+import useReportLocation, { MAX_LOCATION_ACCURACY_METERS } from "../hooks/useReportLocation";
+import ReportCaptcha from "../components/ReportCaptcha";
+import useAutomaticReportRoute from "../hooks/useAutomaticReportRoute";
+import ViolationGuide, { VIOLATION_GUIDE } from "../components/ViolationGuide";
+import SubmissionEmailVerification from "../components/SubmissionEmailVerification";
+import { MAP_TILE_URL, MAP_TILE_OPTIONS } from "../utils/mapTiles";
 
 const STEP_TITLES = [
   "Violation Details",
@@ -8,25 +16,7 @@ const STEP_TITLES = [
   "Location & Contact Info",
 ];
 
-const VIOLATION_OPTIONS = [
-  "Arrogant Driver / Discourteous",
-  "No Parking / Wrong Parking",
-  "No U-Turn / Illegal Turn",
-  "Involved in Traffic Accident",
-  "No Muffler / Silencer",
-  "Obstruction",
-  "Driving Under the Influence of Liquor",
-  "Wearing Slipper / Sleeveless & Shorts",
-  "Failure / Or No Crash Helmet (R.A. 4136)",
-  "No Seatbelt (R.A. 8750)",
-  "Illegal Terminal (Ord. #134 S, '98)",
-  "Non Payment of Terminal Fee (Ord. #134 S, '98)",
-  "Driving W/Out a License / Unaccompanied by Licensed Driver",
-  "Deffective Signal / Break / Tail Lights",
-  "No Loading / No Unloading",
-  "Allowing Passenger on Top of MV",
-  "Other Violation/s (Specify)",
-];
+const VIOLATION_OPTIONS = VIOLATION_GUIDE.map((item) => item.value);
 
 const WHAT_TO_INCLUDE = [
   { icon: "check", text: "Clear photos or videos of the violation" },
@@ -44,13 +34,32 @@ const WHAT_HAPPENS_NEXT = [
 ];
 
 const formatReferenceId = (value) => `SUP-${String(value).padStart(8, "0")}`;
-const DEFAULT_MAP_CENTER = { lat: 9.7843, lng: 125.4888 };
-const SURIGAO_CITY_BOUNDS = {
-  north: 9.818,
-  south: 9.755,
-  east: 125.515,
-  west: 125.455,
+const CAMERA_ASPECT_RATIO = 3 / 4;
+const getPortraitVideoConstraints = () => {
+  const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  // iOS Safari rotates the camera frame after applying sensor dimensions.
+  return isIOS
+    ? { width: { ideal: 960 }, height: { ideal: 720 } }
+    : { aspectRatio: { ideal: CAMERA_ASPECT_RATIO }, width: { ideal: 720 }, height: { ideal: 960 } };
 };
+const formatReportDate = (value) => {
+  if (!value) return "MM/DD/YYYY";
+  const [year, month, day] = value.split("-");
+  return `${Number(month)}/${Number(day)}/${year}`;
+};
+const formatReportTime = (value) => {
+  if (!value) return "--:-- --";
+  const [hours, minutes] = value.split(":");
+  const hour = Number(hours);
+  return `${hour % 12 || 12}:${minutes} ${hour >= 12 ? "PM" : "AM"}`;
+};
+const DEFAULT_MAP_CENTER = { lat: 9.7843, lng: 125.4888 };
+const mediaExtension = /\.(?:jpe?g|png|webp|gif|heic|heif|mp4|mov|webm|m4v|3gp)$/i;
+const videoExtension = /\.(?:mp4|mov|webm|m4v|3gp)$/i;
+const isPhotoOrVideo = (file) => /^(?:image|video)\//.test(file.type) ||
+  ((!file.type || file.type === "application/octet-stream") && mediaExtension.test(file.name));
+
 
 let leafletAssetsPromise = null;
 
@@ -95,15 +104,29 @@ const loadLeafletAssets = () => {
 function ReportForm() {
   const streamRef = useRef(null);
   const mediaRecorderRef = useRef(null);
+  const recordingCanvasStreamRef = useRef(null);
+  const recordingFrameRef = useRef(null);
+  const saveRecordingRef = useRef(false);
   const recordedChunksRef = useRef([]);
   const videoPreviewRef = useRef(null);
+  const evidenceInputRef = useRef(null);
+  const successCardRef = useRef(null);
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const mapMarkerRef = useRef(null);
-  const hasAttemptedAutoLocateRef = useRef(false);
+  const mapAccuracyRef = useRef(null);
+  const mapRouteRef = useRef(null);
+  const mapDeviceRef = useRef(null);
+  const lastGeocodeRef = useRef(null);
+  const [mapReady, setMapReady] = useState(false);
+  const [manualPin, setManualPin] = useState(null);
   const [step, setStep] = useState(1);
+  const previousStepRef = useRef(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showCaptcha, setShowCaptcha] = useState(false);
+  const [emailChallenge, setEmailChallenge] = useState(null);
   const [submitError, setSubmitError] = useState("");
+  const [invalidField, setInvalidField] = useState("");
   const [submittedReferenceId, setSubmittedReferenceId] = useState("");
   const [cameraError, setCameraError] = useState("");
   const [isCameraModalOpen, setIsCameraModalOpen] = useState(false);
@@ -141,194 +164,190 @@ function ReportForm() {
     }
   };
 
+  const connectCameraPreview = (stream) => {
+    const video = videoPreviewRef.current;
+    if (!video) return;
+    video.srcObject = stream;
+    video.muted = true;
+    try {
+      Promise.resolve(video.play()).catch(() => {
+        if (streamRef.current === stream) {
+          setCameraError("Camera preview did not start. Close and reopen the camera to try again.");
+        }
+      });
+    } catch (error) {
+      if (streamRef.current === stream) {
+        setCameraError("Camera preview did not start. Close and reopen the camera to try again.");
+      }
+    }
+  };
+
+  const stopRecordingCanvas = () => {
+    if (recordingFrameRef.current !== null) {
+      cancelAnimationFrame(recordingFrameRef.current);
+      recordingFrameRef.current = null;
+    }
+    recordingCanvasStreamRef.current?.getTracks().forEach((track) => track.stop());
+    recordingCanvasStreamRef.current = null;
+  };
+
   useEffect(() => () => {
+    saveRecordingRef.current = false;
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
       mediaRecorderRef.current.stop();
     }
 
+    stopRecordingCanvas();
     stopCameraStream();
   }, []);
 
   useEffect(() => {
-    if (videoPreviewRef.current && streamRef.current) {
-      videoPreviewRef.current.srcObject = streamRef.current;
+    if (videoPreviewRef.current && streamRef.current && videoPreviewRef.current.srcObject !== streamRef.current) {
+      connectCameraPreview(streamRef.current);
     }
   }, [isCameraModalOpen, selectedCameraId]);
 
-  const applyMapLocationSelection = useCallback(async (nextPosition) => {
-    const isInsideSurigaoCity =
-      nextPosition.lat >= SURIGAO_CITY_BOUNDS.south &&
-      nextPosition.lat <= SURIGAO_CITY_BOUNDS.north &&
-      nextPosition.lng >= SURIGAO_CITY_BOUNDS.west &&
-      nextPosition.lng <= SURIGAO_CITY_BOUNDS.east;
-
-    if (!isInsideSurigaoCity) {
-      setMapError("Please select a location within Surigao City only.");
-      return false;
+  const deviceLocation = useReportLocation(step === 3 && !submittedReferenceId);
+  const reportPosition = manualPin || deviceLocation.position;
+  useEffect(() => {
+    if (previousStepRef.current !== step) {
+      const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+      document.querySelector(".report-progress-wrap")?.scrollIntoView?.({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
+      previousStepRef.current = step;
     }
-
-    setMapError("");
-
-    if (mapMarkerRef.current) {
-      mapMarkerRef.current.setLatLng([nextPosition.lat, nextPosition.lng]);
-    }
-
-    if (mapInstanceRef.current) {
-      mapInstanceRef.current.panTo([nextPosition.lat, nextPosition.lng]);
-    }
-
-    const fallbackLocation = `${nextPosition.lat.toFixed(6)}, ${nextPosition.lng.toFixed(6)}`;
-
-    try {
-      const response = await API.get("reverse-geocode/", {
-        params: {
-          lat: nextPosition.lat,
-          lng: nextPosition.lng,
-        },
-      });
-      const resolvedAddress = response?.data?.location || fallbackLocation;
-      setFormData((current) => ({
-        ...current,
-        location: resolvedAddress,
-        latitude: nextPosition.lat.toFixed(6),
-        longitude: nextPosition.lng.toFixed(6),
-      }));
-    } catch (error) {
-      setFormData((current) => ({
-        ...current,
-        location: fallbackLocation,
-        latitude: nextPosition.lat.toFixed(6),
-        longitude: nextPosition.lng.toFixed(6),
-      }));
-    }
-
-    return true;
-  }, []);
-
-  const autoLocateCurrentPosition = useCallback(() =>
-    new Promise((resolve) => {
-      if (!navigator.geolocation) {
-        resolve(false);
-        return;
-      }
-
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const didApply = await applyMapLocationSelection({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          });
-
-          if (!didApply) {
-            setMapError("Your detected location is outside Surigao City. Please choose the location on the map.");
-          }
-
-          resolve(didApply);
-        },
-        () => {
-          resolve(false);
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0,
-        }
-      );
-    }), [applyMapLocationSelection]);
+  }, [step]);
+  useEffect(() => {
+    if (!submittedReferenceId) return;
+    const card = successCardRef.current;
+    card?.focus({ preventScroll: true });
+    card?.scrollIntoView?.({ behavior: "auto", block: "center" });
+  }, [submittedReferenceId]);
+  useEffect(() => {
+    if (!isCameraModalOpen) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = previousOverflow; };
+  }, [isCameraModalOpen]);
+  const automaticRoute = useAutomaticReportRoute({
+    enabled: step === 3 && !submittedReferenceId && deviceLocation.isReady,
+    origin: deviceLocation.position,
+    destination: manualPin,
+  });
 
   useEffect(() => {
-    if (step !== 3) {
-      return undefined;
-    }
-
-    if (!mapContainerRef.current) {
-      return undefined;
-    }
-
-    let isCancelled = false;
-
+    if (step !== 3 || submittedReferenceId || !mapContainerRef.current) return undefined;
+    let cancelled = false;
+    setIsMapLoading(true);
+    setMapError("");
     const initializeMap = async () => {
-      setIsMapLoading(true);
-      setMapError("");
-
       try {
         const L = await loadLeafletAssets();
-        if (isCancelled || !mapContainerRef.current) {
-          return;
-        }
-
-        if (!mapInstanceRef.current) {
-          mapContainerRef.current.innerHTML = "";
-          const southWest = L.latLng(SURIGAO_CITY_BOUNDS.south, SURIGAO_CITY_BOUNDS.west);
-          const northEast = L.latLng(SURIGAO_CITY_BOUNDS.north, SURIGAO_CITY_BOUNDS.east);
-          const bounds = L.latLngBounds(southWest, northEast);
-
-          mapInstanceRef.current = L.map(mapContainerRef.current, {
-            center: [DEFAULT_MAP_CENTER.lat, DEFAULT_MAP_CENTER.lng],
-            zoom: 15,
-            minZoom: 14,
-            maxZoom: 18,
-            scrollWheelZoom: true,
-            dragging: true,
-            doubleClickZoom: true,
-            boxZoom: true,
-            keyboard: true,
-            touchZoom: true,
-            zoomControl: true,
-            maxBounds: bounds,
-            maxBoundsViscosity: 1.0,
-          });
-
-          L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-          }).addTo(mapInstanceRef.current);
-
-          mapInstanceRef.current.fitBounds(bounds);
-
-          mapMarkerRef.current = L.marker([DEFAULT_MAP_CENTER.lat, DEFAULT_MAP_CENTER.lng], {
-            draggable: false,
-          });
-          mapMarkerRef.current.addTo(mapInstanceRef.current);
-
-          mapInstanceRef.current.on("click", async (event) => {
-            await applyMapLocationSelection({
-              lat: event.latlng.lat,
-              lng: event.latlng.lng,
-            });
-          });
-        }
-
-        if (mapInstanceRef.current) {
-          mapInstanceRef.current.scrollWheelZoom.enable();
-          mapInstanceRef.current.dragging.enable();
-          mapInstanceRef.current.doubleClickZoom.enable();
-          mapInstanceRef.current.boxZoom.enable();
-          mapInstanceRef.current.keyboard.enable();
-          mapInstanceRef.current.touchZoom.enable();
-          mapInstanceRef.current.invalidateSize();
-        }
-
-        if (!hasAttemptedAutoLocateRef.current && !formData.location.trim()) {
-          hasAttemptedAutoLocateRef.current = true;
-          await autoLocateCurrentPosition();
-        }
+        if (cancelled) return;
+        mapInstanceRef.current = L.map(mapContainerRef.current, {
+          center: [DEFAULT_MAP_CENTER.lat, DEFAULT_MAP_CENTER.lng], zoom: 13,
+          scrollWheelZoom: true, touchZoom: true,
+        });
+        L.tileLayer(MAP_TILE_URL, MAP_TILE_OPTIONS).addTo(mapInstanceRef.current);
+        mapInstanceRef.current.invalidateSize();
+        mapInstanceRef.current.on("click", (event) => {
+          setManualPin({ latitude: event.latlng.lat, longitude: event.latlng.lng });
+          lastGeocodeRef.current = null;
+        });
+        setMapReady(true);
       } catch (error) {
-        if (!isCancelled) {
-          setMapError("We could not load the live map right now.");
-        }
+        if (!cancelled) setMapError("We could not load the map. Your device coordinates can still be captured.");
       } finally {
-        if (!isCancelled) {
-          setIsMapLoading(false);
-        }
+        if (!cancelled) setIsMapLoading(false);
       }
     };
-
     initializeMap();
-
     return () => {
-      isCancelled = true;
+      cancelled = true;
+      mapInstanceRef.current?.remove();
+      mapInstanceRef.current = null;
+      mapMarkerRef.current = null;
+      mapAccuracyRef.current = null;
+      mapRouteRef.current = null;
+      mapDeviceRef.current = null;
+      lastGeocodeRef.current = null;
+      setMapReady(false);
     };
-  }, [step, formData.location, applyMapLocationSelection, autoLocateCurrentPosition]);
+  }, [step, submittedReferenceId]);
+
+  useEffect(() => {
+    mapRouteRef.current?.remove();
+    mapRouteRef.current = null;
+    if (!mapReady || !mapInstanceRef.current || !automaticRoute.route) return;
+    const layer = window.L.geoJSON({ type: "Feature", geometry: automaticRoute.route.geometry, properties: {} }, {
+      style: { color: "#2563eb", weight: 6, opacity: 0.9 },
+      attribution: 'Routing &copy; <a href="https://openrouteservice.org/">openrouteservice</a> / HeiGIT',
+    }).addTo(mapInstanceRef.current);
+    mapRouteRef.current = layer;
+    mapInstanceRef.current.fitBounds(layer.getBounds(), { padding: [28, 28], maxZoom: 18 });
+  }, [automaticRoute.route, mapReady]);
+
+  useEffect(() => {
+    const position = reportPosition;
+    if (!mapReady || !mapInstanceRef.current || !position) return;
+    const point = [position.latitude, position.longitude];
+    if (!mapMarkerRef.current) {
+      mapMarkerRef.current = window.L.marker(point, { draggable: false }).addTo(mapInstanceRef.current);
+      mapInstanceRef.current.setView(point, 17);
+    } else {
+      mapMarkerRef.current.setLatLng(point);
+      if (!manualPin) mapInstanceRef.current.panTo(point);
+    }
+    const device = deviceLocation.position;
+    if (device) {
+      const devicePoint = [device.latitude, device.longitude];
+      if (!mapDeviceRef.current) {
+        mapDeviceRef.current = window.L.circleMarker(devicePoint, {
+          radius: 7, color: "#fff", weight: 3, fillColor: "#2563eb", fillOpacity: 1,
+        }).addTo(mapInstanceRef.current);
+      } else mapDeviceRef.current.setLatLng(devicePoint);
+      if (!mapAccuracyRef.current) {
+        mapAccuracyRef.current = window.L.circle(devicePoint, {
+          radius: device.accuracy, color: "#003d7f", fillOpacity: 0.12,
+        }).addTo(mapInstanceRef.current);
+      } else mapAccuracyRef.current.setLatLng(devicePoint).setRadius(device.accuracy);
+    } else {
+      mapDeviceRef.current?.remove();
+      mapDeviceRef.current = null;
+      mapAccuracyRef.current?.remove();
+      mapAccuracyRef.current = null;
+    }
+  }, [reportPosition, deviceLocation.position, manualPin, mapReady]);
+
+  useEffect(() => {
+    const position = reportPosition;
+    if (!position) {
+      setFormData((current) => ({ ...current, location: "", latitude: "", longitude: "" }));
+      lastGeocodeRef.current = null;
+      mapMarkerRef.current?.remove();
+      mapAccuracyRef.current?.remove();
+      mapMarkerRef.current = null;
+      mapAccuracyRef.current = null;
+      return undefined;
+    }
+    const { latitude, longitude } = position;
+    const fallback = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+    // Save coordinates immediately; address lookup must never delay or replace the GPS fix.
+    setFormData((current) => ({ ...current, latitude: latitude.toFixed(6), longitude: longitude.toFixed(6) }));
+    const previous = lastGeocodeRef.current;
+    if (previous && Date.now() - previous.time < 5000) return undefined;
+    const distanceChanged = !previous || Math.abs(previous.latitude - latitude) > 0.0002 ||
+      Math.abs(previous.longitude - longitude) > 0.0002;
+    if (!distanceChanged && Date.now() - previous.time < 30000) return undefined;
+    lastGeocodeRef.current = { latitude, longitude, time: Date.now() };
+    setFormData((current) => ({ ...current, location: fallback }));
+    API.get("reverse-geocode/", { params: { lat: latitude, lng: longitude } }).then((response) => {
+      // Ignore an address that belongs to an earlier position.
+      if (lastGeocodeRef.current?.latitude === latitude && lastGeocodeRef.current?.longitude === longitude) {
+        setFormData((current) => ({ ...current, location: response.data.location || fallback }));
+      }
+    }).catch(() => {});
+    return undefined;
+  }, [reportPosition]);
 
   useEffect(() => () => {
     if (uploadedPreviewUrl) {
@@ -338,27 +357,40 @@ function ReportForm() {
 
   const handleChange = (event) => {
     const { name, value } = event.target;
-    setSubmitError("");
+    if (invalidField === name || invalidField === event.target.id) {
+      setInvalidField("");
+      setSubmitError("");
+    }
     setFormData((current) => ({
       ...current,
       [name]: value,
     }));
   };
 
-  const handleFileChange = (event) => {
-    const file = event.target.files?.[0] ?? null;
-    if (uploadedPreviewUrl) {
-      URL.revokeObjectURL(uploadedPreviewUrl);
-      setUploadedPreviewUrl("");
-    }
-
+  const attachEvidence = (file) => {
     const previewUrl = file ? URL.createObjectURL(file) : "";
     setSubmitError("");
+    setInvalidField("");
     setUploadedPreviewUrl(previewUrl);
     setFormData((current) => ({
       ...current,
       image: file,
     }));
+  };
+
+  const removeEvidence = () => {
+    if (evidenceInputRef.current) evidenceInputRef.current.value = "";
+    attachEvidence(null);
+  };
+
+  const handleFileChange = (event) => {
+    const file = event.target.files?.[0] ?? null;
+    if (file && !isPhotoOrVideo(file)) {
+      event.target.value = "";
+      setSubmitError("Please choose a photo or video from your device.");
+      return;
+    }
+    attachEvidence(file);
   };
 
   const openCameraModal = async () => {
@@ -374,19 +406,18 @@ function ReportForm() {
 
     try {
       const initialStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" },
+        video: { facingMode: { ideal: "environment" }, ...getPortraitVideoConstraints() },
         audio: false,
       });
 
       streamRef.current = initialStream;
-      if (videoPreviewRef.current) {
-        videoPreviewRef.current.srcObject = initialStream;
-      }
+      connectCameraPreview(initialStream);
 
       const devices = await navigator.mediaDevices.enumerateDevices();
       const videoInputs = devices.filter((device) => device.kind === "videoinput");
       setCameraDevices(videoInputs);
-      setSelectedCameraId(videoInputs[0]?.deviceId ?? "");
+      const activeDeviceId = initialStream.getVideoTracks()[0]?.getSettings?.().deviceId;
+      setSelectedCameraId(videoInputs.find((device) => device.deviceId === activeDeviceId)?.deviceId ?? videoInputs[0]?.deviceId ?? "");
     } catch (error) {
       setCameraError("We could not access your device camera. Please allow camera permission.");
       setIsCameraModalOpen(false);
@@ -397,10 +428,6 @@ function ReportForm() {
   };
 
   const switchCamera = async (deviceId) => {
-    if (!deviceId) {
-      return;
-    }
-
     setSelectedCameraId(deviceId);
     setCameraError("");
     setIsCameraLoading(true);
@@ -408,16 +435,14 @@ function ReportForm() {
     try {
       stopCameraStream();
       const nextStream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          deviceId: { exact: deviceId },
-        },
+        video: deviceId
+          ? { deviceId: { exact: deviceId }, ...getPortraitVideoConstraints() }
+          : { facingMode: { ideal: "environment" }, ...getPortraitVideoConstraints() },
         audio: captureMode === "video",
       });
 
       streamRef.current = nextStream;
-      if (videoPreviewRef.current) {
-        videoPreviewRef.current.srcObject = nextStream;
-      }
+      connectCameraPreview(nextStream);
     } catch (error) {
       setCameraError("We could not switch to that camera.");
     } finally {
@@ -426,6 +451,7 @@ function ReportForm() {
   };
 
   const closeCameraModal = () => {
+    saveRecordingRef.current = false;
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
       mediaRecorderRef.current.stop();
     }
@@ -436,11 +462,7 @@ function ReportForm() {
   };
 
   const applyCapturedFile = (file) => {
-    setSubmitError("");
-    setFormData((current) => ({
-      ...current,
-      image: file,
-    }));
+    attachEvidence(file);
     closeCameraModal();
   };
 
@@ -451,9 +473,19 @@ function ReportForm() {
       return;
     }
 
+    const sourceWidth = video.videoWidth;
+    const sourceHeight = video.videoHeight;
+    if (!sourceWidth || !sourceHeight) {
+      setCameraError("Camera preview is not ready yet.");
+      return;
+    }
+
+    const sourceRatio = sourceWidth / sourceHeight;
+    const cropWidth = sourceRatio > CAMERA_ASPECT_RATIO ? sourceHeight * CAMERA_ASPECT_RATIO : sourceWidth;
+    const cropHeight = sourceRatio > CAMERA_ASPECT_RATIO ? sourceHeight : sourceWidth / CAMERA_ASPECT_RATIO;
     const canvas = document.createElement("canvas");
-    canvas.width = video.videoWidth || 1280;
-    canvas.height = video.videoHeight || 720;
+    canvas.width = Math.round(cropWidth);
+    canvas.height = Math.round(cropHeight);
     const context = canvas.getContext("2d");
 
     if (!context) {
@@ -461,7 +493,9 @@ function ReportForm() {
       return;
     }
 
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    context.drawImage(video,
+      (sourceWidth - cropWidth) / 2, (sourceHeight - cropHeight) / 2, cropWidth, cropHeight,
+      0, 0, canvas.width, canvas.height);
     canvas.toBlob((blob) => {
       if (!blob) {
         setCameraError("We could not capture the photo.");
@@ -479,19 +513,56 @@ function ReportForm() {
     try {
       if (!streamRef.current) {
         const nextStream = await navigator.mediaDevices.getUserMedia({
-          video: selectedCameraId ? { deviceId: { exact: selectedCameraId } } : true,
+          video: selectedCameraId
+            ? { deviceId: { exact: selectedCameraId }, ...getPortraitVideoConstraints() }
+            : { facingMode: { ideal: "environment" }, ...getPortraitVideoConstraints() },
           audio: true,
         });
         streamRef.current = nextStream;
-        if (videoPreviewRef.current) {
-          videoPreviewRef.current.srcObject = nextStream;
-        }
+        connectCameraPreview(nextStream);
       }
 
+      const video = videoPreviewRef.current;
+      if (!video?.videoWidth || !video?.videoHeight || !HTMLCanvasElement.prototype.captureStream) {
+        setCameraError("Camera preview is not ready for portrait video yet. Please try again.");
+        return;
+      }
+
+      const canvas = document.createElement("canvas");
+      canvas.width = 720;
+      canvas.height = video.videoHeight > video.videoWidth
+        ? Math.round(canvas.width * video.videoHeight / video.videoWidth)
+        : 960;
+      const context = canvas.getContext("2d");
+      if (!context) {
+        setCameraError("We could not prepare portrait video recording.");
+        return;
+      }
+
+      // Keep the entire camera frame visible inside a portrait recording.
+      const drawFrame = () => {
+        const sourceWidth = video.videoWidth;
+        const sourceHeight = video.videoHeight;
+        context.fillStyle = "#000000";
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        if (sourceWidth && sourceHeight) {
+          const scale = Math.min(canvas.width / sourceWidth, canvas.height / sourceHeight);
+          const width = sourceWidth * scale;
+          const height = sourceHeight * scale;
+          context.drawImage(video, (canvas.width - width) / 2, (canvas.height - height) / 2, width, height);
+        }
+        recordingFrameRef.current = requestAnimationFrame(drawFrame);
+      };
+      drawFrame();
+      const canvasStream = canvas.captureStream(24);
+      recordingCanvasStreamRef.current = canvasStream;
+      const recordingStream = new MediaStream([
+        ...canvasStream.getVideoTracks(),
+        ...streamRef.current.getAudioTracks(),
+      ]);
+      const mimeType = ["video/webm", "video/mp4"].find((type) => MediaRecorder.isTypeSupported?.(type));
       recordedChunksRef.current = [];
-      const recorder = new MediaRecorder(streamRef.current, {
-        mimeType: "video/webm",
-      });
+      const recorder = new MediaRecorder(recordingStream, mimeType ? { mimeType } : undefined);
 
       recorder.ondataavailable = (event) => {
         if (event.data && event.data.size > 0) {
@@ -500,65 +571,142 @@ function ReportForm() {
       };
 
       recorder.onstop = () => {
-        const blob = new Blob(recordedChunksRef.current, { type: "video/webm" });
-        const file = new File([blob], `camera-video-${Date.now()}.webm`, {
-          type: "video/webm",
-        });
-        applyCapturedFile(file);
+        const shouldSave = saveRecordingRef.current;
+        saveRecordingRef.current = false;
+        mediaRecorderRef.current = null;
+        stopRecordingCanvas();
+        if (!shouldSave) return;
+        const recordedType = recorder.mimeType || mimeType || "video/webm";
+        const extension = recordedType.startsWith("video/mp4") ? "mp4" : "webm";
+        const blob = new Blob(recordedChunksRef.current, { type: recordedType });
+        if (!blob.size) {
+          setCameraError("The recording was empty. Please try again.");
+          return;
+        }
+        applyCapturedFile(new File([blob], `camera-video-${Date.now()}.${extension}`, { type: recordedType }));
       };
 
       mediaRecorderRef.current = recorder;
-      setIsVideoRecording(true);
       recorder.start();
+      setCameraError("");
+      setIsVideoRecording(true);
     } catch (error) {
+      stopRecordingCanvas();
       setCameraError("We could not start video recording on this device.");
     }
   };
 
   const stopVideoRecording = () => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+      saveRecordingRef.current = true;
       mediaRecorderRef.current.stop();
       setIsVideoRecording(false);
     }
   };
 
-  const validateStep = () => {
+  const firstRequiredField = () => {
     if (step === 1) {
-      return Boolean(
-        formData.violation_type.trim() &&
-        formData.description.trim() &&
-        formData.date &&
-        formData.time
-      );
+      if (!formData.violation_type.trim()) return ["violation_type", "Choose a violation type."];
+      if (!formData.description.trim()) return ["description", "Enter a description of what you witnessed."];
+      if (!formData.date) return ["date", "Choose the date of the violation."];
+      if (!formData.time) return ["time", "Choose the time of the violation."];
     }
 
     if (step === 2) {
-      return Boolean(formData.image);
+      if (!formData.image) return ["image", "Add a photo or video of the violation."];
     }
 
-    return Boolean(formData.location.trim());
+    if (step === 3) {
+      if (!deviceLocation.isReady || !formData.location.trim()) {
+        return ["location", "Enable location or select the violation location on the map."];
+      }
+      if (!formData.reporter_email.trim()) return ["reporter-email", "Enter your email address."];
+      if (document.getElementById("reporter-email")?.validity.typeMismatch) {
+        return ["reporter-email", "Enter a valid email address."];
+      }
+      if (!formData.reporter_phone.trim()) return ["reporter-phone", "Enter your phone number."];
+    }
+    return null;
+  };
+
+  const showRequiredField = ([field, message]) => {
+    setInvalidField(field);
+    setSubmitError(message);
+    const target = document.getElementById(field === "image" ? "image-drop-zone" : field);
+    target?.scrollIntoView?.({ behavior: "smooth", block: "center" });
+    target?.focus?.({ preventScroll: true });
   };
 
   const goToNextStep = () => {
-    if (!validateStep()) {
-      setSubmitError("Please complete the required fields before continuing.");
+    const missing = firstRequiredField();
+    if (missing) {
+      showRequiredField(missing);
       return;
     }
 
     setSubmitError("");
+    setInvalidField("");
+    if (step === 2) deviceLocation.startOnEntry?.();
     setStep((current) => Math.min(current + 1, STEP_TITLES.length));
   };
 
   const goToPreviousStep = () => {
     setSubmitError("");
+    setInvalidField("");
     setStep((current) => Math.max(current - 1, 1));
   };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+  const requestSubmissionCode = async (captchaToken) => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    setSubmitError("");
+    try {
+      const csrf = await API.get("csrf/", { timeout: 15000 });
+      const email = formData.reporter_email.trim().toLowerCase();
+      const phone = formData.reporter_phone.trim();
+      const { data } = await API.post("submission-email/request/", {
+        email, phone, channel: "email", captcha_token: captchaToken,
+      }, {
+        timeout: 30000, headers: { "X-CSRFToken": csrf.data.csrfToken },
+      });
+      setEmailChallenge({ ...data, email, phone, receivedAt: Date.now() });
+      setShowCaptcha(false);
+    } catch (failure) {
+      setSubmitError(failure.response?.data?.detail || failure.response?.data?.phone?.[0] ||
+        failure.response?.data?.email?.[0] || "Could not send the verification code. Complete the CAPTCHA again and retry.");
+    } finally { setIsSubmitting(false); }
+  };
 
-    if (!validateStep()) {
-      setSubmitError("Please complete the required fields before submitting.");
+  const handleSubmit = async (event, emailToken = "") => {
+    event?.preventDefault();
+
+    if (step !== 3 || !deviceLocation.isReady ||
+        Date.now() - deviceLocation.position.timestamp > 60000) {
+      setSubmitError(`${deviceLocation.message} Use Enable / Retry Location above the map, then submit again once location is active.`);
+      setInvalidField("location");
+      const status = document.getElementById("submit-location-status");
+      status?.scrollIntoView?.({ behavior: "smooth", block: "center" });
+      status?.focus?.({ preventScroll: true });
+      deviceLocation.retry();
+      return;
+    }
+
+    const missing = firstRequiredField();
+    if (missing) {
+      showRequiredField(missing);
+      return;
+    }
+
+    setInvalidField("");
+
+    if (deviceLocation.position.accuracy > MAX_LOCATION_ACCURACY_METERS && !manualPin) {
+      setSubmitError("Your device location is approximate. Click or tap the map to confirm the exact violation location, then submit again.");
+      return;
+    }
+
+    if (!emailToken) {
+      setSubmitError("");
+      setShowCaptcha(true);
       return;
     }
 
@@ -566,7 +714,9 @@ function ReportForm() {
     setSubmitError("");
 
     const payload = new FormData();
+    payload.append("email_verification_token", emailToken);
     payload.append("violation_type", formData.violation_type);
+    payload.append("occurred_at", new Date(`${formData.date}T${formData.time}:00+08:00`).toISOString());
 
     const descriptionParts = [
       formData.description,
@@ -574,30 +724,31 @@ function ReportForm() {
       formData.date ? `Date: ${formData.date}` : "",
       formData.time ? `Time: ${formData.time}` : "",
       formData.reporter_name ? `Reporter Name: ${formData.reporter_name}` : "",
-      formData.reporter_email ? `Reporter Email: ${formData.reporter_email}` : "",
-      formData.reporter_phone ? `Reporter Phone: ${formData.reporter_phone}` : "",
     ].filter(Boolean);
 
     payload.append("description", descriptionParts.join("\n"));
     payload.append("location", formData.location);
+    payload.append("reporter_email", formData.reporter_email.trim());
+    payload.append("reporter_phone", formData.reporter_phone.trim());
 
-    if (formData.latitude) {
-      payload.append("latitude", formData.latitude);
-    }
-
-    if (formData.longitude) {
-      payload.append("longitude", formData.longitude);
-    }
+    payload.append("latitude", reportPosition.latitude.toFixed(6));
+    payload.append("longitude", reportPosition.longitude.toFixed(6));
+    payload.append("location_source", manualPin ? "manual" : "gps");
+    payload.append("reporter_latitude", deviceLocation.position.latitude.toFixed(6));
+    payload.append("reporter_longitude", deviceLocation.position.longitude.toFixed(6));
+    payload.append("location_accuracy", deviceLocation.position.accuracy);
+    payload.append("location_captured_at", new Date(deviceLocation.position.timestamp).toISOString());
 
     if (formData.image) {
       payload.append("image", formData.image);
     }
 
     try {
-      const csrfResponse = await API.get("csrf/");
+      const csrfResponse = await API.get("csrf/", { timeout: 15000 });
       const csrfToken = csrfResponse?.data?.csrfToken;
 
       const response = await API.post("reports/", payload, {
+        timeout: 60000,
         headers: csrfToken
           ? {
               "X-CSRFToken": csrfToken,
@@ -611,6 +762,8 @@ function ReportForm() {
 
       const finalReferenceId = String(referenceId || formatReferenceId(1));
       setSubmittedReferenceId(finalReferenceId);
+      setShowCaptcha(false);
+      setEmailChallenge(null);
 
       try {
         const saved = JSON.parse(localStorage.getItem("hapsaydalan_my_reports") || "[]");
@@ -662,29 +815,41 @@ function ReportForm() {
   );
 
   const renderInlineStepError = () =>
-    submitError ? <div className="report-inline-error">{submitError}</div> : null;
+    submitError && !invalidField ? <div className="report-inline-error" role="alert">{submitError}</div> : null;
+
+  const renderFieldError = (field) => invalidField === field && submitError
+    ? <div id={`${field}-error`} className="report-field-error" role="alert">{submitError}</div> : null;
 
   const renderIncludeIcon = (icon) => {
     if (icon === "ai") {
-      return <span className="report-list-icon report-list-icon-dark">🤖</span>;
+      return <span className="report-list-icon report-list-icon-dark"><MaterialIcon name="smart_toy" /></span>;
     }
 
-    return <span className="report-list-icon report-list-icon-check">✓</span>;
+    return <span className="report-list-icon report-list-icon-check"><MaterialIcon name="check" /></span>;
   };
 
   const renderStepOne = () => (
     <section className="report-card">
       <h2 className="report-card-title">Violation Details</h2>
 
+      <ViolationGuide value={formData.violation_type} onSelect={(value) => {
+        setFormData((current) => ({ ...current, violation_type: value }));
+        setSubmitError("");
+        setInvalidField("");
+      }} />
+
       <label className="report-label" htmlFor="violation_type">
         Type of Violation *
       </label>
-      <select
+      <ResponsiveSelect
         id="violation_type"
         name="violation_type"
-        className="report-input"
+        className={`report-input${invalidField === "violation_type" ? " is-invalid" : ""}`}
         value={formData.violation_type}
         onChange={handleChange}
+        required
+        aria-invalid={invalidField === "violation_type"}
+        aria-describedby={invalidField === "violation_type" ? "violation_type-error" : undefined}
       >
         <option value="" disabled hidden>Select violation type</option>
         {VIOLATION_OPTIONS.map((option) => (
@@ -692,7 +857,8 @@ function ReportForm() {
             {option}
           </option>
         ))}
-      </select>
+      </ResponsiveSelect>
+      {renderFieldError("violation_type")}
 
       <label className="report-label" htmlFor="description">
         Description *
@@ -700,11 +866,14 @@ function ReportForm() {
       <textarea
         id="description"
         name="description"
-        className="report-input report-textarea"
+        className={`report-input report-textarea${invalidField === "description" ? " is-invalid" : ""}`}
         placeholder="Describe what you witnessed in detail"
         value={formData.description}
         onChange={handleChange}
+        aria-invalid={invalidField === "description"}
+        aria-describedby={invalidField === "description" ? "description-error" : undefined}
       />
+      {renderFieldError("description")}
 
       <label className="report-label" htmlFor="plate_number">
         License Plate Number (Optional)
@@ -723,27 +892,45 @@ function ReportForm() {
           <label className="report-label" htmlFor="date">
             Date *
           </label>
-          <input
-            id="date"
-            type="date"
-            name="date"
-            className="report-input"
-            value={formData.date}
-            onChange={handleChange}
-          />
+          <div className={`report-datetime-control${invalidField === "date" ? " is-invalid" : ""}`}>
+            <span className={`report-datetime-display${formData.date ? "" : " is-placeholder"}`} aria-hidden="true">
+              <span>{formatReportDate(formData.date)}</span>
+              <MaterialIcon name="calendar_today" size={18} />
+            </span>
+            <input
+              id="date"
+              type="date"
+              name="date"
+              className="report-datetime-input"
+              value={formData.date}
+              onChange={handleChange}
+              aria-invalid={invalidField === "date"}
+              aria-describedby={invalidField === "date" ? "date-error" : undefined}
+            />
+          </div>
+          {renderFieldError("date")}
         </div>
         <div>
           <label className="report-label" htmlFor="time">
             Time *
           </label>
-          <input
-            id="time"
-            type="time"
-            name="time"
-            className="report-input"
-            value={formData.time}
-            onChange={handleChange}
-          />
+          <div className={`report-datetime-control${invalidField === "time" ? " is-invalid" : ""}`}>
+            <span className={`report-datetime-display${formData.time ? "" : " is-placeholder"}`} aria-hidden="true">
+              <span>{formatReportTime(formData.time)}</span>
+              <MaterialIcon name="schedule" size={18} />
+            </span>
+            <input
+              id="time"
+              type="time"
+              name="time"
+              className="report-datetime-input"
+              value={formData.time}
+              onChange={handleChange}
+              aria-invalid={invalidField === "time"}
+              aria-describedby={invalidField === "time" ? "time-error" : undefined}
+            />
+          </div>
+          {renderFieldError("time")}
         </div>
       </div>
 
@@ -764,9 +951,20 @@ function ReportForm() {
       <label className="report-label" htmlFor="image">
         Photos/Videos *
       </label>
-      <label className="report-upload-box" htmlFor="image">
+      {formData.image ? (
+        <div className="report-upload-remove-row">
+          <button type="button" className="report-upload-remove" onClick={removeEvidence}
+            aria-label="Clear attached photo or video">
+            Clear
+          </button>
+        </div>
+      ) : null}
+      <label id="image-drop-zone" className={`report-upload-box${invalidField === "image" ? " is-invalid" : ""}`}
+        htmlFor="image" tabIndex={-1} aria-invalid={invalidField === "image"}
+        aria-describedby={invalidField === "image" ? "image-error" : undefined}>
         {formData.image && uploadedPreviewUrl ? (
-          formData.image.type.startsWith("video/") ? (
+          (formData.image.type.startsWith("video/") ||
+            ((!formData.image.type || formData.image.type === "application/octet-stream") && videoExtension.test(formData.image.name))) ? (
             <div className="report-upload-preview-wrap">
               <video className="report-upload-preview" src={uploadedPreviewUrl} controls />
               <span className="report-upload-preview-name">{formData.image.name}</span>
@@ -779,14 +977,16 @@ function ReportForm() {
           )
         ) : (
           <>
-            <span className="report-upload-icon">[ camera ]</span>
-            <span className="report-upload-title">Click to upload or drag and drop</span>
-            <span className="report-upload-note">PNG, JPG, MP4 up to 50MB</span>
+            <span className="report-upload-icon"><MaterialIcon name="photo_camera" /></span>
+            <span className="report-upload-title">Tap to choose a photo or video</span>
+            <span className="report-upload-note">Choose one photo or video from your device (up to 50 MB)</span>
           </>
         )}
       </label>
+      {renderFieldError("image")}
       <input
         id="image"
+        ref={evidenceInputRef}
         type="file"
         accept="image/*,video/*"
         className="report-hidden-input"
@@ -800,7 +1000,7 @@ function ReportForm() {
 
       <div className="report-upload-actions">
         <label htmlFor="image" className="report-upload-action">
-          Choose File
+          Choose Photos/Videos
         </label>
         <button
           type="button"
@@ -834,8 +1034,19 @@ function ReportForm() {
       <h2 className="report-card-title">Location &amp; Contact Info</h2>
 
       <div className="report-map-callout">
-        <strong>Location:</strong> Mark the location on the map where the violation occurred.
+        <strong>Location required:</strong> Allow device location access for automatic pinning, or click / tap the map to pin where the violation occurred.
+        The blue circle shows your device location. Location access remains required when choosing a pin. Tracking stops after submission or when you leave this step.
       </div>
+
+      <p className="report-contact-note" style={{ marginTop: 12 }}>
+        {manualPin ? "Using your selected violation pin. GPS updates will not move it." : "Using your current device location for the violation pin."}
+      </p>
+      {manualPin ? <button type="button" className="report-button report-button-secondary"
+        onClick={() => { setManualPin(null); lastGeocodeRef.current = null; }}>Use My Current Location</button> : null}
+
+      <p id="submit-location-status" className="report-contact-note" role="status" tabIndex={-1} style={{ marginTop: 12 }}>{deviceLocation.message}</p>
+      {!deviceLocation.isReady ? <button type="button" className="report-button report-button-secondary"
+        onClick={deviceLocation.retry}>Enable / Retry Location</button> : null}
       <div className="report-map-box">
         <div ref={mapContainerRef} className="report-live-map" />
         {isMapLoading ? <div className="report-map-overlay">Loading live map...</div> : null}
@@ -843,16 +1054,20 @@ function ReportForm() {
       </div>
 
       <label className="report-label" htmlFor="location">
-        Exact Location *
+        Violation Location *
       </label>
       <input
         id="location"
         name="location"
-        className="report-input"
-        placeholder="Street, landmark, or area"
+        className={`report-input${invalidField === "location" ? " is-invalid" : ""}`}
+        placeholder="Waiting for device location..."
         value={formData.location}
-        onChange={handleChange}
+        readOnly
+        required
+        aria-invalid={invalidField === "location"}
+        aria-describedby={invalidField === "location" ? "location-error" : undefined}
       />
+      {renderFieldError("location")}
       {formData.latitude && formData.longitude ? (
         <div className="report-contact-note">
           Coordinates saved: {formData.latitude}, {formData.longitude}
@@ -860,41 +1075,57 @@ function ReportForm() {
       ) : null}
 
       <div className="report-contact-heading">
-        Contact Information (Optional - helps us follow up)
+        Contact Information (Email required)
       </div>
       <input
         name="reporter_name"
         className="report-input"
-        placeholder="Your name"
+        placeholder="Your name (optional)"
         value={formData.reporter_name}
         onChange={handleChange}
       />
+      <label className="report-contact-note" htmlFor="reporter-email">Email address *</label>
       <input
+        id="reporter-email"
         name="reporter_email"
         type="email"
-        className="report-input"
+        required
+        maxLength={254}
+        autoComplete="email"
+        className={`report-input${invalidField === "reporter-email" ? " is-invalid" : ""}`}
         placeholder="Email address"
         value={formData.reporter_email}
         onChange={handleChange}
+        aria-invalid={invalidField === "reporter-email"}
+        aria-describedby={invalidField === "reporter-email" ? "reporter-email-error" : undefined}
       />
+      {renderFieldError("reporter-email")}
+      <label className="report-contact-note" htmlFor="reporter-phone">Phone number *</label>
       <input
+        id="reporter-phone"
         name="reporter_phone"
-        className="report-input"
-        placeholder="Phone number"
+        type="tel"
+        required
+        maxLength={24}
+        inputMode="tel"
+        autoComplete="tel"
+        className={`report-input${invalidField === "reporter-phone" ? " is-invalid" : ""}`}
+        placeholder="09XX XXX XXXX or +63 9XX XXX XXXX"
         value={formData.reporter_phone}
         onChange={handleChange}
+        aria-invalid={invalidField === "reporter-phone"}
+        aria-describedby={invalidField === "reporter-phone" ? "reporter-phone-error" : undefined}
       />
+      {renderFieldError("reporter-phone")}
       <div className="report-contact-note">
-        Your contact info is private and only used for case follow-up.
+        Your phone number is required so the admin can contact you about your report. A verification code will be sent to your email.
       </div>
 
       {renderInlineStepError()}
 
-      <div className="report-actions">
-        <button type="button" className="report-button report-button-secondary" onClick={goToPreviousStep}>
-          Back
-        </button>
-        <button type="submit" className="report-button report-button-primary" disabled={isSubmitting}>
+      <div className="report-actions report-actions-right">
+        <button type="submit" className="report-button report-button-primary" disabled={isSubmitting}
+          aria-describedby={!deviceLocation.isReady ? "submit-location-status" : undefined}>
           {isSubmitting ? "Submitting..." : "Submit Report"}
         </button>
       </div>
@@ -902,17 +1133,22 @@ function ReportForm() {
   );
 
   const renderSuccessState = () => (
-    <section className="report-success-card">
-      <div className="report-success-icon">✓</div>
-      <h2 className="report-success-title">Report Submitted Successfully!</h2>
+    <section ref={successCardRef} className="report-success-card" tabIndex={-1} aria-labelledby="report-success-title">
+      <div className="report-success-icon"><MaterialIcon name="check_circle" /></div>
+      <h2 id="report-success-title" className="report-success-title">Report Submitted Successfully!</h2>
       <p className="report-success-text">
-        Thank you for helping keep Surigao City safe. Your report has been recorded.
+        Thank you for helping keep Surigao City safe. Your report is Pending Verification.
+        It will appear on the public hotspot map after admin approval. You can track its status using your reference ID.
       </p>
 
       <div className="report-reference-box">
         <div className="report-reference-label">Your Reference ID:</div>
         <div className="report-reference-value">{submittedReferenceId}</div>
-        <div className="report-reference-help">Save this ID to track your report.</div>
+        <div className="report-reference-help">
+          Save this ID to track your report. {formData.reporter_email
+            ? "Forgot it? Verify your email on Track My Report to find your reports."
+            : "Without an email address, you will need this ID to track your report."}
+        </div>
       </div>
 
       <div className="report-actions report-actions-center">
@@ -921,6 +1157,7 @@ function ReportForm() {
           className="report-button report-button-secondary"
           onClick={() => {
             setSubmittedReferenceId("");
+            setManualPin(null);
             setStep(1);
             setSubmitError("");
             setFormData({
@@ -966,6 +1203,7 @@ function ReportForm() {
                 type="button"
                 className={`report-camera-mode ${captureMode === "photo" ? "is-active" : ""}`}
                 onClick={() => setCaptureMode("photo")}
+                disabled={isVideoRecording}
               >
                 Photo
               </button>
@@ -973,15 +1211,17 @@ function ReportForm() {
                 type="button"
                 className={`report-camera-mode ${captureMode === "video" ? "is-active" : ""}`}
                 onClick={() => setCaptureMode("video")}
+                disabled={isVideoRecording}
               >
                 Video
               </button>
             </div>
 
-            <select
+            <ResponsiveSelect
               className="report-camera-select"
               value={selectedCameraId}
               onChange={(event) => switchCamera(event.target.value)}
+              disabled={isVideoRecording}
             >
               {cameraDevices.length ? (
                 cameraDevices.map((device, index) => (
@@ -992,13 +1232,13 @@ function ReportForm() {
               ) : (
                 <option value="">Default camera</option>
               )}
-            </select>
+            </ResponsiveSelect>
           </div>
 
           <div className="report-camera-preview-shell">
             <video
               ref={videoPreviewRef}
-              className="report-camera-preview"
+              className={`report-camera-preview${captureMode === "video" ? " is-video" : ""}`}
               autoPlay
               playsInline
               muted
@@ -1167,6 +1407,70 @@ function ReportForm() {
           gap: 14px;
         }
 
+        .report-field-grid > div {
+          min-width: 0;
+        }
+
+        .report-datetime-control {
+          position: relative;
+          display: flex;
+          align-items: center;
+          width: 100%;
+          min-width: 0;
+          max-width: 100%;
+          min-height: 46px;
+          box-sizing: border-box;
+          overflow: hidden;
+          margin-bottom: 16px;
+          padding: 0 14px;
+          border: 1px solid #d9dee6;
+          border-radius: 10px;
+          background: #ffffff;
+        }
+
+        .report-datetime-control:focus-within {
+          border-color: #003d7f;
+          box-shadow: 0 0 0 3px rgba(0, 61, 127, 0.12);
+        }
+
+        .report-datetime-input {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          min-width: 0;
+          max-width: 100%;
+          height: 100%;
+          box-sizing: border-box;
+          margin: 0;
+          padding: 0;
+          border: 0;
+          outline: 0;
+          opacity: 0;
+          cursor: pointer;
+        }
+
+        .report-datetime-display {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          width: 100%;
+          min-width: 0;
+          color: #111827;
+          font-size: 16px;
+          line-height: 1.5;
+          pointer-events: none;
+        }
+
+        .report-datetime-display.is-placeholder {
+          color: #6b7280;
+        }
+
+        .report-datetime-display .material-icon {
+          flex: 0 0 auto;
+          color: #4a6384;
+        }
+
         .report-button-stop {
           background: #ff5a52;
           color: #ffffff;
@@ -1205,12 +1509,43 @@ function ReportForm() {
           background: #f8fafc;
         }
 
+        .report-upload-preview-wrap video {
+          width: auto;
+          height: auto;
+          max-width: 100%;
+          max-height: min(60dvh, 520px);
+        }
+
         .report-upload-preview-name {
           font-size: 14px;
           font-weight: 600;
           color: #0f172a;
           text-align: center;
           word-break: break-word;
+        }
+
+        .report-upload-remove-row {
+          display: flex;
+          justify-content: flex-end;
+          margin: -2px 0 8px;
+        }
+
+        .report-upload-remove {
+          min-height: 40px;
+          border: 1px solid #bfccd9;
+          border-radius: 10px;
+          background: #ffffff;
+          color: #9f2432;
+          padding: 8px 12px;
+          font-size: 14px;
+          font-weight: 700;
+          cursor: pointer;
+        }
+
+        .report-upload-remove:hover,
+        .report-upload-remove:focus-visible {
+          border-color: #9f2432;
+          background: #fff3f4;
         }
 
         .report-upload-icon {
@@ -1344,11 +1679,12 @@ function ReportForm() {
 
         .report-camera-preview-shell {
           position: relative;
+          width: min(100%, 300px, 36dvh);
           border-radius: 16px;
           overflow: hidden;
           background: #0f172a;
-          aspect-ratio: 16 / 9;
-          margin-bottom: 14px;
+          aspect-ratio: 3 / 4;
+          margin: 0 auto 14px;
         }
 
         .report-camera-preview {
@@ -1356,6 +1692,11 @@ function ReportForm() {
           height: 100%;
           object-fit: cover;
           display: block;
+        }
+
+        .report-camera-preview.is-video {
+          object-fit: contain;
+          background: #0f172a;
         }
 
         .report-camera-overlay {
@@ -1487,6 +1828,39 @@ function ReportForm() {
           color: #6b7280;
         }
 
+        .report-verification-choice {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px 20px;
+          margin: 14px 0 8px;
+          padding: 12px 14px;
+          border: 1px solid #cbd5e1;
+          border-radius: 12px;
+          color: #17233a;
+        }
+
+        .report-verification-choice legend {
+          padding: 0 5px;
+          font-size: 13px;
+          font-weight: 700;
+        }
+
+        .report-verification-choice label {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          min-height: 36px;
+          cursor: pointer;
+          font-size: 14px;
+          font-weight: 600;
+        }
+
+        .report-verification-choice input {
+          width: 18px;
+          height: 18px;
+          accent-color: #0750a4;
+        }
+
         .report-actions {
           display: flex;
           align-items: center;
@@ -1560,6 +1934,24 @@ function ReportForm() {
           padding: 12px 14px;
           font-size: 14px;
           margin-top: 4px;
+        }
+
+        .report-field-error {
+          color: #b42318;
+          font-size: 14px;
+          font-weight: 600;
+          margin: -8px 0 16px;
+        }
+
+        .report-card :is(.report-input, .report-datetime-input, .report-upload-box, #submit-location-status) {
+          scroll-margin-top: 100px;
+        }
+
+        .report-card :is(.report-input, .report-datetime-control, .report-upload-box).is-invalid,
+        .report-card :is(.report-input, .report-datetime-control, .report-upload-box).is-invalid:focus,
+        .report-card .report-datetime-control.is-invalid:focus-within {
+          border-color: #dc2626;
+          box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.14);
         }
 
         .report-info-strip {
@@ -1798,7 +2190,7 @@ function ReportForm() {
 
           .report-field-grid,
           .report-info-grid {
-            grid-template-columns: 1fr;
+            grid-template-columns: minmax(0, 1fr);
           }
 
           .report-footer-grid {
@@ -1852,7 +2244,7 @@ function ReportForm() {
           {submittedReferenceId ? (
             renderSuccessState()
           ) : (
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} noValidate>
               {renderProgress()}
               {step === 1 ? renderStepOne() : null}
               {step === 2 ? renderStepTwo() : null}
@@ -1940,6 +2332,18 @@ function ReportForm() {
           </div>
         </footer>
         {renderCameraModal()}
+        {showCaptcha ? <ReportCaptcha busy={isSubmitting} submissionError={submitError}
+          canSubmit={deviceLocation.isReady && (deviceLocation.position.accuracy <= MAX_LOCATION_ACCURACY_METERS || !!manualPin)}
+          onClose={() => { if (!isSubmitting) setShowCaptcha(false); }}
+          confirmLabel="Send Verification Code" busyLabel="Sending code..."
+          message="Complete the CAPTCHA to receive a verification code by email. Your report will be submitted after you verify the code."
+          onConfirm={requestSubmissionCode} /> : null}
+        {emailChallenge ? <SubmissionEmailVerification key={emailChallenge.challenge_id} challenge={emailChallenge}
+          busy={isSubmitting} submissionError={submitError}
+          canSubmit={deviceLocation.isReady && (deviceLocation.position.accuracy <= MAX_LOCATION_ACCURACY_METERS || !!manualPin)}
+          onClose={() => { if (!isSubmitting) { setEmailChallenge(null); setSubmitError(""); } }}
+          onResend={() => { setEmailChallenge(null); setSubmitError(""); setShowCaptcha(true); }}
+          onConfirm={(token) => handleSubmit(null, token)} /> : null}
       </div>
     </>
   );

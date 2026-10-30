@@ -1,0 +1,11 @@
+.help-success-dialog { width:calc(100% - 32px); max-width:420px; max-height:calc(100dvh - 32px); overflow-y:auto; box-sizing:border-box; margin:auto; padding:32px 26px; border:1px solid #c9d7eb; border-radius:20px; background:#f7f9ff; color:#213750; text-align:center; font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; box-shadow:0 24px 80px #0c20384d; }
+.help-success-dialog::backdrop { background:#10203999; backdrop-filter:blur(4px); }
+.help-success-icon { display:inline-flex; padding:14px; background:#dcefe5; color:#23764d; border-radius:50%; margin-bottom:18px; }
+.help-success-dialog h2 { font-size:clamp(20px,4.5vw,24px); line-height:1.35; margin:0 0 12px; }
+.help-success-dialog p { font-size:14px; line-height:1.75; margin:0 0 24px; color:#506780; }
+.help-success-dialog button { width:100%; min-height:46px; padding:12px 18px; border:0; border-radius:10px; background:#205bb2; color:#fff; font:inherit; font-size:14px; font-weight:650; cursor:pointer; }
+.help-success-dialog button:hover { background:#174b98; }
+.help-success-dialog button:focus-visible { outline:3px solid #6899df; outline-offset:3px; }
+html[data-theme=dark] .help-success-dialog { background:var(--theme-card); color:var(--theme-ink); border-color:var(--theme-border); }
+html[data-theme=dark] .help-success-dialog p { color:var(--theme-muted); }
+html[data-theme=dark] .help-success-icon { background:#244b3e; color:#88d6aa; }

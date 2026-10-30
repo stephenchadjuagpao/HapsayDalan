@@ -1,4 +1,5 @@
 import Navbar from "../components/reusablecode/Navbar";
+import MaterialIcon from "../components/MaterialIcon";
 
 const WORKFLOW_STEPS = [
   {
@@ -367,14 +368,23 @@ export default function HowItWorksPage() {
 
         .how-timeline-row {
           display: grid;
-          grid-template-columns: 140px 1fr;
-          gap: 18px;
+          grid-template-columns: 168px minmax(0, 1fr);
+          gap: 16px;
           align-items: stretch;
         }
 
         .how-timeline-time {
-          text-align: right;
-          padding-top: 12px;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: flex-start;
+          gap: 5px;
+          min-width: 0;
+          padding: 16px;
+          text-align: left;
+          background: #e7effa;
+          border: 1px solid #cbd9ec;
+          border-radius: 14px;
         }
 
         .how-timeline-time strong {
@@ -382,11 +392,13 @@ export default function HowItWorksPage() {
           color: #0f4c97;
           font-size: 16px;
           font-weight: 800;
-          margin-bottom: 4px;
+          margin: 0;
+          line-height: 1.4;
         }
 
         .how-timeline-time span {
           font-size: 12px;
+          line-height: 1.5;
           color: #6b7280;
         }
 
@@ -533,9 +545,14 @@ export default function HowItWorksPage() {
           }
 
           .how-timeline-time {
-            text-align: left;
-            padding-top: 0;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px 16px;
+            padding: 12px 16px;
           }
+          .how-timeline-row { gap: 10px; }
         }
 
         @media (max-width: 640px) {
@@ -595,7 +612,7 @@ export default function HowItWorksPage() {
                     <ul className="how-list">
                       {step.bullets.map((bullet) => (
                         <li key={bullet}>
-                          <span className="how-check">✓</span>
+                          <span className="how-check"><MaterialIcon name="check" /></span>
                           <span>{bullet}</span>
                         </li>
                       ))}
@@ -618,7 +635,7 @@ export default function HowItWorksPage() {
               {SECURITY_ITEMS.map((item) => (
                 <div key={item.title} className="how-card">
                   <div className="how-card-icon how-card-icon-emoji">
-                    {item.icon === "LOCK" ? "🔒" : item.icon === "PRIV" ? "👁️" : "📋"}
+                    <MaterialIcon name={item.icon === "LOCK" ? "lock" : item.icon === "PRIV" ? "visibility" : "assignment"} />
                   </div>
                   <h3 className="how-card-title">{item.title}</h3>
                   <p className="how-card-text">{item.text}</p>
@@ -661,12 +678,8 @@ export default function HowItWorksPage() {
               {BENEFITS.map((item) => (
                 <div key={item.title} className="how-card">
                   <h3 className="how-benefit-title">
-                    {item.title === "Faster Response" && "⚡ "}
-                    {item.title === "Data-Driven" && "📊 "}
-                    {item.title === "Community Action" && "🤝 "}
-                    {item.title === "Measurable Results" && "📈 "}
-                    {item.title === "Accessible Reporting" && "🎙️ "}
-                    {item.title === "AI Image Analysis" && "🤖 "}
+                    <MaterialIcon name={{ "Faster Response": "bolt", "Data-Driven": "assessment", "Community Action": "groups",
+                      "Measurable Results": "trending_up", "Accessible Reporting": "mic", "AI Image Analysis": "smart_toy" }[item.title]} />
                     {item.title}
                   </h3>
                   <p className="how-benefit-text">{item.text}</p>

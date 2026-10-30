@@ -1,0 +1,32 @@
+.traffic-advisories { width:min(100% - 32px, 1232px); margin:24px auto 0; padding:20px; border:1px solid #a7bfdf; border-radius:16px; background:#edf4ff; color:#17365e; box-shadow:0 8px 22px #17365e14; }
+.traffic-advisories.is-admin { width:100%; margin:0 0 20px; background:var(--admin-surface, #f5f8ff); }
+.traffic-advisories-heading { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+.traffic-advisories-heading>.material-icon { width:26px; height:26px; flex:none; color:#235da3; }
+.traffic-advisory-countdown { margin-left:auto; padding:6px 10px; border:1px solid #9fbbe0; border-radius:999px; background:#dceaff; color:#174a86; font-size:12px; font-weight:700; white-space:nowrap; }
+.traffic-advisories h2 { margin:0; font-size:18px; line-height:1.3; }
+.traffic-advisories-heading p { margin:3px 0 0; font-size:13px; color:#4d6788; }
+.traffic-advisory-tabs { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 14px; }
+.traffic-advisory-tabs button, .traffic-advisory-pages button { padding:7px 12px; border:1px solid #9fb6d6; border-radius:8px; background:#f8fbff; color:#214d80; font:inherit; font-size:13px; font-weight:650; cursor:pointer; }
+.traffic-advisory-tabs button.is-selected { background:#205894; border-color:#205894; color:#fff; }
+.traffic-advisory-pages { display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:12px; margin-top:14px; font-size:13px; color:#4d6788; }
+.traffic-advisory-pages button:disabled { opacity:.5; cursor:default; }
+.traffic-advisories-list { display:grid; gap:10px; }
+.traffic-advisory { padding:13px 15px; border:1px solid #c5d5eb; border-radius:10px; background:#fff; min-width:0; }
+.traffic-advisory-message { margin:0; font-size:14px; line-height:1.55; font-weight:600; white-space:pre-wrap; overflow-wrap:anywhere; }
+.traffic-advisory-meta { display:flex; flex-wrap:wrap; gap:5px 16px; margin-top:8px; color:#58708e; font-size:12px; }
+.traffic-advisory-status { font-weight:700; color:#166447; }
+.traffic-advisory-status.is-archived { color:#715b7f; }
+.traffic-advisory-archive { margin-top:11px; padding:7px 11px; border:1px solid #9cb4d2; border-radius:7px; background:#edf4ff; color:#1b4c85; font:inherit; font-size:12px; font-weight:650; cursor:pointer; }
+.traffic-advisory-archive:disabled { opacity:.6; cursor:wait; }
+.traffic-advisories-error { margin:0 0 10px; color:#a12639; font-size:13px; }
+.traffic-advisories-empty { margin:0; font-size:13px; color:#58708e; }
+html[data-theme=dark] .traffic-advisories { background:#1b2c45; border-color:#3b5677; color:#e9f1ff; }
+html[data-theme=dark] .traffic-advisory { background:#233955; border-color:#455f82; }
+html[data-theme=dark] .traffic-advisories-heading p, html[data-theme=dark] .traffic-advisory-meta, html[data-theme=dark] .traffic-advisories-empty { color:#b9cbe2; }
+html[data-theme=dark] .traffic-advisories-heading>.material-icon { color:#9ac3ff; }
+html[data-theme=dark] .traffic-advisory-countdown { background:#2b4a70; border-color:#6487b3; color:#e8f1ff; }
+html[data-theme=dark] .traffic-advisory-archive { background:#2b4a70; border-color:#6487b3; color:#e8f1ff; }
+html[data-theme=dark] .traffic-advisory-tabs button, html[data-theme=dark] .traffic-advisory-pages button { background:#2b4a70; border-color:#6487b3; color:#e8f1ff; }
+html[data-theme=dark] .traffic-advisory-tabs button.is-selected { background:#4779b5; }
+html[data-theme=dark] .traffic-advisory-pages, html[data-theme=dark] .traffic-advisory-status { color:#b9cbe2; }
+@media(max-width:480px) { .traffic-advisories-heading { flex-wrap:wrap; } .traffic-advisory-countdown { margin-left:0; } }

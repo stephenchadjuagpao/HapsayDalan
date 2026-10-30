@@ -8,8 +8,14 @@ In the project directory, you can run:
 
 ### `npm start`
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Runs the app in development mode using local HTTPS.
+Open [https://localhost:3000](https://localhost:3000) on this computer, or use the LAN address printed by the startup script on devices on the same network.
+
+Startup checks that the certificate covers the current LAN IP and renews it using [mkcert](https://github.com/FiloSottile/mkcert) when needed. While `npm start` is running, it checks for new LAN addresses every two seconds and automatically renews the certificate and restarts the development server when the Wi-Fi/IP changes. Open the newly printed address after changing networks; an old IP address cannot reach the computer on the new network. Install mkcert and run `mkcert -install` once on the development computer; alternatively set `MKCERT_PATH` to its executable. Local certificates and the optional `.certs/mkcert.exe` are ignored by Git.
+
+Other devices must trust the same local development CA once. Only transfer its public `rootCA.pem` certificate; never share `rootCA-key.pem`. For public deployment, use a domain with a publicly trusted HTTPS certificate.
+
+Run `node scripts/start-https.cjs --check` to prepare/check the development certificate without starting the server.
 
 The page will reload when you make changes.\
 You may also see any lint errors in the console.

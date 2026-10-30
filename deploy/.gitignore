@@ -1,0 +1,6 @@
+.env
+.env.cloud
+*.sql
+*.dump
+*.tar.gz
+runtime/

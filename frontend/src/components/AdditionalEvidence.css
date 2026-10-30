@@ -1,0 +1,48 @@
+.ae-panel { min-width:0; padding:18px; border:1px solid #afc2de; border-radius:12px; background:#e8eff9; color:#294664; }
+.ae-heading { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+.ae-eyebrow { display:block; font-size:9px; font-weight:700; letter-spacing:1.2px; color:#58718f; margin-bottom:6px; }
+.ae-panel .ae-heading h3 { font-size:16px; margin:0; color:#294d77; }
+.ae-panel .ae-intro { margin:12px 0 16px; font-size:12px; line-height:1.8; color:#526b87; }
+.ae-refresh { padding:6px 0; border:0; background:transparent; color:#345f96; font-size:11px; font-weight:600; text-decoration:underline; text-underline-offset:3px; min-height:36px; }
+.ae-panel button { cursor:pointer; font-family:inherit; }
+.ae-panel button:disabled { opacity:.55; cursor:not-allowed; }
+.ae-panel :is(button,a,input,textarea):focus-visible { outline:3px solid #6291cc; outline-offset:3px; }
+.ae-history { display:grid; gap:12px; }
+.ae-history-item { min-width:0; padding:14px; border-left:3px solid #8aa9d0; border-radius:6px; background:#f0f4fc; }
+.ae-request-meta { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:7px; margin-bottom:10px; }
+.ae-request-meta strong { font-size:11px; color:#8a632b; }
+.ae-history-item.is-submitted { border-left-color:#69a28a; }
+.ae-history-item.is-submitted .ae-request-meta strong { color:#2c6e56; }
+.ae-request-meta time, .ae-response time { display:block; font-size:10px; line-height:1.7; color:#617991; }
+.ae-panel .ae-message, .ae-response p { white-space:pre-wrap; overflow-wrap:anywhere; font-size:12px; line-height:1.8; margin:0; }
+.ae-response { margin-top:14px; padding-top:12px; border-top:1px solid #c4d2e4; }
+.ae-response>strong { display:block; color:#2c6e56; font-size:11px; margin-bottom:6px; }
+.ae-response time { margin-top:7px; }
+.ae-form { display:flex; flex-direction:column; gap:9px; margin-top:16px; }
+.ae-form label { font-size:12px; font-weight:650; color:#385575; }
+.ae-form textarea { width:100%; max-width:100%; min-width:0; padding:11px 12px; border:1px solid #a9bedb; border-radius:8px; background:#f5f7fc; color:#2b4667; font-family:inherit; font-size:13px; line-height:1.7; resize:vertical; }
+.ae-form input[type=file] { width:100%; max-width:100%; min-width:0; padding:10px; border:1px dashed #97afd0; border-radius:8px; background:#e0e9f7; font-family:inherit; font-size:12px; color:#426080; }
+.ae-primary, .ae-secondary { align-self:flex-start; min-height:44px; padding:11px 15px; border:1px solid #2b517e; border-radius:8px; background:#315a89; color:#f3f7ff; font-size:12px; font-weight:650; line-height:1.5; }
+.ae-primary:hover { background:#284d77; }
+.ae-secondary { background:#dce7f6; color:#315781; border-color:#a7bddb; }
+.ae-panel .ae-help { color:#526c89; font-size:11px; line-height:1.8; margin:6px 0; }
+.ae-error, .ae-notice { padding:11px 12px; border-radius:7px; color:#943e4d; background:#f5e1e6; font-size:12px; line-height:1.7; overflow-wrap:anywhere; }
+.ae-panel .ae-notice { margin:12px 0; color:#2a7055; background:#daece3; }
+.ae-panel .ae-notice.is-warning { color:#805d28; background:#f0e5cf; }
+.ae-attachment { display:grid; gap:10px; margin-top:12px; }
+.ae-attachment img, .ae-attachment video { display:block; width:100%; max-width:100%; max-height:340px; object-fit:contain; border-radius:8px; background:#dce6f3; }
+.ae-download { justify-self:start; font-size:12px; color:#305d96; text-underline-offset:3px; }
+.ae-summary-note { display:block; margin-top:5px; color:#815d25; font-size:11px; line-height:1.6; }
+.ae-badge { display:inline-flex; margin-top:5px; padding:3px 7px; font-size:10px; font-weight:600; border-radius:5px; color:#805d26; background:#eee2c8; }
+.ae-badge.is-submitted { color:#296c54; background:#d6e9df; }
+.ae-panel .track-recovery-panel { padding:0; background:transparent; border:0; box-shadow:none; }
+.ae-panel .track-form-title { font-size:16px; margin:12px 0; text-align:left; }
+@media(max-width:600px) {
+  .ae-panel { padding:14px; }
+  .ae-panel .ae-heading h3 { font-size:15px; }
+  .ae-history-item { padding:12px; }
+  .ae-panel .ae-form textarea { font-size:16px; }
+  .ae-form input[type=file] { font-size:11px; }
+  .ae-primary { width:100%; }
+  .ae-request-meta { align-items:flex-start; flex-direction:column; }
+}

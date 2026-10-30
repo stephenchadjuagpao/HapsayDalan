@@ -1,0 +1,65 @@
+/* Shared sizing for public pages, including direct links into a form. */
+.user-dashboard, .user-dashboard *, .user-dashboard *::before, .user-dashboard *::after { box-sizing:border-box; }
+.user-dashboard { min-width:0; width:100%; }
+.user-dashboard :where(main, section, article, aside, form, fieldset) { min-width:0; }
+.user-dashboard :where(h1,h2,h3,h4,p,label,a,.track-detail-value,.track-timeline-content,.report-upload-preview-name) { overflow-wrap:anywhere; }
+.user-dashboard :where(input,select,textarea) { max-width:100%; min-width:0; }
+.user-dashboard img:not(.leaflet-tile):not(.leaflet-marker-icon):not(.leaflet-marker-shadow),
+.user-dashboard video { max-width:100%; }
+.user-dashboard :is(.sc-hero,.sc-footer-grid,.report-footer-grid,.track-footer-grid,.hotspot-shell,.hotspot-footer-grid,.how-footer-grid,.faq-footer-grid,.contact-footer-grid)>* { min-width:0; }
+.user-dashboard .sc-hero { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.user-dashboard .report-camera-modal-backdrop { padding:16px; }
+.user-dashboard .report-camera-modal { max-height:calc(100dvh - 32px); overflow-y:auto; overscroll-behavior:contain; }
+.user-dashboard .report-camera-mode-group { flex-wrap:wrap; }
+.user-dashboard .report-progress-wrap { scroll-margin-top:80px; }
+.user-dashboard .track-submit { white-space:normal; overflow-wrap:anywhere; }
+.user-dashboard .track-timeline-meta { flex-wrap:wrap; }
+.user-dashboard :is(.track-status-header,.track-current-status-row) { flex-wrap:wrap; gap:12px; }
+.user-dashboard :is(.hotspot-toolbar-title,.hotspot-card-title,.hotspot-detail-value) { overflow-wrap:anywhere; }
+.user-dashboard .hotspot-shell { grid-template-columns:minmax(0,1.4fr) minmax(0,.9fr); }
+.user-dashboard .hotspot-select { min-width:0; max-width:100%; }
+.user-dashboard :is(.hotspot-live-map,.report-live-map) .leaflet-control-attribution { max-width:calc(100% - 12px); white-space:normal; }
+
+@media(max-width:900px) {
+  .user-dashboard .hotspot-shell { grid-template-columns:minmax(0,1fr); }
+}
+@media(max-width:1024px) {
+  .user-dashboard :is(.report-input,.track-input,.help-form-input,.help-form-textarea,.report-camera-select,.hotspot-select) { font-size:16px; }
+}
+@media(max-width:768px) {
+  .user-dashboard .sc-hero-actions { margin-top:32px; }
+  .user-dashboard .sc-hero { grid-template-columns:minmax(0,1fr); }
+  .user-dashboard :is(.report-shell,.track-shell,.hotspot-section,.contact-section,.contact-section-muted,.contact-feedback,.faq-section,.how-section) { padding-left:16px; padding-right:16px; }
+  .user-dashboard :is(.report-hero,.track-hero,.hotspot-hero,.how-hero,.faq-hero,.contact-hero) { padding:36px 16px 40px; }
+  .user-dashboard :is(.report-hero-title,.track-hero-title,.hotspot-hero-title,.how-hero-title,.faq-hero-title,.contact-hero-title) { font-size:clamp(28px,6vw,40px); line-height:1.15; }
+  .user-dashboard :is(.report-hero-text,.track-hero-text,.hotspot-hero-text,.how-hero-text,.faq-hero-text,.contact-hero-text) { font-size:15px; line-height:1.65; }
+  .user-dashboard :is(.report-card,.report-success-card,.track-form-card,.track-status-card,.track-details-card) { padding:20px; }
+  .user-dashboard :is(.report-input,.track-input,.help-form-input,.help-form-textarea,.report-camera-select) { font-size:16px; }
+  .user-dashboard :is(button,.report-button,.report-upload-action,.contact-btn,.faq-btn,.sc-btn-primary,.sc-btn-secondary) { min-height:44px; }
+  .user-dashboard :is(.report-live-map,.hotspot-live-map) { height:300px; }
+  .user-dashboard :is(.report-map-box,.hotspot-map-box) { min-height:300px; }
+  .user-dashboard :is(.report-live-map,.hotspot-live-map) .leaflet-control-zoom a { width:44px; height:44px; line-height:44px; }
+  .user-dashboard :is(.sc-footer-links,.report-footer-links,.track-footer-links,.hotspot-footer-links,.how-footer-links,.faq-footer-links,.contact-footer-links) a { display:inline-flex; align-items:center; min-height:44px; }
+  .user-dashboard .report-progress-wrap { margin-top:24px; margin-bottom:24px; }
+  .user-dashboard .report-card-title { margin-bottom:22px; font-size:22px; }
+  .user-dashboard .report-upload-preview-name { max-width:100%; }
+  .user-dashboard .report-camera-modal { padding:16px; }
+  .user-dashboard :is(.report-camera-header,.report-camera-toolbar) { flex-wrap:wrap; }
+  .user-dashboard .report-camera-title { font-size:20px; }
+  .user-dashboard .report-camera-preview-shell { max-height:48dvh; }
+}
+@media(max-width:480px) {
+  .user-dashboard .sc-hero { padding:24px 16px 36px; gap:24px; }
+  .user-dashboard .sc-hero-title { font-size:30px; }
+  .user-dashboard :is(.report-card,.report-success-card,.track-form-card,.track-status-card,.track-details-card) { padding:16px; border-radius:12px; }
+  .user-dashboard :is(.hotspot-map-panel,.hotspot-side-panel) { padding:14px; }
+  .user-dashboard .hotspot-toolbar { align-items:stretch; gap:12px; }
+  .user-dashboard .hotspot-select { width:100%; font-size:16px; }
+  .user-dashboard :is(.track-status-details,.hotspot-detail-grid) { grid-template-columns:minmax(0,1fr); }
+  .user-dashboard :is(.report-footer-grid,.track-footer-grid,.hotspot-footer-grid,.how-footer-grid,.faq-footer-grid,.contact-footer-grid) { grid-template-columns:minmax(0,1fr); gap:24px; }
+  .user-dashboard :is(.contact-actions,.faq-cta-actions) { flex-direction:column; align-items:stretch; }
+  .user-dashboard :is(.contact-feedback-link,.faq-cta-link,.help-form-submit) { min-width:0; max-width:100%; white-space:normal; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .user-dashboard * { scroll-behavior:auto; }
+}

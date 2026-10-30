@@ -80,7 +80,6 @@ export default function HotspotMapPage() {
           grid-template-columns: repeat(2, minmax(0, 1fr));
           max-width: 960px;
           margin: 0 auto;
-          gap: 0;
         }
 
         .hotspot-grid-three {
@@ -274,7 +273,7 @@ export default function HotspotMapPage() {
           }
 
           .hotspot-grid-two {
-            gap: 18px;
+            gap: 20px;
           }
         }
 
@@ -291,7 +290,7 @@ export default function HotspotMapPage() {
 
           .hotspot-grid-two,
           .hotspot-grid-three {
-            gap: 18px;
+            gap: 20px;
           }
 
           .hotspot-card,

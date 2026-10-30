@@ -1,0 +1,65 @@
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: hapsaydalan_db
+      POSTGRES_USER: hapsaydalan
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in deploy/.env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hapsaydalan -d hapsaydalan_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ../backend
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      POSTGRES_DB: hapsaydalan_db
+      POSTGRES_USER: hapsaydalan
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in deploy/.env}
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+      DJANGO_STATIC_ROOT: /data/static
+      DJANGO_MEDIA_ROOT: /data/media
+      DJANGO_PRIVATE_EVIDENCE_ROOT: /data/private_evidence
+      DJANGO_TRUST_HTTPS_PROXY: "True"
+    volumes:
+      - static_data:/data/static
+      - media_data:/data/media
+      - private_evidence_data:/data/private_evidence
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build:
+      context: ..
+      dockerfile: frontend/Dockerfile
+    restart: unless-stopped
+    environment:
+      SITE_DOMAIN: ${SITE_DOMAIN:?Set SITE_DOMAIN in deploy/.env}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - static_data:/srv/static:ro
+      - media_data:/srv/media:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  static_data:
+  media_data:
+  private_evidence_data:
+  caddy_data:
+  caddy_config:
