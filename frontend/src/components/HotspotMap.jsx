@@ -1004,31 +1004,28 @@ export default function HotspotMap({ isEmbedded = false } = {}) {
                   Intensity
                 </span>
                 <div className="hotspot-intensity-levels">
-                  <div className="hotspot-intensity-badge high" title="High intensity: 5 or more reports">
+                  <div className="hotspot-intensity-badge high" title="High intensity">
                     <span className="hotspot-intensity-beacon" aria-hidden="true">
                       <span className="hotspot-intensity-ping high" />
                       <span className="hotspot-intensity-dot high" />
                     </span>
                     <span className="hotspot-intensity-label">High</span>
-                    <span className="hotspot-intensity-count">5+</span>
                   </div>
 
-                  <div className="hotspot-intensity-badge medium" title="Medium intensity: 3 to 4 reports">
+                  <div className="hotspot-intensity-badge medium" title="Medium intensity">
                     <span className="hotspot-intensity-beacon" aria-hidden="true">
                       <span className="hotspot-intensity-ping medium" />
                       <span className="hotspot-intensity-dot medium" />
                     </span>
                     <span className="hotspot-intensity-label">Medium</span>
-                    <span className="hotspot-intensity-count">3-4</span>
                   </div>
 
-                  <div className="hotspot-intensity-badge low" title="Low intensity: 1 to 2 reports">
+                  <div className="hotspot-intensity-badge low" title="Low intensity">
                     <span className="hotspot-intensity-beacon" aria-hidden="true">
                       <span className="hotspot-intensity-ping low" />
                       <span className="hotspot-intensity-dot low" />
                     </span>
                     <span className="hotspot-intensity-label">Low</span>
-                    <span className="hotspot-intensity-count">1-2</span>
                   </div>
                 </div>
               </div>
