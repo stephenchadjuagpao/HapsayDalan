@@ -527,18 +527,25 @@ export default function HotspotMap({ isEmbedded = false } = {}) {
           margin-bottom: 16px;
         }
 
+        .hotspot-toolbar-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 14px;
+          flex-wrap: wrap;
+        }
+
         .hotspot-toolbar-title {
           font-size: 20px;
           font-weight: 800;
           color: #0f172a;
+          margin: 0;
         }
 
-        .hotspot-toolbar-controls {
+        .hotspot-toolbar-filter {
           display: flex;
           align-items: center;
-          justify-content: space-between;
-          gap: 16px;
-          flex-wrap: wrap;
+          justify-content: flex-start;
         }
 
         .hotspot-select {
@@ -552,27 +559,20 @@ export default function HotspotMap({ isEmbedded = false } = {}) {
         }
 
         .hotspot-intensity-legend {
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
           background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
           border: 1px solid #e2e8f0;
-          border-radius: 14px;
-          padding: 8px 14px;
-          box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+          border-radius: 999px;
+          padding: 5px 12px;
+          box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
           transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
 
         .hotspot-intensity-legend:hover {
           border-color: #cbd5e1;
-          box-shadow: 0 6px 20px rgba(15, 23, 42, 0.08);
-        }
-
-        .hotspot-intensity-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 10px;
+          box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
         }
 
         .hotspot-intensity-title {
@@ -596,27 +596,19 @@ export default function HotspotMap({ isEmbedded = false } = {}) {
           animation: pulse-dot 2s infinite ease-in-out;
         }
 
-        .hotspot-intensity-hint {
-          font-size: 11px;
-          font-weight: 500;
-          color: #64748b;
-          line-height: 1;
-        }
-
         .hotspot-intensity-levels {
-          display: flex;
+          display: inline-flex;
           align-items: center;
-          gap: 8px;
-          flex-wrap: wrap;
+          gap: 6px;
         }
 
         .hotspot-intensity-badge {
           display: inline-flex;
           align-items: center;
-          gap: 6px;
-          padding: 4px 10px;
+          gap: 5px;
+          padding: 3px 8px;
           border-radius: 999px;
-          font-size: 12px;
+          font-size: 11px;
           font-weight: 700;
           cursor: default;
           transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
@@ -964,18 +956,19 @@ export default function HotspotMap({ isEmbedded = false } = {}) {
             align-items: stretch;
           }
 
-          .hotspot-toolbar-controls {
-            align-items: stretch;
+          .hotspot-toolbar-header {
             flex-direction: column;
-            gap: 12px;
+            align-items: flex-start;
+            gap: 10px;
+          }
+
+          .hotspot-intensity-legend {
+            width: 100%;
+            justify-content: flex-start;
           }
 
           .hotspot-select {
             min-width: 0;
-            width: 100%;
-          }
-
-          .hotspot-intensity-legend {
             width: 100%;
           }
 
@@ -1003,28 +996,13 @@ export default function HotspotMap({ isEmbedded = false } = {}) {
       <div className={`hotspot-shell ${isEmbedded ? "is-embedded" : ""}`}>
         <div className="hotspot-map-panel">
           <div className="hotspot-toolbar">
-            <div className="hotspot-toolbar-title">Community Hotspot Overview</div>
-            <div className="hotspot-toolbar-controls">
-              <ResponsiveSelect
-                className="hotspot-select"
-                aria-label="Filter violation types" value={selectedType}
-                onChange={(event) => setSelectedType(event.target.value)}
-              >
-                {violationTypes.map((type) => (
-                  <option key={type} value={type}>
-                    {type === "All" ? "All Violation Types" : type}
-                  </option>
-                ))}
-              </ResponsiveSelect>
-
+            <div className="hotspot-toolbar-header">
+              <div className="hotspot-toolbar-title">Community Hotspot Overview</div>
               <div className="hotspot-intensity-legend" aria-label="Hotspot intensity legend">
-                <div className="hotspot-intensity-header">
-                  <span className="hotspot-intensity-title">
-                    <span className="hotspot-intensity-beacon-mini" aria-hidden="true" />
-                    Intensity
-                  </span>
-                  <span className="hotspot-intensity-hint">Severity by reports</span>
-                </div>
+                <span className="hotspot-intensity-title">
+                  <span className="hotspot-intensity-beacon-mini" aria-hidden="true" />
+                  Intensity
+                </span>
                 <div className="hotspot-intensity-levels">
                   <div className="hotspot-intensity-badge high" title="High intensity: 5 or more reports">
                     <span className="hotspot-intensity-beacon" aria-hidden="true">
@@ -1054,6 +1032,20 @@ export default function HotspotMap({ isEmbedded = false } = {}) {
                   </div>
                 </div>
               </div>
+            </div>
+
+            <div className="hotspot-toolbar-filter">
+              <ResponsiveSelect
+                className="hotspot-select"
+                aria-label="Filter violation types" value={selectedType}
+                onChange={(event) => setSelectedType(event.target.value)}
+              >
+                {violationTypes.map((type) => (
+                  <option key={type} value={type}>
+                    {type === "All" ? "All Violation Types" : type}
+                  </option>
+                ))}
+              </ResponsiveSelect>
             </div>
           </div>
 
