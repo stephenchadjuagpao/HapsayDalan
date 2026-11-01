@@ -14,7 +14,7 @@
 .responsive-select-option[aria-disabled="true"] { color:#8993a3; cursor:not-allowed; background:#fafbfc; }
 .responsive-select-trigger:focus-visible { outline:3px solid #2478ce; outline-offset:2px; }
 .report-input-wrapper .responsive-select-trigger { margin-bottom:18px; }
-.hotspot-toolbar > .responsive-select { width:min(100%,300px); }
+.hotspot-toolbar :is(.responsive-select) { width:min(100%,300px); }
 .admin-queue-toolbar > .responsive-select { flex:0 1 240px; width:240px; }
 .rd-controls .responsive-select, .ra-toolbar .responsive-select { margin-top:6px; }
 @media(max-width:1023px) { .responsive-select > .responsive-select-trigger, .responsive-select-menu { font-size:13px; } }
@@ -22,5 +22,5 @@
   .responsive-select > .responsive-select-trigger { padding:9px 10px; font-size:13px; }
   .responsive-select-menu { font-size:12px; }
   .responsive-select-option { padding:8px; }
-  .hotspot-toolbar > .responsive-select, .admin-queue-toolbar > .responsive-select { flex-basis:100%; width:100%; }
+  .hotspot-toolbar :is(.responsive-select), .admin-queue-toolbar > .responsive-select { flex-basis:100%; width:100%; }
 }

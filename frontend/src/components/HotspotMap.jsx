@@ -522,17 +522,23 @@ export default function HotspotMap({ isEmbedded = false } = {}) {
 
         .hotspot-toolbar {
           display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 16px;
+          flex-direction: column;
+          gap: 12px;
           margin-bottom: 16px;
-          flex-wrap: wrap;
         }
 
         .hotspot-toolbar-title {
           font-size: 20px;
           font-weight: 800;
           color: #0f172a;
+        }
+
+        .hotspot-toolbar-controls {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+          flex-wrap: wrap;
         }
 
         .hotspot-select {
@@ -543,6 +549,57 @@ export default function HotspotMap({ isEmbedded = false } = {}) {
           color: #334155;
           padding: 12px 14px;
           font-size: 14px;
+        }
+
+        .hotspot-intensity-legend {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 6px;
+        }
+
+        .hotspot-intensity-title {
+          font-size: 14px;
+          font-weight: 700;
+          color: #0f172a;
+          line-height: 1.2;
+        }
+
+        .hotspot-intensity-levels {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          flex-wrap: wrap;
+        }
+
+        .hotspot-intensity-item {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 14px;
+          font-weight: 500;
+          color: #334155;
+          line-height: 1;
+        }
+
+        .hotspot-intensity-dot {
+          width: 12px;
+          height: 12px;
+          border-radius: 50%;
+          display: inline-block;
+          flex-shrink: 0;
+        }
+
+        .hotspot-intensity-dot.high {
+          background-color: #dc2626;
+        }
+
+        .hotspot-intensity-dot.medium {
+          background-color: #f59e0b;
+        }
+
+        .hotspot-intensity-dot.low {
+          background-color: #2563eb;
         }
 
         .hotspot-map-box {
@@ -763,8 +820,18 @@ export default function HotspotMap({ isEmbedded = false } = {}) {
             align-items: stretch;
           }
 
+          .hotspot-toolbar-controls {
+            align-items: stretch;
+            flex-direction: column;
+            gap: 12px;
+          }
+
           .hotspot-select {
             min-width: 0;
+            width: 100%;
+          }
+
+          .hotspot-intensity-legend {
             width: 100%;
           }
 
@@ -793,17 +860,37 @@ export default function HotspotMap({ isEmbedded = false } = {}) {
         <div className="hotspot-map-panel">
           <div className="hotspot-toolbar">
             <div className="hotspot-toolbar-title">Community Hotspot Overview</div>
-            <ResponsiveSelect
-              className="hotspot-select"
-              aria-label="Filter violation types" value={selectedType}
-              onChange={(event) => setSelectedType(event.target.value)}
-            >
-              {violationTypes.map((type) => (
-                <option key={type} value={type}>
-                  {type === "All" ? "All Violation Types" : type}
-                </option>
-              ))}
-            </ResponsiveSelect>
+            <div className="hotspot-toolbar-controls">
+              <ResponsiveSelect
+                className="hotspot-select"
+                aria-label="Filter violation types" value={selectedType}
+                onChange={(event) => setSelectedType(event.target.value)}
+              >
+                {violationTypes.map((type) => (
+                  <option key={type} value={type}>
+                    {type === "All" ? "All Violation Types" : type}
+                  </option>
+                ))}
+              </ResponsiveSelect>
+
+              <div className="hotspot-intensity-legend" aria-label="Hotspot intensity legend">
+                <span className="hotspot-intensity-title">Intensity</span>
+                <div className="hotspot-intensity-levels">
+                  <span className="hotspot-intensity-item">
+                    <span className="hotspot-intensity-dot high" aria-hidden="true" />
+                    <span>High</span>
+                  </span>
+                  <span className="hotspot-intensity-item">
+                    <span className="hotspot-intensity-dot medium" aria-hidden="true" />
+                    <span>Medium</span>
+                  </span>
+                  <span className="hotspot-intensity-item">
+                    <span className="hotspot-intensity-dot low" aria-hidden="true" />
+                    <span>Low</span>
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="hotspot-map-box">

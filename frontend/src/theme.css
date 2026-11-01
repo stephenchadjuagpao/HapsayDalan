@@ -135,8 +135,8 @@ html[data-theme=dark] .my-reports-stat-open dd { color:#f2ce8c; }
 html[data-theme=dark] .leaflet-popup-content-wrapper,html[data-theme=dark] .leaflet-popup-tip { background:var(--theme-card); color:var(--theme-ink); }
 html[data-theme=dark] :is(.user-dashboard,.admin-dashboard-root) :focus-visible { outline-color:#88b8ff; }
 
-html[data-theme=dark] :is(.sc-step-title,.sc-benefit-title,.hotspot-toolbar-title,.hotspot-side-title,.admin-quick-actions-title,.admin-attention-card strong,.admin-workflow-legend strong,.faq-answer strong,.how-note strong) { color:var(--theme-ink); }
-html[data-theme=dark] :is(.report-list-text,.report-list-new,.report-list-icon-dark,.hotspot-list li span:last-child,.hotspot-list strong,.hotspot-empty,.admin-workflow-legend span,.ae-form label) { color:var(--theme-muted); }
+html[data-theme=dark] :is(.sc-step-title,.sc-benefit-title,.hotspot-toolbar-title,.hotspot-side-title,.hotspot-intensity-title,.admin-quick-actions-title,.admin-attention-card strong,.admin-workflow-legend strong,.faq-answer strong,.how-note strong) { color:var(--theme-ink); }
+html[data-theme=dark] :is(.report-list-text,.report-list-new,.report-list-icon-dark,.hotspot-list li span:last-child,.hotspot-list strong,.hotspot-empty,.hotspot-intensity-item,.admin-workflow-legend span,.ae-form label) { color:var(--theme-muted); }
 html[data-theme=dark] :is(.report-list-icon-check,.report-list-number,.hotspot-list-number,.how-check,.faq-arrow,.track-faq-arrow) { color:var(--theme-link); }
 html[data-theme=dark] :is(.hotspot-impact-card,.contact-emergency-card) { background:var(--theme-card); border-color:var(--theme-border); }
 html[data-theme=dark] .hotspot-map-overlay { background:#15243a; color:var(--theme-ink); }
