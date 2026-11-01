@@ -554,52 +554,196 @@ export default function HotspotMap({ isEmbedded = false } = {}) {
         .hotspot-intensity-legend {
           display: flex;
           flex-direction: column;
-          align-items: flex-start;
           gap: 6px;
+          background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+          border: 1px solid #e2e8f0;
+          border-radius: 14px;
+          padding: 8px 14px;
+          box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+          transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .hotspot-intensity-legend:hover {
+          border-color: #cbd5e1;
+          box-shadow: 0 6px 20px rgba(15, 23, 42, 0.08);
+        }
+
+        .hotspot-intensity-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
         }
 
         .hotspot-intensity-title {
-          font-size: 14px;
-          font-weight: 700;
-          color: #0f172a;
-          line-height: 1.2;
+          font-size: 11px;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.7px;
+          color: #1e293b;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          line-height: 1;
+        }
+
+        .hotspot-intensity-beacon-mini {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: #3b82f6;
+          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+          animation: pulse-dot 2s infinite ease-in-out;
+        }
+
+        .hotspot-intensity-hint {
+          font-size: 11px;
+          font-weight: 500;
+          color: #64748b;
+          line-height: 1;
         }
 
         .hotspot-intensity-levels {
           display: flex;
           align-items: center;
-          gap: 16px;
+          gap: 8px;
           flex-wrap: wrap;
         }
 
-        .hotspot-intensity-item {
+        .hotspot-intensity-badge {
           display: inline-flex;
           align-items: center;
-          gap: 8px;
-          font-size: 14px;
-          font-weight: 500;
-          color: #334155;
-          line-height: 1;
+          gap: 6px;
+          padding: 4px 10px;
+          border-radius: 999px;
+          font-size: 12px;
+          font-weight: 700;
+          cursor: default;
+          transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+          user-select: none;
+        }
+
+        .hotspot-intensity-badge:hover {
+          transform: translateY(-2px) scale(1.03);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .hotspot-intensity-badge.high {
+          background: #fef2f2;
+          border: 1px solid #fecaca;
+          color: #b91c1c;
+        }
+
+        .hotspot-intensity-badge.medium {
+          background: #fffbeb;
+          border: 1px solid #fde68a;
+          color: #b45309;
+        }
+
+        .hotspot-intensity-badge.low {
+          background: #eff6ff;
+          border: 1px solid #bfdbfe;
+          color: #1d4ed8;
+        }
+
+        .hotspot-intensity-beacon {
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 10px;
+          height: 10px;
         }
 
         .hotspot-intensity-dot {
-          width: 12px;
-          height: 12px;
+          width: 8px;
+          height: 8px;
           border-radius: 50%;
-          display: inline-block;
-          flex-shrink: 0;
+          position: relative;
+          z-index: 2;
         }
 
         .hotspot-intensity-dot.high {
-          background-color: #dc2626;
+          background: #dc2626;
         }
 
         .hotspot-intensity-dot.medium {
-          background-color: #f59e0b;
+          background: #f59e0b;
         }
 
         .hotspot-intensity-dot.low {
-          background-color: #2563eb;
+          background: #2563eb;
+        }
+
+        .hotspot-intensity-ping {
+          position: absolute;
+          inset: 0;
+          border-radius: 50%;
+          z-index: 1;
+        }
+
+        .hotspot-intensity-ping.high {
+          background: rgba(220, 38, 38, 0.75);
+          animation: ping-wave 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+
+        .hotspot-intensity-ping.medium {
+          background: rgba(245, 158, 11, 0.75);
+          animation: ping-wave 2s cubic-bezier(0, 0, 0.2, 1) infinite 0.3s;
+        }
+
+        .hotspot-intensity-ping.low {
+          background: rgba(37, 99, 235, 0.75);
+          animation: ping-wave 2.4s cubic-bezier(0, 0, 0.2, 1) infinite 0.6s;
+        }
+
+        .hotspot-intensity-label {
+          line-height: 1;
+        }
+
+        .hotspot-intensity-count {
+          font-size: 10px;
+          font-weight: 800;
+          padding: 1px 5px;
+          border-radius: 6px;
+          line-height: 1.2;
+        }
+
+        .hotspot-intensity-badge.high .hotspot-intensity-count {
+          background: #fee2e2;
+          color: #991b1b;
+        }
+
+        .hotspot-intensity-badge.medium .hotspot-intensity-count {
+          background: #fef3c7;
+          color: #92400e;
+        }
+
+        .hotspot-intensity-badge.low .hotspot-intensity-count {
+          background: #dbeafe;
+          color: #1e40af;
+        }
+
+        @keyframes ping-wave {
+          0% {
+            transform: scale(0.9);
+            opacity: 0.9;
+          }
+          75%, 100% {
+            transform: scale(2.4);
+            opacity: 0;
+          }
+        }
+
+        @keyframes pulse-dot {
+          0%, 100% {
+            opacity: 1;
+            transform: scale(1);
+          }
+          50% {
+            opacity: 0.5;
+            transform: scale(0.85);
+          }
         }
 
         .hotspot-map-box {
@@ -874,20 +1018,40 @@ export default function HotspotMap({ isEmbedded = false } = {}) {
               </ResponsiveSelect>
 
               <div className="hotspot-intensity-legend" aria-label="Hotspot intensity legend">
-                <span className="hotspot-intensity-title">Intensity</span>
+                <div className="hotspot-intensity-header">
+                  <span className="hotspot-intensity-title">
+                    <span className="hotspot-intensity-beacon-mini" aria-hidden="true" />
+                    Intensity
+                  </span>
+                  <span className="hotspot-intensity-hint">Severity by reports</span>
+                </div>
                 <div className="hotspot-intensity-levels">
-                  <span className="hotspot-intensity-item">
-                    <span className="hotspot-intensity-dot high" aria-hidden="true" />
-                    <span>High</span>
-                  </span>
-                  <span className="hotspot-intensity-item">
-                    <span className="hotspot-intensity-dot medium" aria-hidden="true" />
-                    <span>Medium</span>
-                  </span>
-                  <span className="hotspot-intensity-item">
-                    <span className="hotspot-intensity-dot low" aria-hidden="true" />
-                    <span>Low</span>
-                  </span>
+                  <div className="hotspot-intensity-badge high" title="High intensity: 5 or more reports">
+                    <span className="hotspot-intensity-beacon" aria-hidden="true">
+                      <span className="hotspot-intensity-ping high" />
+                      <span className="hotspot-intensity-dot high" />
+                    </span>
+                    <span className="hotspot-intensity-label">High</span>
+                    <span className="hotspot-intensity-count">5+</span>
+                  </div>
+
+                  <div className="hotspot-intensity-badge medium" title="Medium intensity: 3 to 4 reports">
+                    <span className="hotspot-intensity-beacon" aria-hidden="true">
+                      <span className="hotspot-intensity-ping medium" />
+                      <span className="hotspot-intensity-dot medium" />
+                    </span>
+                    <span className="hotspot-intensity-label">Medium</span>
+                    <span className="hotspot-intensity-count">3-4</span>
+                  </div>
+
+                  <div className="hotspot-intensity-badge low" title="Low intensity: 1 to 2 reports">
+                    <span className="hotspot-intensity-beacon" aria-hidden="true">
+                      <span className="hotspot-intensity-ping low" />
+                      <span className="hotspot-intensity-dot low" />
+                    </span>
+                    <span className="hotspot-intensity-label">Low</span>
+                    <span className="hotspot-intensity-count">1-2</span>
+                  </div>
                 </div>
               </div>
             </div>

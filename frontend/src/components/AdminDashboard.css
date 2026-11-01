@@ -223,8 +223,9 @@ html[data-theme=dark] .admin-officer-actions .admin-officer-edit:hover:not(:disa
 .admin-hotspot-container .hotspot-card:hover { background:#e1eafa; border-color:#4778b8; box-shadow:0 4px 12px #264a7920; }
 .admin-hotspot-container .hotspot-card.is-active { background:#d5e4fa; border-color:#3269ae; box-shadow:inset 4px 0 #3269ae; }
 .admin-hotspot-container :is(.hotspot-card-text,.hotspot-card-meta) { color:#506780; }
+.admin-hotspot-container .hotspot-intensity-legend { background: var(--admin-control, #f5f8fc); border-color: var(--admin-card-border, #d1dced); }
 .admin-hotspot-container .hotspot-intensity-title { color:#233b56; }
-.admin-hotspot-container .hotspot-intensity-item { color:#304e70; }
+.admin-hotspot-container .hotspot-intensity-hint { color:#506780; }
 /* Dialogs keep the evidence scrollable and the save action visible. */
 .admin-modal-backdrop { position:fixed; inset:0; z-index:1000; padding:20px; display:flex; align-items:center; justify-content:center; background:#10203980; backdrop-filter:blur(5px); }
 .admin-modal { display:flex; flex-direction:column; width:100%; max-width:680px; max-height:calc(100dvh - 40px); min-width:0; padding:26px; border:1px solid var(--admin-card-border); border-radius:18px; background:var(--admin-surface); box-shadow:0 28px 100px #0f264347; overflow:hidden; }
