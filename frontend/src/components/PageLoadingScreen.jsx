@@ -48,17 +48,12 @@ export default function PageLoadingScreen({
       aria-live="polite"
       aria-label="Loading page"
     >
-      <div className="hapsay-circle-stage">
-        {/* Ambient Center Glow */}
-        <div className="hapsay-stage-glow" aria-hidden="true" />
+      <div className="hapsay-street-stage">
+        {/* Soft Ambient Glow */}
+        <div className="hapsay-street-glow" aria-hidden="true" />
 
-        {/* Enhanced High-Tech Orbital Rings */}
-        <div className="hapsay-orbit-outer-ring" aria-hidden="true" />
-        <div className="hapsay-orbit-radar-sweep" aria-hidden="true" />
-        <div className="hapsay-orbit-inner-dashed" aria-hidden="true" />
-
-        {/* Center: Prominent, High-Resolution HapsayDalan Platform Logo */}
-        <div className="hapsay-center-brand">
+        {/* Top: Prominent HapsayDalan Platform Logo */}
+        <div className="hapsay-street-brand">
           <div className="hapsay-brand-lockup">
             <img
               src={shieldLogoImg}
@@ -77,16 +72,23 @@ export default function PageLoadingScreen({
           </div>
         </div>
 
-        {/* Orbiting Toyota Hilux CTMO Patrol Truck (Scaled Down & Circling with Duyog) */}
-        <div className="hapsay-orbit-track">
-          <div className="hapsay-orbit-anchor">
-            <div className="hapsay-truck-duyog-box">
-              <img
-                src={patrolTruckImg}
-                alt="Toyota Hilux CTMO Patrol Truck"
-                className="hapsay-orbiting-truck"
-              />
-              <div className="hapsay-truck-orbit-shadow" aria-hidden="true" />
+        {/* Bottom: Toyota Hilux CTMO Patrol Truck driving with "Duyog" along a Street Line */}
+        <div className="hapsay-street-drive-scene">
+          {/* Patrol Truck Chassis with authentic Suspension Duyog */}
+          <div className="hapsay-street-truck-box">
+            <img
+              src={patrolTruckImg}
+              alt="Toyota Hilux CTMO Patrol Truck"
+              className="hapsay-street-truck"
+            />
+            {/* Dynamic Tire Ground Shadow */}
+            <div className="hapsay-street-truck-shadow" aria-hidden="true" />
+          </div>
+
+          {/* Straight Street Line with moving highway stripes */}
+          <div className="hapsay-street-road-line" aria-hidden="true">
+            <div className="hapsay-street-asphalt">
+              <div className="hapsay-street-dashes" />
             </div>
           </div>
         </div>

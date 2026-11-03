@@ -1,8 +1,7 @@
 /* ==========================================================================
-   HapsayDalan - Enhanced Circular Patrol Loading Screen
-   - Prominent Center Logo (HapsayDalan Platform)
-   - Scaled Patrol Truck with "Duyog" Circling in Orbit
-   - Enhanced High-Tech Radar / Orbital Ring Design
+   HapsayDalan - Straight Street Drive Loading Screen
+   - Top: Prominent HapsayDalan Platform Logo
+   - Bottom: Toyota Hilux CTMO Patrol Truck with "Duyog" along a Straight Street Line
    ========================================================================== */
 
 .hapsay-loader-overlay {
@@ -51,123 +50,62 @@
 }
 
 /* ==========================================================================
-   ENHANCED CIRCULAR STAGE
+   STREET STAGE CONTAINER (Vertical Layout)
    ========================================================================== */
-.hapsay-circle-stage {
-  --orbit-radius: 148px;
+.hapsay-street-stage {
   position: relative;
-  width: 410px;
-  height: 410px;
+  width: 100%;
+  max-width: 440px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 26px;
 }
 
 /* Ambient Radial Backlight */
-.hapsay-stage-glow {
-  position: absolute;
-  width: 240px;
-  height: 240px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(37, 99, 235, 0.3) 0%, rgba(34, 197, 94, 0.14) 45%, transparent 70%);
-  filter: blur(28px);
-  pointer-events: none;
-  animation: hapsay-glow-pulse 3s infinite ease-in-out;
-}
-
-@keyframes hapsay-glow-pulse {
-  0%, 100% {
-    transform: scale(0.95);
-    opacity: 0.7;
-  }
-  50% {
-    transform: scale(1.15);
-    opacity: 1;
-  }
-}
-
-/* Outer Luminous Track Ring */
-.hapsay-orbit-outer-ring {
-  position: absolute;
-  width: calc(var(--orbit-radius) * 2);
-  height: calc(var(--orbit-radius) * 2);
-  border-radius: 50%;
-  border: 1.5px solid rgba(56, 189, 248, 0.42);
-  box-shadow: 
-    0 0 20px rgba(56, 189, 248, 0.3),
-    inset 0 0 20px rgba(56, 189, 248, 0.18);
-  pointer-events: none;
-}
-
-/* Rotating Radar Sweep Beam */
-.hapsay-orbit-radar-sweep {
-  position: absolute;
-  width: calc(var(--orbit-radius) * 2);
-  height: calc(var(--orbit-radius) * 2);
-  border-radius: 50%;
-  background: conic-gradient(
-    from 0deg,
-    transparent 0deg,
-    transparent 280deg,
-    rgba(56, 189, 248, 0.15) 340deg,
-    rgba(56, 189, 248, 0.38) 360deg
-  );
-  pointer-events: none;
-  animation: hapsay-radar-spin 2.6s linear infinite;
-  mask-image: radial-gradient(circle, transparent 65%, black 66%, black 100%);
-  -webkit-mask-image: radial-gradient(circle, transparent 65%, black 66%, black 100%);
-}
-
-@keyframes hapsay-radar-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* Inner Concentric Dashed Radar Ring */
-.hapsay-orbit-inner-dashed {
-  position: absolute;
-  width: calc(var(--orbit-radius) * 1.6);
-  height: calc(var(--orbit-radius) * 1.6);
-  border-radius: 50%;
-  border: 1px dashed rgba(74, 222, 128, 0.32);
-  pointer-events: none;
-  animation: hapsay-dash-rotate 12s linear infinite reverse;
-}
-
-@keyframes hapsay-dash-rotate {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* ==========================================================================
-   CENTER: PROMINENT & ENLARGED HAPSAYDALAN PLATFORM LOGO
-   ========================================================================== */
-.hapsay-center-brand {
+.hapsay-street-glow {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  width: 320px;
+  height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(37, 99, 235, 0.28) 0%, rgba(34, 197, 94, 0.12) 50%, transparent 72%);
+  filter: blur(30px);
+  pointer-events: none;
+  animation: hapsay-street-glow-pulse 3s infinite ease-in-out;
+}
+
+@keyframes hapsay-street-glow-pulse {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(0.95);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.1);
+    opacity: 1;
+  }
+}
+
+/* ==========================================================================
+   TOP: PROMINENT HAPSAYDALAN PLATFORM LOGO
+   ========================================================================== */
+.hapsay-street-brand {
+  position: relative;
   z-index: 10;
   display: flex;
   align-items: center;
   justify-content: center;
-  pointer-events: none;
 }
 
 .hapsay-brand-lockup {
   display: flex;
   align-items: center;
-  gap: 13px;
-  padding: 10px 18px;
-  background: rgba(15, 23, 42, 0.65);
+  gap: 14px;
+  padding: 10px 22px;
+  background: rgba(15, 23, 42, 0.7);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 999px;
   backdrop-filter: blur(8px);
@@ -206,7 +144,7 @@
 
 .hapsay-brand-name {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  font-size: 23px;
+  font-size: 24px;
   font-weight: 800;
   line-height: 1.15;
   letter-spacing: -0.4px;
@@ -224,7 +162,7 @@
 
 .hapsay-brand-desc {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 600;
   color: #cbd5e1;
   letter-spacing: 0.25px;
@@ -233,105 +171,156 @@
 }
 
 /* ==========================================================================
-   ORBITING PATROL TRUCK (SLIGHTLY SMALLER WITH "DUYOG" SUSPENSION MOTION)
+   BOTTOM: PATROL TRUCK DRIVING ON STRAIGHT STREET LINE (WITH "DUYOG")
    ========================================================================== */
-.hapsay-orbit-track {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
+.hapsay-street-drive-scene {
+  position: relative;
+  width: 100%;
+  max-width: 380px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  z-index: 20;
-  pointer-events: none;
+  z-index: 5;
 }
 
-.hapsay-orbit-anchor {
-  position: absolute;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  animation: hapsay-truck-orbit 2.7s linear infinite;
-  will-change: transform;
-}
-
-@keyframes hapsay-truck-orbit {
-  0% {
-    transform: rotate(0deg) translateX(var(--orbit-radius)) rotate(0deg);
-  }
-  25% {
-    transform: rotate(90deg) translateX(var(--orbit-radius)) rotate(-90deg) rotate(7deg);
-  }
-  50% {
-    transform: rotate(180deg) translateX(var(--orbit-radius)) rotate(-180deg);
-  }
-  75% {
-    transform: rotate(270deg) translateX(var(--orbit-radius)) rotate(-270deg) rotate(-7deg);
-  }
-  100% {
-    transform: rotate(360deg) translateX(var(--orbit-radius)) rotate(-360deg);
-  }
-}
-
-/* Compact Truck Box with "Duyog" Suspension Motion */
-.hapsay-truck-duyog-box {
+/* Truck Box with "Duyog" Suspension Motion */
+.hapsay-street-truck-box {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 80px; /* Scaled down slightly as requested */
-  animation: hapsay-truck-duyog 0.85s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+  width: 135px;
+  will-change: transform;
+  /* Authentic patrol driving suspension movement */
+  animation: hapsay-truck-duyog 1.05s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+  z-index: 2;
 }
 
 @keyframes hapsay-truck-duyog {
-  0%, 100% {
+  0% {
     transform: translateY(0px) rotate(0deg);
   }
-  25% {
-    transform: translateY(-2.5px) rotate(-0.5deg);
+  20% {
+    transform: translateY(-4px) rotate(-0.65deg);
   }
-  50% {
-    transform: translateY(1.2px) rotate(0.4deg);
+  42% {
+    transform: translateY(2px) rotate(0.45deg);
   }
-  75% {
-    transform: translateY(-1.2px) rotate(-0.2deg);
+  60% {
+    transform: translateY(-2px) rotate(-0.25deg);
+  }
+  78% {
+    transform: translateY(2.5px) rotate(0.5deg);
+  }
+  100% {
+    transform: translateY(0px) rotate(0deg);
   }
 }
 
-.hapsay-orbiting-truck {
+.hapsay-street-truck {
   width: 100%;
   height: auto;
-  max-height: 58px;
+  max-height: 98px;
   object-fit: contain;
   display: block;
-  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.6));
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.55));
 }
 
-/* Tire Contact Shadow under the orbiting truck */
-.hapsay-truck-orbit-shadow {
-  width: 78%;
-  height: 5px;
-  margin-top: -3px;
+/* Dynamic Tire Contact Shadow breathing in sync with Duyog */
+.hapsay-street-truck-shadow {
+  width: 84%;
+  height: 8px;
+  margin-top: -6px;
   background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.25) 60%, transparent 80%);
   border-radius: 50%;
-  filter: blur(1.5px);
+  filter: blur(2px);
+  animation: hapsay-shadow-duyog 1.05s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+}
+
+@keyframes hapsay-shadow-duyog {
+  0%, 100% {
+    transform: scaleX(1) scaleY(1);
+    opacity: 0.75;
+  }
+  20% {
+    transform: scaleX(0.92) scaleY(0.75);
+    opacity: 0.5;
+  }
+  42%, 78% {
+    transform: scaleX(1.05) scaleY(1.2);
+    opacity: 0.9;
+  }
+  60% {
+    transform: scaleX(0.96) scaleY(0.85);
+    opacity: 0.6;
+  }
 }
 
 /* ==========================================================================
-   RESPONSIVENESS (Mobile & Small screens)
+   STRAIGHT STREET LINE ("Pina line nga street")
    ========================================================================== */
-@media (max-width: 520px) {
-  .hapsay-circle-stage {
-    --orbit-radius: 122px;
-    width: 330px;
-    height: 330px;
+.hapsay-street-road-line {
+  position: relative;
+  width: 100%;
+  margin-top: -2px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1;
+}
+
+/* Sleek Asphalt Road Surface */
+.hapsay-street-asphalt {
+  position: relative;
+  width: 100%;
+  height: 8px;
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  border-radius: 999px;
+  overflow: hidden;
+  box-shadow: 
+    0 2px 10px rgba(0, 0, 0, 0.45),
+    0 0 16px rgba(56, 189, 248, 0.2),
+    inset 0 1px 1px rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+}
+
+/* Moving Road Dashes Running from Right to Left */
+.hapsay-street-dashes {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    #facc15 0px,
+    #facc15 22px,
+    transparent 22px,
+    transparent 42px
+  );
+  animation: hapsay-street-motion 0.5s linear infinite;
+  box-shadow: 0 0 8px rgba(250, 204, 21, 0.6);
+}
+
+@keyframes hapsay-street-motion {
+  0% {
+    transform: translateX(42px);
+  }
+  100% {
+    transform: translateX(0px);
+  }
+}
+
+/* ==========================================================================
+   RESPONSIVENESS (Mobile & Compact screens)
+   ========================================================================== */
+@media (max-width: 480px) {
+  .hapsay-street-stage {
+    max-width: 330px;
+    gap: 20px;
   }
 
   .hapsay-brand-lockup {
-    padding: 8px 14px;
+    padding: 8px 16px;
     gap: 10px;
   }
 
@@ -341,64 +330,56 @@
   }
 
   .hapsay-brand-name {
-    font-size: 19px;
+    font-size: 20px;
   }
 
   .hapsay-brand-desc {
     font-size: 9.5px;
   }
 
-  .hapsay-truck-duyog-box {
-    width: 66px;
+  .hapsay-street-truck-box {
+    width: 110px;
   }
 
-  .hapsay-orbiting-truck {
-    max-height: 48px;
+  .hapsay-street-truck {
+    max-height: 80px;
+  }
+
+  .hapsay-street-asphalt {
+    height: 7px;
   }
 }
 
-@media (max-width: 380px) {
-  .hapsay-circle-stage {
-    --orbit-radius: 102px;
-    width: 280px;
-    height: 280px;
-  }
-
-  .hapsay-brand-lockup {
-    padding: 6px 11px;
-    gap: 8px;
-  }
-
-  .hapsay-brand-shield {
-    width: 34px;
-    max-height: 40px;
+@media (max-width: 340px) {
+  .hapsay-street-stage {
+    max-width: 270px;
+    gap: 16px;
   }
 
   .hapsay-brand-name {
-    font-size: 16px;
+    font-size: 17px;
   }
 
   .hapsay-brand-desc {
     font-size: 8px;
   }
 
-  .hapsay-truck-duyog-box {
-    width: 55px;
+  .hapsay-street-truck-box {
+    width: 95px;
   }
 
-  .hapsay-orbiting-truck {
-    max-height: 40px;
+  .hapsay-street-truck {
+    max-height: 68px;
   }
 }
 
 /* Accessibility: Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
-  .hapsay-orbit-anchor,
-  .hapsay-truck-duyog-box,
+  .hapsay-street-truck-box,
+  .hapsay-street-truck-shadow,
+  .hapsay-street-dashes,
   .hapsay-brand-lockup,
-  .hapsay-orbit-radar-sweep,
-  .hapsay-orbit-inner-dashed,
-  .hapsay-stage-glow {
+  .hapsay-street-glow {
     animation: none !important;
   }
 }
