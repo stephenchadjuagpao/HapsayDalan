@@ -19,11 +19,10 @@ describe("PageLoadingScreen component", () => {
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 
-  test("renders vehicle image and appropriate status message when active", () => {
+  test("renders patrol truck and HapsayDalan platform logo when active", () => {
     render(
       <PageLoadingScreen
         active={true}
-        targetPath="/report"
         duration={600}
       />
     );
@@ -31,10 +30,11 @@ describe("PageLoadingScreen component", () => {
     const loader = screen.getByRole("status");
     expect(loader).toBeInTheDocument();
 
-    const carImg = screen.getByRole("img", { name: /HapsayDalan CTMO Patrol Vehicle/i });
-    expect(carImg).toBeInTheDocument();
+    const truckImg = screen.getByRole("img", { name: /Toyota Hilux CTMO Patrol Truck/i });
+    expect(truckImg).toBeInTheDocument();
 
-    expect(screen.getByText("Nag-andam sa Violation Report Form...")).toBeInTheDocument();
+    const logoImg = screen.getByRole("img", { name: /HapsayDalan Platform Logo/i });
+    expect(logoImg).toBeInTheDocument();
   });
 
   test("calls onComplete after duration finishes", () => {
@@ -55,7 +55,7 @@ describe("PageLoadingScreen component", () => {
     });
 
     act(() => {
-      jest.advanceTimersByTime(250);
+      jest.advanceTimersByTime(200);
     });
 
     expect(handleComplete).toHaveBeenCalledTimes(1);
