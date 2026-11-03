@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
 import "./user-dashboard.css";
 import "./responsive-ui.css";
 import "./theme.css";
+import NavigationTransition from "./components/NavigationTransition";
 import ReportForm from "./pages/ReportForm";
 import Homepage from "./pages/Homepage";
 import TrackReport from "./pages/TrackReport";
@@ -16,23 +17,32 @@ function UserLayout() {
   return <div className="user-dashboard"><Outlet /></div>;
 }
 
-function App() {
+function AppContent() {
   return (
-    <BrowserRouter>
+    <>
+      <NavigationTransition />
       <Routes>
         <Route element={<UserLayout />}>
-        <Route path="/" element={<Homepage />} />
-        <Route path="/report" element={<ReportForm />} />
-        <Route path="/track" element={<TrackReport />} />
-        <Route path="/hotspot-map" element={<HotspotMapPage />} />
-        <Route path="/how-it-works" element={<HowItWorksPage />} />
-        <Route path="/faqs" element={<FAQsPage />} />
-        <Route path="/contact" element={<ContactHelpPage />} />
+          <Route path="/" element={<Homepage />} />
+          <Route path="/report" element={<ReportForm />} />
+          <Route path="/track" element={<TrackReport />} />
+          <Route path="/hotspot-map" element={<HotspotMapPage />} />
+          <Route path="/how-it-works" element={<HowItWorksPage />} />
+          <Route path="/faqs" element={<FAQsPage />} />
+          <Route path="/contact" element={<ContactHelpPage />} />
         </Route>
         <Route path="/admin-ctmo" element={<AdminLoginPage />} />
         <Route path="/admin" element={<AdminDashboardPage />} />
         <Route path="/admin-dashboard" element={<AdminDashboardPage />} />
       </Routes>
+    </>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
     </BrowserRouter>
   );
 }
