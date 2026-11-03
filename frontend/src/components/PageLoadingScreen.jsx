@@ -49,24 +49,31 @@ export default function PageLoadingScreen({
       aria-label="Loading page"
     >
       <div className="hapsay-street-stage">
-        {/* Soft Ambient Glow */}
+        {/* Soft Multi-Layered Ambient Aura */}
         <div className="hapsay-street-glow" aria-hidden="true" />
 
-        {/* Top: Prominent HapsayDalan Platform Logo */}
+        {/* Top: Premium HapsayDalan Platform Logo */}
         <div className="hapsay-street-brand">
           <div className="hapsay-brand-lockup">
-            <img
-              src={shieldLogoImg}
-              alt="HapsayDalan Platform Logo"
-              className="hapsay-brand-shield"
-            />
+            <div className="hapsay-shield-wrapper">
+              <img
+                src={shieldLogoImg}
+                alt="HapsayDalan Platform Logo"
+                className="hapsay-brand-shield"
+              />
+              <div className="hapsay-shield-aura" aria-hidden="true" />
+            </div>
+
             <div className="hapsay-brand-text">
               <div className="hapsay-brand-name">
                 <span className="brand-blue">Hapsay</span>
                 <span className="brand-green">Dalan</span>
               </div>
-              <div className="hapsay-brand-desc">
-                City Road Violation Reporting Platform
+              <div className="hapsay-brand-desc-row">
+                <span className="hapsay-brand-dot" aria-hidden="true" />
+                <span className="hapsay-brand-desc">
+                  City Road Violation Reporting Platform
+                </span>
               </div>
             </div>
           </div>

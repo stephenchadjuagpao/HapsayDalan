@@ -1,6 +1,6 @@
 /* ==========================================================================
-   HapsayDalan - Driving Patrol Loading Screen
-   - Top: Prominent HapsayDalan Platform Logo
+   HapsayDalan - Premium Civic Tech Loading Screen
+   - Top: Ultra-Crisp, Premium HapsayDalan Platform Emblem
    - Bottom: Toyota Hilux CTMO Patrol Truck Driving Across ("Mo Jagan") with Duyog
    ========================================================================== */
 
@@ -11,9 +11,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(circle at center, rgba(10, 24, 48, 0.9) 0%, rgba(4, 10, 22, 0.94) 100%);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: radial-gradient(circle at center, rgba(12, 26, 52, 0.92) 0%, rgba(4, 9, 20, 0.96) 100%);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   padding: 16px;
   box-sizing: border-box;
   pointer-events: all;
@@ -50,32 +50,32 @@
 }
 
 /* ==========================================================================
-   STREET STAGE CONTAINER (Vertical Layout)
+   MAIN STAGE CONTAINER
    ========================================================================== */
 .hapsay-street-stage {
   position: relative;
   width: 100%;
-  max-width: 440px;
+  max-width: 480px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 28px;
+  gap: 32px;
 }
 
-/* Ambient Radial Backlight */
+/* Multi-Layered Ambient Aura */
 .hapsay-street-glow {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 340px;
-  height: 220px;
+  width: 380px;
+  height: 240px;
   border-radius: 50%;
-  background: radial-gradient(ellipse at center, rgba(37, 99, 235, 0.28) 0%, rgba(34, 197, 94, 0.12) 50%, transparent 72%);
-  filter: blur(32px);
+  background: radial-gradient(ellipse at center, rgba(37, 99, 235, 0.32) 0%, rgba(34, 197, 94, 0.14) 48%, transparent 72%);
+  filter: blur(36px);
   pointer-events: none;
-  animation: hapsay-street-glow-pulse 3s infinite ease-in-out;
+  animation: hapsay-street-glow-pulse 3.2s infinite ease-in-out;
 }
 
 @keyframes hapsay-street-glow-pulse {
@@ -84,13 +84,13 @@
     opacity: 0.7;
   }
   50% {
-    transform: translate(-50%, -50%) scale(1.1);
+    transform: translate(-50%, -50%) scale(1.12);
     opacity: 1;
   }
 }
 
 /* ==========================================================================
-   TOP: PROMINENT HAPSAYDALAN PLATFORM LOGO
+   TOP: ULTRA-PREMIUM HAPSAYDALAN PLATFORM LOGO
    ========================================================================== */
 .hapsay-street-brand {
   position: relative;
@@ -100,41 +100,100 @@
   justify-content: center;
 }
 
+/* Glassmorphic Luxury Emblem Card */
 .hapsay-brand-lockup {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 10px 22px;
-  background: rgba(15, 23, 42, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 999px;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  gap: 18px;
+  padding: 14px 26px;
+  background: linear-gradient(135deg, rgba(16, 32, 64, 0.82) 0%, rgba(8, 18, 38, 0.92) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 20px;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   box-shadow: 
-    0 10px 30px rgba(0, 0, 0, 0.5),
-    0 0 25px rgba(37, 99, 235, 0.25);
-  animation: hapsay-brand-float 3s infinite ease-in-out;
+    0 20px 45px rgba(0, 0, 0, 0.6),
+    0 0 35px rgba(37, 99, 235, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    inset 0 0 20px rgba(37, 99, 235, 0.1);
+  animation: hapsay-brand-float 3.5s infinite ease-in-out;
+  overflow: hidden;
+}
+
+/* Premium Light Shimmer Sweep across the emblem */
+.hapsay-brand-lockup::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.04) 40%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0.04) 60%,
+    transparent 100%
+  );
+  transform: skewX(-25deg);
+  animation: hapsay-card-shimmer 4.5s infinite ease-in-out 1.2s;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+@keyframes hapsay-card-shimmer {
+  0% {
+    left: -150%;
+  }
+  30%, 100% {
+    left: 150%;
+  }
 }
 
 @keyframes hapsay-brand-float {
   0%, 100% {
-    transform: translateY(0px) scale(1);
+    transform: translateY(0px);
   }
   50% {
-    transform: translateY(-2px) scale(1.02);
+    transform: translateY(-3px);
   }
+}
+
+/* Shield Emblem with Aura */
+.hapsay-shield-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .hapsay-brand-shield {
-  width: 52px;
+  width: 58px;
   height: auto;
-  max-height: 60px;
+  max-height: 68px;
   object-fit: contain;
   display: block;
-  flex-shrink: 0;
-  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.45));
+  filter: 
+    drop-shadow(0 8px 16px rgba(0, 0, 0, 0.6))
+    drop-shadow(0 0 12px rgba(56, 189, 248, 0.35));
+  position: relative;
+  z-index: 2;
 }
 
+.hapsay-shield-aura {
+  position: absolute;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.45) 0%, transparent 70%);
+  filter: blur(10px);
+  z-index: 1;
+}
+
+/* Typography Details */
 .hapsay-brand-text {
   display: flex;
   flex-direction: column;
@@ -143,30 +202,52 @@
 }
 
 .hapsay-brand-name {
+  display: flex;
+  align-items: baseline;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  font-size: 24px;
-  font-weight: 800;
-  line-height: 1.15;
-  letter-spacing: -0.4px;
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -0.6px;
 }
 
 .hapsay-brand-name .brand-blue {
-  color: #1e6fff;
-  text-shadow: 0 0 16px rgba(30, 111, 255, 0.45);
+  background: linear-gradient(180deg, #93c5fd 0%, #3b82f6 45%, #1d4ed8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 8px rgba(37, 99, 235, 0.5));
 }
 
 .hapsay-brand-name .brand-green {
-  color: #22c55e;
-  text-shadow: 0 0 16px rgba(34, 197, 94, 0.45);
+  background: linear-gradient(180deg, #86efac 0%, #22c55e 45%, #15803d 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 8px rgba(34, 197, 94, 0.5));
+}
+
+.hapsay-brand-desc-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 4px;
+}
+
+.hapsay-brand-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #38bdf8;
+  box-shadow: 0 0 8px #38bdf8;
+  flex-shrink: 0;
 }
 
 .hapsay-brand-desc {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 10.5px;
+  font-weight: 700;
   color: #cbd5e1;
-  letter-spacing: 0.25px;
-  margin-top: 2px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
   white-space: nowrap;
 }
 
@@ -176,7 +257,7 @@
 .hapsay-highway-strip {
   position: relative;
   width: 100%;
-  max-width: 400px;
+  max-width: 420px;
   height: 95px;
   display: flex;
   flex-direction: column;
@@ -194,7 +275,7 @@
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  width: 95px;
+  width: 96px;
   z-index: 5;
   will-change: left, transform;
   /* Smooth drive from left edge to right edge */
@@ -250,7 +331,7 @@
   max-height: 68px;
   object-fit: contain;
   display: block;
-  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.6));
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.65));
 }
 
 /* Dynamic Tire Contact Shadow under the running truck */
@@ -275,9 +356,9 @@
   overflow: hidden;
   box-shadow: 
     0 2px 10px rgba(0, 0, 0, 0.45),
-    0 0 16px rgba(56, 189, 248, 0.2),
+    0 0 16px rgba(56, 189, 248, 0.22),
     inset 0 1px 1px rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(56, 189, 248, 0.3);
+  border: 1px solid rgba(56, 189, 248, 0.32);
   z-index: 1;
 }
 
@@ -308,49 +389,51 @@
 .hapsay-street-glow-beam {
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, transparent 0%, rgba(56, 189, 248, 0.2) 50%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, rgba(56, 189, 248, 0.25) 50%, transparent 100%);
   pointer-events: none;
 }
 
 /* ==========================================================================
    RESPONSIVENESS (Mobile & Compact screens)
    ========================================================================== */
-@media (max-width: 480px) {
+@media (max-width: 520px) {
   .hapsay-street-stage {
-    max-width: 320px;
-    gap: 22px;
+    max-width: 340px;
+    gap: 24px;
   }
 
   .hapsay-brand-lockup {
-    padding: 8px 16px;
-    gap: 10px;
+    padding: 10px 18px;
+    gap: 12px;
+    border-radius: 16px;
   }
 
   .hapsay-brand-shield {
-    width: 42px;
-    max-height: 50px;
+    width: 46px;
+    max-height: 54px;
   }
 
   .hapsay-brand-name {
-    font-size: 20px;
+    font-size: 22px;
   }
 
   .hapsay-brand-desc {
-    font-size: 9.5px;
+    font-size: 9px;
+    letter-spacing: 0.8px;
   }
 
   .hapsay-highway-strip {
-    max-width: 300px;
+    max-width: 310px;
     height: 80px;
   }
 
   .hapsay-runner-vehicle {
-    width: 78px;
+    width: 80px;
     bottom: 7px;
   }
 
   .hapsay-patrol-truck-runner {
-    max-height: 55px;
+    max-height: 56px;
   }
 
   .hapsay-street-track {
@@ -358,27 +441,38 @@
   }
 }
 
-@media (max-width: 340px) {
+@media (max-width: 360px) {
   .hapsay-street-stage {
-    max-width: 260px;
+    max-width: 280px;
     gap: 18px;
   }
 
+  .hapsay-brand-lockup {
+    padding: 8px 14px;
+    gap: 10px;
+  }
+
+  .hapsay-brand-shield {
+    width: 38px;
+    max-height: 46px;
+  }
+
   .hapsay-brand-name {
-    font-size: 17px;
+    font-size: 19px;
   }
 
   .hapsay-brand-desc {
     font-size: 8px;
+    letter-spacing: 0.5px;
   }
 
   .hapsay-runner-vehicle {
-    width: 68px;
+    width: 70px;
     bottom: 6px;
   }
 
   .hapsay-patrol-truck-runner {
-    max-height: 48px;
+    max-height: 50px;
   }
 }
 
@@ -388,6 +482,7 @@
   .hapsay-truck-duyog-chassis,
   .hapsay-street-lane-dashes,
   .hapsay-brand-lockup,
+  .hapsay-brand-lockup::after,
   .hapsay-street-glow {
     animation: none !important;
   }
