@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import patrolTruckImg from "../assets/patrol-truck-clean.png";
-import hapsayLogoImg from "../assets/hapsaydalan-logo-clean.png";
+import shieldLogoImg from "../assets/ctmo-shield-logo-transparent.png";
 import "./PageLoadingScreen.css";
 
 export default function PageLoadingScreen({
@@ -49,19 +49,35 @@ export default function PageLoadingScreen({
       aria-label="Loading page"
     >
       <div className="hapsay-circle-stage">
-        {/* Subtle Circular Radar / Patrol Orbit Ring */}
-        <div className="hapsay-orbit-ring" aria-hidden="true" />
+        {/* Ambient Center Glow */}
+        <div className="hapsay-stage-glow" aria-hidden="true" />
 
-        {/* Center: HapsayDalan Platform Logo */}
-        <div className="hapsay-center-logo">
-          <img
-            src={hapsayLogoImg}
-            alt="HapsayDalan Platform Logo"
-            className="hapsay-logo-img"
-          />
+        {/* Enhanced High-Tech Orbital Rings */}
+        <div className="hapsay-orbit-outer-ring" aria-hidden="true" />
+        <div className="hapsay-orbit-radar-sweep" aria-hidden="true" />
+        <div className="hapsay-orbit-inner-dashed" aria-hidden="true" />
+
+        {/* Center: Prominent, High-Resolution HapsayDalan Platform Logo */}
+        <div className="hapsay-center-brand">
+          <div className="hapsay-brand-lockup">
+            <img
+              src={shieldLogoImg}
+              alt="HapsayDalan Platform Logo"
+              className="hapsay-brand-shield"
+            />
+            <div className="hapsay-brand-text">
+              <div className="hapsay-brand-name">
+                <span className="brand-blue">Hapsay</span>
+                <span className="brand-green">Dalan</span>
+              </div>
+              <div className="hapsay-brand-desc">
+                City Road Violation Reporting Platform
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Orbiting Toyota Hilux CTMO Patrol Truck with Duyog Motion */}
+        {/* Orbiting Toyota Hilux CTMO Patrol Truck (Scaled Down & Circling with Duyog) */}
         <div className="hapsay-orbit-track">
           <div className="hapsay-orbit-anchor">
             <div className="hapsay-truck-duyog-box">
