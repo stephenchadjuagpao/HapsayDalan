@@ -72,24 +72,24 @@ export default function PageLoadingScreen({
           </div>
         </div>
 
-        {/* Bottom: Toyota Hilux CTMO Patrol Truck driving with "Duyog" along a Street Line */}
-        <div className="hapsay-street-drive-scene">
-          {/* Patrol Truck Chassis with authentic Suspension Duyog */}
-          <div className="hapsay-street-truck-box">
-            <img
-              src={patrolTruckImg}
-              alt="Toyota Hilux CTMO Patrol Truck"
-              className="hapsay-street-truck"
-            />
-            {/* Dynamic Tire Ground Shadow */}
-            <div className="hapsay-street-truck-shadow" aria-hidden="true" />
+        {/* Bottom: Straight Street where the Patrol Truck Drives Across ("Mo Jagan") with Duyog */}
+        <div className="hapsay-highway-strip">
+          {/* Moving Patrol Truck driving across the street */}
+          <div className="hapsay-runner-vehicle">
+            <div className="hapsay-truck-duyog-chassis">
+              <img
+                src={patrolTruckImg}
+                alt="Toyota Hilux CTMO Patrol Truck"
+                className="hapsay-patrol-truck-runner"
+              />
+              <div className="hapsay-runner-shadow" aria-hidden="true" />
+            </div>
           </div>
 
-          {/* Straight Street Line with moving highway stripes */}
-          <div className="hapsay-street-road-line" aria-hidden="true">
-            <div className="hapsay-street-asphalt">
-              <div className="hapsay-street-dashes" />
-            </div>
+          {/* Straight Street Road Line */}
+          <div className="hapsay-street-track" aria-hidden="true">
+            <div className="hapsay-street-lane-dashes" />
+            <div className="hapsay-street-glow-beam" />
           </div>
         </div>
       </div>

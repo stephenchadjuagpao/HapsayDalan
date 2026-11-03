@@ -1,7 +1,7 @@
 /* ==========================================================================
-   HapsayDalan - Straight Street Drive Loading Screen
+   HapsayDalan - Driving Patrol Loading Screen
    - Top: Prominent HapsayDalan Platform Logo
-   - Bottom: Toyota Hilux CTMO Patrol Truck with "Duyog" along a Straight Street Line
+   - Bottom: Toyota Hilux CTMO Patrol Truck Driving Across ("Mo Jagan") with Duyog
    ========================================================================== */
 
 .hapsay-loader-overlay {
@@ -60,7 +60,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 26px;
+  gap: 28px;
 }
 
 /* Ambient Radial Backlight */
@@ -69,11 +69,11 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 320px;
+  width: 340px;
   height: 220px;
   border-radius: 50%;
   background: radial-gradient(ellipse at center, rgba(37, 99, 235, 0.28) 0%, rgba(34, 197, 94, 0.12) 50%, transparent 72%);
-  filter: blur(30px);
+  filter: blur(32px);
   pointer-events: none;
   animation: hapsay-street-glow-pulse 3s infinite ease-in-out;
 }
@@ -171,108 +171,102 @@
 }
 
 /* ==========================================================================
-   BOTTOM: PATROL TRUCK DRIVING ON STRAIGHT STREET LINE (WITH "DUYOG")
+   BOTTOM: PATROL TRUCK DRIVING ACROSS ("MO JAGAN") WITH "DUYOG"
    ========================================================================== */
-.hapsay-street-drive-scene {
+.hapsay-highway-strip {
   position: relative;
   width: 100%;
-  max-width: 380px;
+  max-width: 400px;
+  height: 95px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  justify-content: flex-end;
+  overflow: hidden;
   z-index: 5;
+  border-radius: 12px;
 }
 
-/* Truck Box with "Duyog" Suspension Motion */
-.hapsay-street-truck-box {
-  position: relative;
+/* The Runner Vehicle Driving Across from Left to Right */
+.hapsay-runner-vehicle {
+  position: absolute;
+  bottom: 8px;
+  left: -110px;
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
-  width: 135px;
-  will-change: transform;
-  /* Authentic patrol driving suspension movement */
-  animation: hapsay-truck-duyog 1.05s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
-  z-index: 2;
+  width: 95px;
+  z-index: 5;
+  will-change: left, transform;
+  /* Smooth drive from left edge to right edge */
+  animation: hapsay-truck-drive-across 2.1s linear infinite;
 }
 
-@keyframes hapsay-truck-duyog {
+@keyframes hapsay-truck-drive-across {
   0% {
-    transform: translateY(0px) rotate(0deg);
+    left: -110px;
+    opacity: 0;
   }
-  20% {
-    transform: translateY(-4px) rotate(-0.65deg);
+  6% {
+    opacity: 1;
   }
-  42% {
-    transform: translateY(2px) rotate(0.45deg);
-  }
-  60% {
-    transform: translateY(-2px) rotate(-0.25deg);
-  }
-  78% {
-    transform: translateY(2.5px) rotate(0.5deg);
+  94% {
+    opacity: 1;
   }
   100% {
+    left: 100%;
+    opacity: 0;
+  }
+}
+
+/* Inner Chassis with Suspension "Duyog" (Road Bumps & Engine Vibration) */
+.hapsay-truck-duyog-chassis {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: hapsay-runner-duyog 0.28s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+  will-change: transform;
+}
+
+@keyframes hapsay-runner-duyog {
+  0%, 100% {
     transform: translateY(0px) rotate(0deg);
   }
+  25% {
+    transform: translateY(-2.5px) rotate(-0.5deg);
+  }
+  50% {
+    transform: translateY(1.2px) rotate(0.4deg);
+  }
+  75% {
+    transform: translateY(-1.2px) rotate(-0.2deg);
+  }
 }
 
-.hapsay-street-truck {
+.hapsay-patrol-truck-runner {
   width: 100%;
   height: auto;
-  max-height: 98px;
+  max-height: 68px;
   object-fit: contain;
   display: block;
-  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.55));
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.6));
 }
 
-/* Dynamic Tire Contact Shadow breathing in sync with Duyog */
-.hapsay-street-truck-shadow {
-  width: 84%;
-  height: 8px;
-  margin-top: -6px;
+/* Dynamic Tire Contact Shadow under the running truck */
+.hapsay-runner-shadow {
+  width: 82%;
+  height: 6px;
+  margin-top: -3px;
   background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.25) 60%, transparent 80%);
   border-radius: 50%;
-  filter: blur(2px);
-  animation: hapsay-shadow-duyog 1.05s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
-}
-
-@keyframes hapsay-shadow-duyog {
-  0%, 100% {
-    transform: scaleX(1) scaleY(1);
-    opacity: 0.75;
-  }
-  20% {
-    transform: scaleX(0.92) scaleY(0.75);
-    opacity: 0.5;
-  }
-  42%, 78% {
-    transform: scaleX(1.05) scaleY(1.2);
-    opacity: 0.9;
-  }
-  60% {
-    transform: scaleX(0.96) scaleY(0.85);
-    opacity: 0.6;
-  }
+  filter: blur(1.5px);
 }
 
 /* ==========================================================================
    STRAIGHT STREET LINE ("Pina line nga street")
    ========================================================================== */
-.hapsay-street-road-line {
-  position: relative;
-  width: 100%;
-  margin-top: -2px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1;
-}
-
-/* Sleek Asphalt Road Surface */
-.hapsay-street-asphalt {
+.hapsay-street-track {
   position: relative;
   width: 100%;
   height: 8px;
@@ -283,11 +277,12 @@
     0 2px 10px rgba(0, 0, 0, 0.45),
     0 0 16px rgba(56, 189, 248, 0.2),
     inset 0 1px 1px rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(56, 189, 248, 0.25);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  z-index: 1;
 }
 
 /* Moving Road Dashes Running from Right to Left */
-.hapsay-street-dashes {
+.hapsay-street-lane-dashes {
   position: absolute;
   inset: 0;
   background: repeating-linear-gradient(
@@ -297,7 +292,7 @@
     transparent 22px,
     transparent 42px
   );
-  animation: hapsay-street-motion 0.5s linear infinite;
+  animation: hapsay-street-motion 0.45s linear infinite;
   box-shadow: 0 0 8px rgba(250, 204, 21, 0.6);
 }
 
@@ -310,13 +305,20 @@
   }
 }
 
+.hapsay-street-glow-beam {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(56, 189, 248, 0.2) 50%, transparent 100%);
+  pointer-events: none;
+}
+
 /* ==========================================================================
    RESPONSIVENESS (Mobile & Compact screens)
    ========================================================================== */
 @media (max-width: 480px) {
   .hapsay-street-stage {
-    max-width: 330px;
-    gap: 20px;
+    max-width: 320px;
+    gap: 22px;
   }
 
   .hapsay-brand-lockup {
@@ -337,23 +339,29 @@
     font-size: 9.5px;
   }
 
-  .hapsay-street-truck-box {
-    width: 110px;
+  .hapsay-highway-strip {
+    max-width: 300px;
+    height: 80px;
   }
 
-  .hapsay-street-truck {
-    max-height: 80px;
+  .hapsay-runner-vehicle {
+    width: 78px;
+    bottom: 7px;
   }
 
-  .hapsay-street-asphalt {
+  .hapsay-patrol-truck-runner {
+    max-height: 55px;
+  }
+
+  .hapsay-street-track {
     height: 7px;
   }
 }
 
 @media (max-width: 340px) {
   .hapsay-street-stage {
-    max-width: 270px;
-    gap: 16px;
+    max-width: 260px;
+    gap: 18px;
   }
 
   .hapsay-brand-name {
@@ -364,20 +372,21 @@
     font-size: 8px;
   }
 
-  .hapsay-street-truck-box {
-    width: 95px;
+  .hapsay-runner-vehicle {
+    width: 68px;
+    bottom: 6px;
   }
 
-  .hapsay-street-truck {
-    max-height: 68px;
+  .hapsay-patrol-truck-runner {
+    max-height: 48px;
   }
 }
 
 /* Accessibility: Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
-  .hapsay-street-truck-box,
-  .hapsay-street-truck-shadow,
-  .hapsay-street-dashes,
+  .hapsay-runner-vehicle,
+  .hapsay-truck-duyog-chassis,
+  .hapsay-street-lane-dashes,
   .hapsay-brand-lockup,
   .hapsay-street-glow {
     animation: none !important;
