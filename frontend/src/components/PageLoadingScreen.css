@@ -1,36 +1,54 @@
 /* ==========================================================================
-   HapsayDalan - Premium Civic Tech Loading Screen
-   - Top: Ultra-Crisp, Premium HapsayDalan Platform Emblem
-   - Bottom: Toyota Hilux CTMO Patrol Truck Driving Across ("Mo Jagan") with Duyog
+   HapsayDalan - FEZ Loading Page Implementation
+   - FEZ Multi-Ring Orbit Spinner
+   - User Dashboard Theme Background (Light & Dark Mode)
+   - Centered HapsayDalan Shield Logo in Pulsing Core
    ========================================================================== */
 
-.hapsay-loader-overlay {
+.fez-loading-overlay {
   position: fixed;
   inset: 0;
   z-index: 999999;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(circle at center, rgba(12, 26, 52, 0.92) 0%, rgba(4, 9, 20, 0.96) 100%);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  padding: 16px;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
   box-sizing: border-box;
   pointer-events: all;
   user-select: none;
-  transition: opacity 0.18s ease-out, visibility 0.18s ease-out;
+  transition: opacity 0.2s ease-out, visibility 0.2s ease-out;
+
+  /* HapsayDalan User Dashboard Background (Light Mode) */
+  background:
+    radial-gradient(circle at 10% 18%, rgba(90, 127, 255, 0.34) 0, rgba(90, 127, 255, 0.34) 14%, transparent 36%),
+    radial-gradient(circle at 84% 14%, rgba(191, 174, 255, 0.28) 0, transparent 26%),
+    radial-gradient(circle at 16% 90%, rgba(200, 212, 255, 0.5) 0, transparent 30%),
+    linear-gradient(135deg, #dfe7ff 0%, #f7f8ff 44%, #e7e9ff 100%);
 }
 
-.hapsay-loader-overlay.is-entering {
-  animation: hapsay-clean-fade-in 0.18s ease-out forwards;
+/* HapsayDalan User Dashboard Background (Dark Mode) */
+html[data-theme="dark"] .fez-loading-overlay {
+  background:
+    radial-gradient(ellipse min(90vw, 1000px) 650px at 0% 5%, rgba(65, 106, 179, 0.3) 0%, transparent 72%),
+    radial-gradient(ellipse min(80vw, 900px) 720px at 100% 16%, rgba(139, 110, 214, 0.22) 0%, transparent 72%),
+    radial-gradient(ellipse min(85vw, 1000px) 650px at 10% 78%, rgba(40, 125, 138, 0.15) 0%, transparent 75%),
+    linear-gradient(155deg, #0d1729 0%, #15233b 42%, #1d2842 72%, #101c30 100%);
 }
 
-.hapsay-loader-overlay.is-exiting {
-  animation: hapsay-clean-fade-out 0.18s ease-in forwards;
+.fez-loading-overlay.is-entering {
+  animation: fez-fade-in 0.2s ease-out forwards;
+}
+
+.fez-loading-overlay.is-exiting {
+  animation: fez-fade-out 0.2s ease-in forwards;
   pointer-events: none;
 }
 
-@keyframes hapsay-clean-fade-in {
+@keyframes fez-fade-in {
   from {
     opacity: 0;
   }
@@ -39,7 +57,7 @@
   }
 }
 
-@keyframes hapsay-clean-fade-out {
+@keyframes fez-fade-out {
   from {
     opacity: 1;
   }
@@ -50,440 +68,230 @@
 }
 
 /* ==========================================================================
-   MAIN STAGE CONTAINER
+   FEZ LOADING WRAPPER & SPINNER
    ========================================================================== */
-.hapsay-street-stage {
-  position: relative;
-  width: 100%;
-  max-width: 480px;
+.fez-loading-wrapper {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 32px;
-}
-
-/* Multi-Layered Ambient Aura */
-.hapsay-street-glow {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 380px;
-  height: 240px;
-  border-radius: 50%;
-  background: radial-gradient(ellipse at center, rgba(37, 99, 235, 0.32) 0%, rgba(34, 197, 94, 0.14) 48%, transparent 72%);
-  filter: blur(36px);
-  pointer-events: none;
-  animation: hapsay-street-glow-pulse 3.2s infinite ease-in-out;
-}
-
-@keyframes hapsay-street-glow-pulse {
-  0%, 100% {
-    transform: translate(-50%, -50%) scale(0.95);
-    opacity: 0.7;
-  }
-  50% {
-    transform: translate(-50%, -50%) scale(1.12);
-    opacity: 1;
-  }
-}
-
-/* ==========================================================================
-   TOP: ULTRA-PREMIUM HAPSAYDALAN PLATFORM LOGO
-   ========================================================================== */
-.hapsay-street-brand {
-  position: relative;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Glassmorphic Luxury Emblem Card */
-.hapsay-brand-lockup {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  padding: 14px 26px;
-  background: linear-gradient(135deg, rgba(16, 32, 64, 0.82) 0%, rgba(8, 18, 38, 0.92) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 20px;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  box-shadow: 
-    0 20px 45px rgba(0, 0, 0, 0.6),
-    0 0 35px rgba(37, 99, 235, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.22),
-    inset 0 0 20px rgba(37, 99, 235, 0.1);
-  animation: hapsay-brand-float 3.5s infinite ease-in-out;
-  overflow: hidden;
-}
-
-/* Premium Light Shimmer Sweep across the emblem */
-.hapsay-brand-lockup::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -150%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.04) 40%,
-    rgba(255, 255, 255, 0.2) 50%,
-    rgba(255, 255, 255, 0.04) 60%,
-    transparent 100%
-  );
-  transform: skewX(-25deg);
-  animation: hapsay-card-shimmer 4.5s infinite ease-in-out 1.2s;
-  pointer-events: none;
-  border-radius: inherit;
+  box-sizing: border-box;
 }
 
-@keyframes hapsay-card-shimmer {
-  0% {
-    left: -150%;
-  }
-  30%, 100% {
-    left: 150%;
-  }
-}
-
-@keyframes hapsay-brand-float {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-3px);
-  }
-}
-
-/* Shield Emblem with Aura */
-.hapsay-shield-wrapper {
+.fez-spinner {
   position: relative;
+  width: 150px;
+  height: 150px;
   display: flex;
-  align-items: center;
   justify-content: center;
-  flex-shrink: 0;
+  align-items: center;
 }
 
-.hapsay-brand-shield {
+/* FEZ Orbit Container */
+.fez-orbit-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  animation: fez-spin 4s linear infinite;
+  pointer-events: none;
+}
+
+/* FEZ Orbit Ring 1 (Outer) */
+.fez-orbit-ring {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid transparent;
+  border-top-color: #38bdf8;
+  border-right-color: #2563eb;
+  border-radius: 50%;
+  animation: fez-spin 2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+  box-sizing: border-box;
+}
+
+/* FEZ Orbit Ring 2 (Middle - Reverse Spin) */
+.fez-orbit-ring:nth-child(2) {
+  width: 75%;
+  height: 75%;
+  top: 12.5%;
+  left: 12.5%;
+  border-width: 2.5px;
+  border-top-color: #4ade80;
+  border-right-color: transparent;
+  border-left-color: #16a34a;
+  border-bottom-color: #0284c7;
+  animation-direction: reverse;
+  animation-duration: 3s;
+}
+
+/* FEZ Orbit Ring 3 (Inner - Fast Spin) */
+.fez-orbit-ring:nth-child(3) {
+  width: 52%;
+  height: 52%;
+  top: 24%;
+  left: 24%;
+  border-width: 2px;
+  border-top-color: transparent;
+  border-right-color: #38bdf8;
+  border-left-color: transparent;
+  border-bottom-color: #22c55e;
+  animation-duration: 1.5s;
+}
+
+/* ==========================================================================
+   FEZ CORE: PULSING CENTER WITH OFFICIAL HAPSAYDALAN SHIELD LOGO
+   ========================================================================== */
+.fez-core {
+  position: relative;
   width: 58px;
-  height: auto;
-  max-height: 68px;
-  object-fit: contain;
-  display: block;
-  filter: 
-    drop-shadow(0 8px 16px rgba(0, 0, 0, 0.6))
-    drop-shadow(0 0 12px rgba(56, 189, 248, 0.35));
-  position: relative;
-  z-index: 2;
-}
-
-.hapsay-shield-aura {
-  position: absolute;
-  width: 54px;
-  height: 54px;
+  height: 58px;
+  background: rgba(255, 255, 255, 0.95);
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(56, 189, 248, 0.45) 0%, transparent 70%);
-  filter: blur(10px);
-  z-index: 1;
-}
-
-/* Typography Details */
-.hapsay-brand-text {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  text-align: left;
-}
-
-.hapsay-brand-name {
-  display: flex;
-  align-items: baseline;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  font-size: 28px;
-  font-weight: 900;
-  line-height: 1.1;
-  letter-spacing: -0.6px;
-}
-
-.hapsay-brand-name .brand-blue {
-  background: linear-gradient(180deg, #93c5fd 0%, #3b82f6 45%, #1d4ed8 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 2px 8px rgba(37, 99, 235, 0.5));
-}
-
-.hapsay-brand-name .brand-green {
-  background: linear-gradient(180deg, #86efac 0%, #22c55e 45%, #15803d 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 2px 8px rgba(34, 197, 94, 0.5));
-}
-
-.hapsay-brand-desc-row {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  margin-top: 4px;
-}
-
-.hapsay-brand-dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: #38bdf8;
-  box-shadow: 0 0 8px #38bdf8;
-  flex-shrink: 0;
-}
-
-.hapsay-brand-desc {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  font-size: 10.5px;
-  font-weight: 700;
-  color: #cbd5e1;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-/* ==========================================================================
-   BOTTOM: PATROL TRUCK DRIVING ACROSS ("MO JAGAN") WITH "DUYOG"
-   ========================================================================== */
-.hapsay-highway-strip {
-  position: relative;
-  width: 100%;
-  max-width: 420px;
-  height: 95px;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  overflow: hidden;
-  z-index: 5;
-  border-radius: 12px;
-}
-
-/* The Runner Vehicle Driving Across from Left to Right */
-.hapsay-runner-vehicle {
-  position: absolute;
-  bottom: 8px;
-  left: -110px;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  width: 96px;
-  z-index: 5;
-  will-change: left, transform;
-  /* Smooth drive from left edge to right edge */
-  animation: hapsay-truck-drive-across 2.1s linear infinite;
-}
-
-@keyframes hapsay-truck-drive-across {
-  0% {
-    left: -110px;
-    opacity: 0;
-  }
-  6% {
-    opacity: 1;
-  }
-  94% {
-    opacity: 1;
-  }
-  100% {
-    left: 100%;
-    opacity: 0;
-  }
-}
-
-/* Inner Chassis with Suspension "Duyog" (Road Bumps & Engine Vibration) */
-.hapsay-truck-duyog-chassis {
-  position: relative;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  animation: hapsay-runner-duyog 0.28s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
-  will-change: transform;
-}
-
-@keyframes hapsay-runner-duyog {
-  0%, 100% {
-    transform: translateY(0px) rotate(0deg);
-  }
-  25% {
-    transform: translateY(-2.5px) rotate(-0.5deg);
-  }
-  50% {
-    transform: translateY(1.2px) rotate(0.4deg);
-  }
-  75% {
-    transform: translateY(-1.2px) rotate(-0.2deg);
-  }
-}
-
-.hapsay-patrol-truck-runner {
-  width: 100%;
-  height: auto;
-  max-height: 68px;
-  object-fit: contain;
-  display: block;
-  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.65));
-}
-
-/* Dynamic Tire Contact Shadow under the running truck */
-.hapsay-runner-shadow {
-  width: 82%;
-  height: 6px;
-  margin-top: -3px;
-  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.25) 60%, transparent 80%);
-  border-radius: 50%;
-  filter: blur(1.5px);
-}
-
-/* ==========================================================================
-   STRAIGHT STREET LINE ("Pina line nga street")
-   ========================================================================== */
-.hapsay-street-track {
-  position: relative;
-  width: 100%;
-  height: 8px;
-  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
-  border-radius: 999px;
-  overflow: hidden;
   box-shadow: 
-    0 2px 10px rgba(0, 0, 0, 0.45),
-    0 0 16px rgba(56, 189, 248, 0.22),
-    inset 0 1px 1px rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(56, 189, 248, 0.32);
-  z-index: 1;
+    0 0 20px rgba(37, 99, 235, 0.45),
+    0 0 40px rgba(56, 189, 248, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fez-pulse 1.5s ease-in-out infinite alternate;
+  z-index: 10;
+  border: 1px solid rgba(255, 255, 255, 0.8);
 }
 
-/* Moving Road Dashes Running from Right to Left */
-.hapsay-street-lane-dashes {
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    90deg,
-    #facc15 0px,
-    #facc15 22px,
-    transparent 22px,
-    transparent 42px
-  );
-  animation: hapsay-street-motion 0.45s linear infinite;
-  box-shadow: 0 0 8px rgba(250, 204, 21, 0.6);
+html[data-theme="dark"] .fez-core {
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 
+    0 0 25px rgba(37, 99, 235, 0.6),
+    0 0 50px rgba(34, 197, 94, 0.4);
 }
 
-@keyframes hapsay-street-motion {
-  0% {
-    transform: translateX(42px);
-  }
-  100% {
-    transform: translateX(0px);
-  }
-}
-
-.hapsay-street-glow-beam {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, transparent 0%, rgba(56, 189, 248, 0.25) 50%, transparent 100%);
-  pointer-events: none;
+.fez-core-logo {
+  width: 36px;
+  height: auto;
+  max-height: 44px;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.3));
 }
 
 /* ==========================================================================
-   RESPONSIVENESS (Mobile & Compact screens)
+   FEZ SHINING LOADING TEXT
    ========================================================================== */
-@media (max-width: 520px) {
-  .hapsay-street-stage {
-    max-width: 340px;
-    gap: 24px;
-  }
+.fez-loading-text {
+  margin-top: 48px;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 0.6em;
+  text-transform: uppercase;
+  font-weight: 700;
+  background: linear-gradient(90deg, #1d4ed8 0%, #38bdf8 35%, #22c55e 65%, #1d4ed8 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: fez-shine 2s linear infinite;
+  padding-left: 0.6em;
+}
 
-  .hapsay-brand-lockup {
-    padding: 10px 18px;
-    gap: 12px;
-    border-radius: 16px;
-  }
+html[data-theme="dark"] .fez-loading-text {
+  background: linear-gradient(90deg, #3b82f6 0%, #93c5fd 35%, #4ade80 65%, #3b82f6 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
 
-  .hapsay-brand-shield {
-    width: 46px;
-    max-height: 54px;
+/* ==========================================================================
+   FEZ KEYFRAME ANIMATIONS
+   ========================================================================== */
+@keyframes fez-pulse {
+  0% {
+    transform: scale(0.88);
+    opacity: 0.85;
+    box-shadow: 0 0 16px rgba(37, 99, 235, 0.35);
   }
-
-  .hapsay-brand-name {
-    font-size: 22px;
-  }
-
-  .hapsay-brand-desc {
-    font-size: 9px;
-    letter-spacing: 0.8px;
-  }
-
-  .hapsay-highway-strip {
-    max-width: 310px;
-    height: 80px;
-  }
-
-  .hapsay-runner-vehicle {
-    width: 80px;
-    bottom: 7px;
-  }
-
-  .hapsay-patrol-truck-runner {
-    max-height: 56px;
-  }
-
-  .hapsay-street-track {
-    height: 7px;
+  100% {
+    transform: scale(1.14);
+    opacity: 1;
+    box-shadow: 
+      0 0 30px rgba(37, 99, 235, 0.6),
+      0 0 55px rgba(56, 189, 248, 0.45);
   }
 }
 
-@media (max-width: 360px) {
-  .hapsay-street-stage {
-    max-width: 280px;
-    gap: 18px;
+@keyframes fez-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fez-shine {
+  to {
+    background-position: 200% center;
+  }
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN (Matching FEZ Media Queries)
+   ========================================================================== */
+@media (max-width: 768px) {
+  .fez-spinner {
+    width: 120px;
+    height: 120px;
   }
 
-  .hapsay-brand-lockup {
-    padding: 8px 14px;
-    gap: 10px;
+  .fez-core {
+    width: 48px;
+    height: 48px;
   }
 
-  .hapsay-brand-shield {
-    width: 38px;
-    max-height: 46px;
+  .fez-core-logo {
+    width: 30px;
+    max-height: 38px;
   }
 
-  .hapsay-brand-name {
-    font-size: 19px;
+  .fez-loading-text {
+    font-size: 0.95rem;
+    letter-spacing: 0.4em;
+    margin-top: 36px;
+    padding-left: 0.4em;
+  }
+}
+
+@media (max-width: 480px) {
+  .fez-spinner {
+    width: 100px;
+    height: 100px;
   }
 
-  .hapsay-brand-desc {
-    font-size: 8px;
-    letter-spacing: 0.5px;
+  .fez-core {
+    width: 40px;
+    height: 40px;
   }
 
-  .hapsay-runner-vehicle {
-    width: 70px;
-    bottom: 6px;
+  .fez-core-logo {
+    width: 24px;
+    max-height: 30px;
   }
 
-  .hapsay-patrol-truck-runner {
-    max-height: 50px;
+  .fez-loading-text {
+    font-size: 0.85rem;
+    letter-spacing: 0.3em;
+    margin-top: 30px;
+    padding-left: 0.3em;
   }
 }
 
 /* Accessibility: Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
-  .hapsay-runner-vehicle,
-  .hapsay-truck-duyog-chassis,
-  .hapsay-street-lane-dashes,
-  .hapsay-brand-lockup,
-  .hapsay-brand-lockup::after,
-  .hapsay-street-glow {
+  .fez-orbit-container,
+  .fez-orbit-ring,
+  .fez-core,
+  .fez-loading-text {
     animation: none !important;
   }
 }

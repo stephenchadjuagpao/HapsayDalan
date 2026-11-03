@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import patrolTruckImg from "../assets/patrol-truck-clean.png";
 import shieldLogoImg from "../assets/ctmo-shield-logo-transparent.png";
 import "./PageLoadingScreen.css";
 
@@ -18,7 +17,7 @@ export default function PageLoadingScreen({
         const exitTimer = setTimeout(() => {
           setVisible(false);
           setIsExiting(false);
-        }, 180);
+        }, 200);
         return () => clearTimeout(exitTimer);
       }
       return;
@@ -33,7 +32,7 @@ export default function PageLoadingScreen({
         setVisible(false);
         setIsExiting(false);
         if (onComplete) onComplete();
-      }, 180);
+      }, 200);
     }, duration);
 
     return () => clearTimeout(finishTimer);
@@ -43,62 +42,27 @@ export default function PageLoadingScreen({
 
   return (
     <div
-      className={`hapsay-loader-overlay ${isExiting ? "is-exiting" : "is-entering"}`}
+      className={`fez-loading-overlay ${isExiting ? "is-exiting" : "is-entering"}`}
       role="status"
       aria-live="polite"
       aria-label="Loading page"
     >
-      <div className="hapsay-street-stage">
-        {/* Soft Multi-Layered Ambient Aura */}
-        <div className="hapsay-street-glow" aria-hidden="true" />
-
-        {/* Top: Premium HapsayDalan Platform Logo */}
-        <div className="hapsay-street-brand">
-          <div className="hapsay-brand-lockup">
-            <div className="hapsay-shield-wrapper">
-              <img
-                src={shieldLogoImg}
-                alt="HapsayDalan Platform Logo"
-                className="hapsay-brand-shield"
-              />
-              <div className="hapsay-shield-aura" aria-hidden="true" />
-            </div>
-
-            <div className="hapsay-brand-text">
-              <div className="hapsay-brand-name">
-                <span className="brand-blue">Hapsay</span>
-                <span className="brand-green">Dalan</span>
-              </div>
-              <div className="hapsay-brand-desc-row">
-                <span className="hapsay-brand-dot" aria-hidden="true" />
-                <span className="hapsay-brand-desc">
-                  City Road Violation Reporting Platform
-                </span>
-              </div>
-            </div>
+      <div className="fez-loading-wrapper">
+        <div className="fez-spinner">
+          <div className="fez-orbit-container" aria-hidden="true">
+            <div className="fez-orbit-ring" />
+            <div className="fez-orbit-ring" />
+            <div className="fez-orbit-ring" />
+          </div>
+          <div className="fez-core">
+            <img
+              src={shieldLogoImg}
+              alt="HapsayDalan Logo"
+              className="fez-core-logo"
+            />
           </div>
         </div>
-
-        {/* Bottom: Straight Street where the Patrol Truck Drives Across ("Mo Jagan") with Duyog */}
-        <div className="hapsay-highway-strip">
-          {/* Moving Patrol Truck driving across the street */}
-          <div className="hapsay-runner-vehicle">
-            <div className="hapsay-truck-duyog-chassis">
-              <img
-                src={patrolTruckImg}
-                alt="Toyota Hilux CTMO Patrol Truck"
-                className="hapsay-patrol-truck-runner"
-              />
-              <div className="hapsay-runner-shadow" aria-hidden="true" />
-            </div>
-          </div>
-
-          {/* Straight Street Road Line */}
-          <div className="hapsay-street-track" aria-hidden="true">
-            <div className="hapsay-street-lane-dashes" />
-            <div className="hapsay-street-glow-beam" />
-          </div>
-        </div>
+        <div className="fez-loading-text">Loading...</div>
       </div>
     </div>
   );

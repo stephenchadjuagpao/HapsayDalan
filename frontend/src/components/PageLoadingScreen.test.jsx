@@ -2,7 +2,7 @@ import React from "react";
 import { render, screen, act } from "@testing-library/react";
 import PageLoadingScreen from "./PageLoadingScreen";
 
-describe("PageLoadingScreen component", () => {
+describe("PageLoadingScreen component (FEZ Loading Page)", () => {
   beforeEach(() => {
     jest.useFakeTimers();
   });
@@ -19,7 +19,7 @@ describe("PageLoadingScreen component", () => {
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 
-  test("renders patrol truck and HapsayDalan platform logo when active", () => {
+  test("renders centered HapsayDalan logo and FEZ loading text when active", () => {
     render(
       <PageLoadingScreen
         active={true}
@@ -30,11 +30,10 @@ describe("PageLoadingScreen component", () => {
     const loader = screen.getByRole("status");
     expect(loader).toBeInTheDocument();
 
-    const truckImg = screen.getByRole("img", { name: /Toyota Hilux CTMO Patrol Truck/i });
-    expect(truckImg).toBeInTheDocument();
-
-    const logoImg = screen.getByRole("img", { name: /HapsayDalan Platform Logo/i });
+    const logoImg = screen.getByRole("img", { name: /HapsayDalan Logo/i });
     expect(logoImg).toBeInTheDocument();
+
+    expect(screen.getByText("Loading...")).toBeInTheDocument();
   });
 
   test("calls onComplete after duration finishes", () => {
@@ -55,7 +54,7 @@ describe("PageLoadingScreen component", () => {
     });
 
     act(() => {
-      jest.advanceTimersByTime(200);
+      jest.advanceTimersByTime(250);
     });
 
     expect(handleComplete).toHaveBeenCalledTimes(1);
