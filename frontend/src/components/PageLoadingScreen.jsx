@@ -5,12 +5,11 @@ import "./PageLoadingScreen.css";
 
 export default function PageLoadingScreen({
   active = false,
-  duration = 680,
+  duration = 750,
   onComplete,
 }) {
   const [visible, setVisible] = useState(active);
   const [isExiting, setIsExiting] = useState(false);
-  const [progress, setProgress] = useState(25);
 
   useEffect(() => {
     if (!active) {
@@ -19,7 +18,6 @@ export default function PageLoadingScreen({
         const exitTimer = setTimeout(() => {
           setVisible(false);
           setIsExiting(false);
-          setProgress(25);
         }, 180);
         return () => clearTimeout(exitTimer);
       }
@@ -28,11 +26,8 @@ export default function PageLoadingScreen({
 
     setVisible(true);
     setIsExiting(false);
-    setProgress(30);
 
-    const step1 = setTimeout(() => setProgress(75), duration * 0.45);
-    const finish = setTimeout(() => {
-      setProgress(100);
+    const finishTimer = setTimeout(() => {
       setIsExiting(true);
       setTimeout(() => {
         setVisible(false);
@@ -41,10 +36,7 @@ export default function PageLoadingScreen({
       }, 180);
     }, duration);
 
-    return () => {
-      clearTimeout(step1);
-      clearTimeout(finish);
-    };
+    return () => clearTimeout(finishTimer);
   }, [active, duration, onComplete, visible, isExiting]);
 
   if (!visible) return null;
@@ -56,33 +48,31 @@ export default function PageLoadingScreen({
       aria-live="polite"
       aria-label="Loading page"
     >
-      <div className="hapsay-loader-wrap">
-        {/* Combined Hero: Patrol Truck (Duyog Motion) + HapsayDalan Platform Logo */}
-        <div className="hapsay-brand-combo">
-          <div className="hapsay-truck-wrapper">
-            <img
-              src={patrolTruckImg}
-              alt="Toyota Hilux CTMO Patrol Truck"
-              className="hapsay-patrol-truck"
-            />
-            <div className="hapsay-truck-shadow" aria-hidden="true" />
-          </div>
+      <div className="hapsay-circle-stage">
+        {/* Subtle Circular Radar / Patrol Orbit Ring */}
+        <div className="hapsay-orbit-ring" aria-hidden="true" />
 
-          <div className="hapsay-logo-wrapper">
-            <img
-              src={hapsayLogoImg}
-              alt="HapsayDalan Platform Logo"
-              className="hapsay-platform-logo"
-            />
-          </div>
+        {/* Center: HapsayDalan Platform Logo */}
+        <div className="hapsay-center-logo">
+          <img
+            src={hapsayLogoImg}
+            alt="HapsayDalan Platform Logo"
+            className="hapsay-logo-img"
+          />
         </div>
 
-        {/* Minimalist Slim Progress Line */}
-        <div className="hapsay-minimal-progress" aria-hidden="true">
-          <div
-            className="hapsay-progress-indicator"
-            style={{ width: `${progress}%` }}
-          />
+        {/* Orbiting Toyota Hilux CTMO Patrol Truck with Duyog Motion */}
+        <div className="hapsay-orbit-track">
+          <div className="hapsay-orbit-anchor">
+            <div className="hapsay-truck-duyog-box">
+              <img
+                src={patrolTruckImg}
+                alt="Toyota Hilux CTMO Patrol Truck"
+                className="hapsay-orbiting-truck"
+              />
+              <div className="hapsay-truck-orbit-shadow" aria-hidden="true" />
+            </div>
+          </div>
         </div>
       </div>
     </div>

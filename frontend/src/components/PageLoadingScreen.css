@@ -1,6 +1,6 @@
 /* ==========================================================================
-   HapsayDalan - Minimalist, "Bagtik" Page Loading Screen
-   Combined Toyota Hilux CTMO Patrol Truck (with Duyog) + HapsayDalan Logo
+   HapsayDalan - Circular Patrol Loading Screen
+   Toyota Hilux CTMO Patrol Truck circling around the HapsayDalan Platform Logo
    ========================================================================== */
 
 .hapsay-loader-overlay {
@@ -10,7 +10,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(5, 12, 26, 0.82);
+  background: rgba(5, 12, 26, 0.85);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   padding: 16px;
@@ -48,191 +48,220 @@
   }
 }
 
-/* Central Compact Container - Clean, No heavy card box */
-.hapsay-loader-wrap {
+/* ==========================================================================
+   CIRCULAR PATROL STAGE
+   ========================================================================== */
+.hapsay-circle-stage {
+  --orbit-radius: 130px;
   position: relative;
+  width: 360px;
+  height: 360px;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  max-width: 520px;
-  gap: 18px;
+}
+
+/* Subtle Orbit Guide Ring */
+.hapsay-orbit-ring {
+  position: absolute;
+  width: calc(var(--orbit-radius) * 2);
+  height: calc(var(--orbit-radius) * 2);
+  border-radius: 50%;
+  border: 1.5px dashed rgba(56, 189, 248, 0.3);
+  box-shadow: 
+    0 0 24px rgba(14, 165, 233, 0.12),
+    inset 0 0 24px rgba(14, 165, 233, 0.08);
+  pointer-events: none;
+  animation: hapsay-ring-pulse 2.8s infinite ease-in-out;
+}
+
+@keyframes hapsay-ring-pulse {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.95;
+    transform: scale(1.02);
+  }
 }
 
 /* ==========================================================================
-   COMBINATION HERO: PATROL TRUCK + HAPSAYDALAN LOGO
-   Balanced spacing, no awkward crowding ("ayaw sa e pikit")
+   CENTER: HAPSAYDALAN PLATFORM LOGO
    ========================================================================== */
-.hapsay-brand-combo {
+.hapsay-center-logo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 140px;
+  max-width: 140px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 24px;
-  width: 100%;
+  z-index: 2;
+  pointer-events: none;
+  animation: hapsay-logo-gentle-float 2.8s infinite ease-in-out;
 }
 
-/* Truck Wrapper with suspension "duyog" */
-.hapsay-truck-wrapper {
+.hapsay-logo-img {
+  width: 100%;
+  height: auto;
+  max-height: 105px;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 6px 20px rgba(0, 0, 0, 0.6));
+}
+
+@keyframes hapsay-logo-gentle-float {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.03);
+  }
+}
+
+/* ==========================================================================
+   ORBITING PATROL TRUCK (CIRCLING AROUND THE LOGO WITH "DUYOG" SUSPENSION)
+   ========================================================================== */
+.hapsay-orbit-track {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.hapsay-orbit-anchor {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Smooth 360-degree circular orbit */
+  animation: hapsay-truck-orbit 2.8s linear infinite;
+  will-change: transform;
+}
+
+@keyframes hapsay-truck-orbit {
+  0% {
+    transform: rotate(0deg) translateX(var(--orbit-radius)) rotate(0deg);
+  }
+  25% {
+    transform: rotate(90deg) translateX(var(--orbit-radius)) rotate(-90deg) rotate(6deg);
+  }
+  50% {
+    transform: rotate(180deg) translateX(var(--orbit-radius)) rotate(-180deg);
+  }
+  75% {
+    transform: rotate(270deg) translateX(var(--orbit-radius)) rotate(-270deg) rotate(-6deg);
+  }
+  100% {
+    transform: rotate(360deg) translateX(var(--orbit-radius)) rotate(-360deg);
+  }
+}
+
+/* Inner Truck Box with "Duyog" Suspension Motion */
+.hapsay-truck-duyog-box {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  flex: 1 1 52%;
-  max-width: 250px;
-  will-change: transform;
-  /* Realistic road suspension bounce & rumble */
-  animation: hapsay-truck-duyog 1.15s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+  width: 105px;
+  animation: hapsay-truck-duyog 0.9s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
 }
 
 @keyframes hapsay-truck-duyog {
-  0% {
-    transform: translateY(0px) rotate(0deg);
-  }
-  18% {
-    transform: translateY(-4px) rotate(-0.6deg);
-  }
-  38% {
-    transform: translateY(2px) rotate(0.4deg);
-  }
-  58% {
-    transform: translateY(-1.5px) rotate(-0.2deg);
-  }
-  76% {
-    transform: translateY(2.5px) rotate(0.5deg);
-  }
-  100% {
-    transform: translateY(0px) rotate(0deg);
-  }
-}
-
-.hapsay-patrol-truck {
-  width: 100%;
-  height: auto;
-  max-height: 155px;
-  object-fit: contain;
-  display: block;
-  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.5));
-}
-
-/* Contact tire shadow breathing in sync with Duyog */
-.hapsay-truck-shadow {
-  width: 82%;
-  height: 8px;
-  margin-top: -6px;
-  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0.25) 60%, transparent 80%);
-  border-radius: 50%;
-  filter: blur(2px);
-  animation: hapsay-shadow-duyog 1.15s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
-}
-
-@keyframes hapsay-shadow-duyog {
   0%, 100% {
-    transform: scaleX(1) scaleY(1);
-    opacity: 0.7;
+    transform: translateY(0px) rotate(0deg);
   }
-  18% {
-    transform: scaleX(0.92) scaleY(0.8);
-    opacity: 0.45;
+  25% {
+    transform: translateY(-2.8px) rotate(-0.5deg);
   }
-  38%, 76% {
-    transform: scaleX(1.04) scaleY(1.15);
-    opacity: 0.85;
+  50% {
+    transform: translateY(1.5px) rotate(0.4deg);
   }
-  58% {
-    transform: scaleX(0.96) scaleY(0.9);
-    opacity: 0.6;
+  75% {
+    transform: translateY(-1.5px) rotate(-0.25deg);
   }
 }
 
-/* Logo Wrapper */
-.hapsay-logo-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: 1 1 48%;
-  max-width: 230px;
-}
-
-.hapsay-platform-logo {
+.hapsay-orbiting-truck {
   width: 100%;
   height: auto;
-  max-height: 140px;
+  max-height: 75px;
   object-fit: contain;
   display: block;
-  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.35));
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.55));
 }
 
-/* ==========================================================================
-   MINIMALIST SLIM PROGRESS LINE
-   Clean, modern, simple
-   ========================================================================== */
-.hapsay-minimal-progress {
-  position: relative;
-  width: 100%;
-  max-width: 280px;
-  height: 3px;
-  background: rgba(255, 255, 255, 0.12);
-  border-radius: 999px;
-  overflow: hidden;
-  margin-top: 6px;
-}
-
-.hapsay-progress-indicator {
-  height: 100%;
-  background: linear-gradient(90deg, #2563eb 0%, #38bdf8 60%, #22c55e 100%);
-  border-radius: 999px;
-  box-shadow: 0 0 10px rgba(56, 189, 248, 0.8);
-  transition: width 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+/* Tire Contact Shadow under the orbiting truck */
+.hapsay-truck-orbit-shadow {
+  width: 80%;
+  height: 6px;
+  margin-top: -4px;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.25) 60%, transparent 80%);
+  border-radius: 50%;
+  filter: blur(1.5px);
 }
 
 /* ==========================================================================
    RESPONSIVENESS (Sakto lang, compact)
    ========================================================================== */
-@media (max-width: 540px) {
-  .hapsay-loader-wrap {
-    max-width: 360px;
-    gap: 14px;
+@media (max-width: 480px) {
+  .hapsay-circle-stage {
+    --orbit-radius: 100px;
+    width: 270px;
+    height: 270px;
   }
 
-  .hapsay-brand-combo {
-    gap: 16px;
+  .hapsay-center-logo {
+    width: 110px;
+    max-width: 110px;
   }
 
-  .hapsay-patrol-truck {
-    max-height: 110px;
-  }
-
-  .hapsay-platform-logo {
-    max-height: 100px;
-  }
-
-  .hapsay-minimal-progress {
-    max-width: 200px;
-    height: 3px;
-  }
-}
-
-@media (max-width: 360px) {
-  .hapsay-brand-combo {
-    gap: 12px;
-  }
-
-  .hapsay-patrol-truck {
-    max-height: 90px;
-  }
-
-  .hapsay-platform-logo {
+  .hapsay-logo-img {
     max-height: 80px;
   }
+
+  .hapsay-truck-duyog-box {
+    width: 82px;
+  }
+
+  .hapsay-orbiting-truck {
+    max-height: 58px;
+  }
 }
 
-/* Reduced Motion */
+@media (max-width: 340px) {
+  .hapsay-circle-stage {
+    --orbit-radius: 85px;
+    width: 230px;
+    height: 230px;
+  }
+
+  .hapsay-center-logo {
+    width: 90px;
+    max-width: 90px;
+  }
+
+  .hapsay-truck-duyog-box {
+    width: 70px;
+  }
+}
+
+/* Reduced Motion Support */
 @media (prefers-reduced-motion: reduce) {
-  .hapsay-truck-wrapper,
-  .hapsay-truck-shadow {
+  .hapsay-orbit-anchor,
+  .hapsay-truck-duyog-box,
+  .hapsay-center-logo,
+  .hapsay-orbit-ring {
     animation: none !important;
   }
 }
