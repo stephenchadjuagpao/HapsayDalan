@@ -159,7 +159,7 @@
 /* Advisories Grid */
 .admin-adv-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
   gap: 16px;
 }
 .admin-adv-card {
@@ -710,4 +710,101 @@ html[data-theme=dark] .admin-adv-btn-draft {
   margin: 0;
   color: #334155;
 }
+
+/* ============================================================
+   RESPONSIVE DESIGN (Mobile & Tablet)
+   ============================================================ */
+
+@media (max-width: 768px) {
+  .admin-adv-header {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 16px;
+    gap: 14px;
+  }
+  .admin-adv-primary-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 12px;
+  }
+
+  .admin-adv-tabs-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .admin-adv-tabs {
+    display: flex;
+    width: 100%;
+  }
+  .admin-adv-tab {
+    flex: 1;
+    text-align: center;
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+
+  .admin-adv-filters {
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+  }
+  .admin-adv-search {
+    width: 100%;
+  }
+  .admin-adv-search input {
+    width: 100%;
+  }
+  .admin-adv-select {
+    width: 100%;
+  }
+
+  .admin-adv-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .admin-adv-card {
+    padding: 16px;
+  }
+  .admin-adv-actions-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-adv-modal-footer {
+    flex-direction: column-reverse;
+    gap: 10px;
+    padding: 14px 16px;
+  }
+  .admin-adv-btn-cancel,
+  .admin-adv-footer-actions,
+  .admin-adv-btn-publish,
+  .admin-adv-btn-draft {
+    width: 100%;
+    justify-content: center;
+    padding: 12px;
+  }
+  .admin-adv-footer-actions {
+    flex-direction: column;
+  }
+
+  .admin-adv-radios {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-adv-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .admin-adv-header-meta {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
 

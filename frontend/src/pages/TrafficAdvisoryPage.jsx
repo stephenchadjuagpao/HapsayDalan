@@ -493,6 +493,18 @@ export default function TrafficAdvisoryPage() {
         <main className="ta-main-feed">
           {/* Search & Category Filter Pills */}
           <div className="ta-filter-bar">
+            {/* Mobile Notification Subscribe Pill (Mobile Only) */}
+            <div className="ta-mobile-notify-wrap">
+              <button
+                type="button"
+                className={`ta-mobile-notify-pill ${notifEnabled ? "is-subscribed" : ""}`}
+                onClick={toggleNotifications}
+              >
+                <MaterialIcon name={notifEnabled ? "notifications" : "notifications_none"} />
+                <span>{notifEnabled ? "Advisory Alerts On" : "🔔 Tap to Get Real-Time Road Alerts"}</span>
+              </button>
+            </div>
+
             <div className="ta-search-wrap">
               <MaterialIcon name="search" />
               <input
