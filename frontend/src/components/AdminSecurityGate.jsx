@@ -5,30 +5,104 @@ import ThemeToggle from "./ThemeToggle";
 import "./AdminSecurityGate.css";
 
 const REQUIRED_PIN = "1016";
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_SECONDS = 30;
+
+const STORAGE_LOCKOUT_KEY = "ctmo_gate_lockout_until";
+const STORAGE_ATTEMPTS_KEY = "ctmo_gate_failed_attempts";
 
 export default function AdminSecurityGate({ onUnlock }) {
   const [pinDigits, setPinDigits] = useState(["", "", "", ""]);
-  const [status, setStatus] = useState("idle"); // "idle" | "error" | "unlocked"
+  const [status, setStatus] = useState("idle"); // "idle" | "error" | "unlocked" | "locked_out"
   const [errorMessage, setErrorMessage] = useState("");
   const [showPin, setShowPin] = useState(false);
-  const inputRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
+  const [failedAttempts, setFailedAttempts] = useState(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_ATTEMPTS_KEY);
+      return stored ? parseInt(stored, 10) || 0 : 0;
+    } catch {
+      return 0;
+    }
+  });
+  const [lockoutTimer, setLockoutTimer] = useState(() => {
+    try {
+      const until = localStorage.getItem(STORAGE_LOCKOUT_KEY);
+      if (until) {
+        const remaining = Math.ceil((parseInt(until, 10) - Date.now()) / 1000);
+        return remaining > 0 ? remaining : 0;
+      }
+    } catch {
+      // localStorage optional
+    }
+    return 0;
+  });
 
-  // Focus first input on mount
+  const inputRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
+  const isLockedOut = lockoutTimer > 0;
+
+  // Initialize lockout state if active on mount
   useEffect(() => {
-    const timer = setTimeout(() => {
-      inputRefs[0]?.current?.focus();
-    }, 150);
-    return () => clearTimeout(timer);
-  }, []);
+    if (lockoutTimer > 0) {
+      setStatus("locked_out");
+      setErrorMessage(`Too many failed attempts. Security gate locked. Please wait ${lockoutTimer}s.`);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Countdown timer for lockout
+  useEffect(() => {
+    if (lockoutTimer <= 0) {
+      if (status === "locked_out") {
+        setStatus("idle");
+        setErrorMessage("Lockout expired. You may now enter the Security PIN.");
+        setFailedAttempts(0);
+        try {
+          localStorage.removeItem(STORAGE_LOCKOUT_KEY);
+          localStorage.removeItem(STORAGE_ATTEMPTS_KEY);
+        } catch {
+          // ignore
+        }
+        setTimeout(() => inputRefs[0]?.current?.focus(), 50);
+      }
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setLockoutTimer((prev) => {
+        const next = prev - 1;
+        if (next <= 0) {
+          return 0;
+        }
+        setErrorMessage(`Too many failed attempts. Security gate locked. Please wait ${next}s.`);
+        return next;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [lockoutTimer, status]);
+
+  // Focus first input on mount if not locked out
+  useEffect(() => {
+    if (!isLockedOut) {
+      const timer = setTimeout(() => {
+        inputRefs[0]?.current?.focus();
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [isLockedOut]);
 
   const handleVerify = useCallback((code) => {
+    if (isLockedOut) return;
+
     if (code === REQUIRED_PIN) {
       setStatus("unlocked");
       setErrorMessage("");
+      setFailedAttempts(0);
       try {
+        localStorage.removeItem(STORAGE_LOCKOUT_KEY);
+        localStorage.removeItem(STORAGE_ATTEMPTS_KEY);
         sessionStorage.setItem("ctmo_security_gate_unlocked", "true");
       } catch (err) {
-        // sessionStorage optional
+        // storage optional
       }
       setTimeout(() => {
         if (typeof onUnlock === "function") {
@@ -36,17 +110,42 @@ export default function AdminSecurityGate({ onUnlock }) {
         }
       }, 550);
     } else {
-      setStatus("error");
-      setErrorMessage("Incorrect Security PIN. Authorized CTMO personnel only.");
+      const nextAttempts = failedAttempts + 1;
+      setFailedAttempts(nextAttempts);
       setPinDigits(["", "", "", ""]);
-      setTimeout(() => {
-        inputRefs[0]?.current?.focus();
-      }, 50);
+
+      if (nextAttempts >= MAX_ATTEMPTS) {
+        // Trigger lockout
+        const until = Date.now() + LOCKOUT_SECONDS * 1000;
+        try {
+          localStorage.setItem(STORAGE_LOCKOUT_KEY, until.toString());
+          localStorage.setItem(STORAGE_ATTEMPTS_KEY, nextAttempts.toString());
+        } catch {
+          // ignore
+        }
+        setLockoutTimer(LOCKOUT_SECONDS);
+        setStatus("locked_out");
+        setErrorMessage(`Too many failed attempts (${nextAttempts}/${MAX_ATTEMPTS}). Security gate locked for ${LOCKOUT_SECONDS}s.`);
+      } else {
+        const remaining = MAX_ATTEMPTS - nextAttempts;
+        try {
+          localStorage.setItem(STORAGE_ATTEMPTS_KEY, nextAttempts.toString());
+        } catch {
+          // ignore
+        }
+        setStatus("error");
+        setErrorMessage(
+          `Incorrect Security PIN. ${remaining} attempt${remaining === 1 ? "" : "s"} remaining before lockout.`
+        );
+        setTimeout(() => {
+          inputRefs[0]?.current?.focus();
+        }, 50);
+      }
     }
-  }, [onUnlock]);
+  }, [failedAttempts, isLockedOut, onUnlock]);
 
   const updateDigit = (index, char) => {
-    if (!/^\d?$/.test(char)) return;
+    if (isLockedOut || !/^\d?$/.test(char)) return;
 
     setStatus("idle");
     setErrorMessage("");
@@ -67,6 +166,8 @@ export default function AdminSecurityGate({ onUnlock }) {
   };
 
   const handleKeyDown = (index, event) => {
+    if (isLockedOut) return;
+
     if (event.key === "Backspace") {
       if (!pinDigits[index] && index > 0) {
         const next = [...pinDigits];
@@ -86,6 +187,7 @@ export default function AdminSecurityGate({ onUnlock }) {
   };
 
   const handlePaste = (event) => {
+    if (isLockedOut) return;
     event.preventDefault();
     const pasted = event.clipboardData.getData("text").trim().replace(/\D/g, "");
     if (!pasted) return;
@@ -107,7 +209,7 @@ export default function AdminSecurityGate({ onUnlock }) {
 
   // On-screen keypad handlers
   const handleKeypadPress = (val) => {
-    if (status === "unlocked") return;
+    if (isLockedOut || status === "unlocked") return;
 
     if (val === "clear") {
       setPinDigits(["", "", "", ""]);
@@ -151,17 +253,43 @@ export default function AdminSecurityGate({ onUnlock }) {
             <img src={ctmoShieldLogo} alt="CTMO shield" className="admin-gate-logo" />
           </div>
 
-          <div className={`admin-gate-lock-icon ${status}`}>
+          <div
+            className={`admin-gate-lock-icon ${
+              status === "unlocked"
+                ? "unlocked"
+                : isLockedOut
+                ? "locked-out"
+                : status === "error"
+                ? "error"
+                : ""
+            }`}
+          >
             <MaterialIcon
               name={status === "unlocked" ? "lock_open" : "lock"}
               size={36}
             />
+            {isLockedOut && (
+              <span className="admin-gate-lockout-badge">{lockoutTimer}s</span>
+            )}
           </div>
 
-          <span className="admin-gate-pill">RESTRICTED ACCESS</span>
+          <div className="admin-gate-pill-group">
+            <span className="admin-gate-pill">RESTRICTED ACCESS</span>
+            {failedAttempts > 0 && !isLockedOut && (
+              <span className="admin-gate-attempt-pill">
+                Attempt {failedAttempts}/{MAX_ATTEMPTS}
+              </span>
+            )}
+            {isLockedOut && (
+              <span className="admin-gate-lockout-pill">GATE LOCKED</span>
+            )}
+          </div>
+
           <h1 className="admin-gate-title">CTMO Security Gate</h1>
           <p className="admin-gate-subtitle">
-            Enter the 4-digit security PIN to unlock the CTMO Admin portal
+            {isLockedOut
+              ? `Security cooldown active. Please wait ${lockoutTimer} seconds to prevent unauthorized access.`
+              : "Enter the 4-digit security PIN to unlock the CTMO Admin portal"}
           </p>
         </div>
 
@@ -173,7 +301,9 @@ export default function AdminSecurityGate({ onUnlock }) {
           }}
         >
           <div
-            className={`admin-gate-digits ${status === "error" ? "shake" : ""}`}
+            className={`admin-gate-digits ${status === "error" ? "shake" : ""} ${
+              isLockedOut ? "is-disabled" : ""
+            }`}
             onPaste={handlePaste}
           >
             {pinDigits.map((digit, idx) => (
@@ -186,13 +316,15 @@ export default function AdminSecurityGate({ onUnlock }) {
                 maxLength={1}
                 className={`admin-gate-digit-input ${digit ? "filled" : ""} ${
                   status === "error" ? "is-error" : ""
-                } ${status === "unlocked" ? "is-success" : ""}`}
+                } ${status === "unlocked" ? "is-success" : ""} ${
+                  isLockedOut ? "is-locked-out" : ""
+                }`}
                 value={digit}
                 onChange={(e) => updateDigit(idx, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(idx, e)}
                 aria-label={`Security PIN digit ${idx + 1}`}
                 autoComplete="off"
-                disabled={status === "unlocked"}
+                disabled={status === "unlocked" || isLockedOut}
               />
             ))}
           </div>
@@ -203,6 +335,7 @@ export default function AdminSecurityGate({ onUnlock }) {
               className="admin-gate-toggle-visibility"
               onClick={() => setShowPin((prev) => !prev)}
               aria-label={showPin ? "Hide PIN digits" : "Show PIN digits"}
+              disabled={isLockedOut}
             >
               <MaterialIcon name={showPin ? "visibility_off" : "visibility"} size={16} />
               <span>{showPin ? "Hide PIN" : "Show PIN"}</span>
@@ -210,8 +343,11 @@ export default function AdminSecurityGate({ onUnlock }) {
           </div>
 
           {errorMessage && (
-            <div className="admin-gate-error" role="alert">
-              <span aria-hidden="true">⚠️</span> {errorMessage}
+            <div
+              className={`admin-gate-error ${isLockedOut ? "lockout-alert" : ""}`}
+              role="alert"
+            >
+              <span aria-hidden="true">{isLockedOut ? "🚨" : "⚠️"}</span> {errorMessage}
             </div>
           )}
 
@@ -229,7 +365,7 @@ export default function AdminSecurityGate({ onUnlock }) {
                 type="button"
                 className="admin-gate-key"
                 onClick={() => handleKeypadPress(num)}
-                disabled={status === "unlocked"}
+                disabled={status === "unlocked" || isLockedOut}
               >
                 {num}
               </button>
@@ -238,7 +374,7 @@ export default function AdminSecurityGate({ onUnlock }) {
               type="button"
               className="admin-gate-key admin-gate-key-action"
               onClick={() => handleKeypadPress("clear")}
-              disabled={status === "unlocked"}
+              disabled={status === "unlocked" || isLockedOut}
               aria-label="Clear all digits"
             >
               C
@@ -247,7 +383,7 @@ export default function AdminSecurityGate({ onUnlock }) {
               type="button"
               className="admin-gate-key"
               onClick={() => handleKeypadPress(0)}
-              disabled={status === "unlocked"}
+              disabled={status === "unlocked" || isLockedOut}
             >
               0
             </button>
@@ -255,7 +391,7 @@ export default function AdminSecurityGate({ onUnlock }) {
               type="button"
               className="admin-gate-key admin-gate-key-action"
               onClick={() => handleKeypadPress("backspace")}
-              disabled={status === "unlocked"}
+              disabled={status === "unlocked" || isLockedOut}
               aria-label="Delete last digit"
             >
               ⌫
@@ -265,19 +401,22 @@ export default function AdminSecurityGate({ onUnlock }) {
           <button
             type="submit"
             className="admin-gate-submit-btn"
-            disabled={status === "unlocked" || pinDigits.some((d) => d === "")}
+            disabled={status === "unlocked" || isLockedOut || pinDigits.some((d) => d === "")}
           >
-            {status === "unlocked" ? "Unlocking..." : "Unlock CTMO Portal"}
+            {status === "unlocked"
+              ? "Unlocking..."
+              : isLockedOut
+              ? `Locked (${lockoutTimer}s)`
+              : "Unlock CTMO Portal"}
           </button>
         </form>
 
         <div className="admin-gate-footer">
           <small>
-            Protected by City Traffic Management Office • Surigao City
+            Rate-limiting active • Max {MAX_ATTEMPTS} attempts • Protected by CTMO Surigao City
           </small>
         </div>
       </div>
     </div>
   );
 }
-

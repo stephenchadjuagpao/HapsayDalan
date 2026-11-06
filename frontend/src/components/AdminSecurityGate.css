@@ -496,3 +496,102 @@
   }
 }
 
+
+/* Attempt Limit & Lockout Protection */
+.admin-gate-lock-icon.locked-out {
+  background: linear-gradient(135deg, #7f1d1d, #991b1b);
+  box-shadow: 0 10px 26px rgba(153, 27, 27, 0.45);
+  position: relative;
+  animation: pulseLockout 2s infinite ease-in-out;
+}
+
+.admin-gate-lockout-badge {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  background: #dc2626;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 999px;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.admin-gate-pill-group {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.admin-gate-pill-group .admin-gate-pill {
+  margin-bottom: 0;
+}
+
+.admin-gate-attempt-pill {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(234, 88, 12, 0.12);
+  color: #ea580c;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border: 1px solid rgba(234, 88, 12, 0.3);
+}
+
+[data-theme="dark"] .admin-gate-attempt-pill,
+.theme-dark .admin-gate-attempt-pill {
+  background: rgba(249, 115, 22, 0.18);
+  color: #fb923c;
+  border-color: rgba(249, 115, 22, 0.4);
+}
+
+.admin-gate-lockout-pill {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(220, 38, 38, 0.2);
+  color: #dc2626;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  border: 1px solid rgba(220, 38, 38, 0.4);
+  animation: pulseLockout 1.5s infinite ease-in-out;
+}
+
+[data-theme="dark"] .admin-gate-lockout-pill,
+.theme-dark .admin-gate-lockout-pill {
+  background: rgba(239, 68, 68, 0.25);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+.admin-gate-digit-input.is-locked-out {
+  background: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+[data-theme="dark"] .admin-gate-digit-input.is-locked-out,
+.theme-dark .admin-gate-digit-input.is-locked-out {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+}
+
+.admin-gate-error.lockout-alert {
+  background: #450a0a;
+  border-color: #991b1b;
+  color: #fecaca;
+  font-weight: 700;
+}
+
+@keyframes pulseLockout {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.04); opacity: 0.9; }
+}
