@@ -259,15 +259,14 @@ export default function AdminSecurityGate({ onUnlock }) {
 
         <div className="admin-gate-header">
           <div
-            className={`admin-gate-lock-icon ${
-              status === "unlocked"
+            className={`admin-gate-lock-icon ${status === "unlocked"
                 ? "unlocked"
                 : isLockedOut
-                ? "locked-out"
-                : status === "error"
-                ? "error"
-                : ""
-            }`}
+                  ? "locked-out"
+                  : status === "error"
+                    ? "error"
+                    : ""
+              }`}
           >
             <MaterialIcon
               name={status === "unlocked" ? "lock_open" : "lock"}
@@ -309,9 +308,8 @@ export default function AdminSecurityGate({ onUnlock }) {
           }}
         >
           <div
-            className={`admin-gate-digits ${status === "error" ? "shake" : ""} ${
-              isLockedOut ? "is-disabled" : ""
-            }`}
+            className={`admin-gate-digits ${status === "error" ? "shake" : ""} ${isLockedOut ? "is-disabled" : ""
+              }`}
             onPaste={handlePaste}
           >
             {pinDigits.map((digit, idx) => (
@@ -322,11 +320,9 @@ export default function AdminSecurityGate({ onUnlock }) {
                 inputMode="numeric"
                 pattern="[0-9]*"
                 maxLength={1}
-                className={`admin-gate-digit-input ${digit ? "filled" : ""} ${
-                  status === "error" ? "is-error" : ""
-                } ${status === "unlocked" ? "is-success" : ""} ${
-                  isLockedOut ? "is-locked-out" : ""
-                }`}
+                className={`admin-gate-digit-input ${digit ? "filled" : ""} ${status === "error" ? "is-error" : ""
+                  } ${status === "unlocked" ? "is-success" : ""} ${isLockedOut ? "is-locked-out" : ""
+                  }`}
                 value={digit}
                 onChange={(e) => updateDigit(idx, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(idx, e)}
@@ -420,8 +416,8 @@ export default function AdminSecurityGate({ onUnlock }) {
             {status === "unlocked"
               ? "Unlocking..."
               : isLockedOut
-              ? `Locked (${formatSeconds(lockoutTimer)})`
-              : "Unlock CTMO Portal"}
+                ? `Locked (${formatSeconds(lockoutTimer)})`
+                : "Unlock CTMO Portal"}
           </button>
         </form>
 

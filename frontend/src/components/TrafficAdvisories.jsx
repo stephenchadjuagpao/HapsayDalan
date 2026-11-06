@@ -99,7 +99,7 @@ export default function TrafficAdvisories({ admin = false, refreshKey = 0 }) {
     }
   };
 
-  if (!admin && (!advisories.length || secondsLeft === 0)) return null;
+  if (!admin) return null; // Public users now visit /advisory page instead
 
   return <section className={`traffic-advisories ${admin ? "is-admin" : "is-public"}`} aria-label="Traffic advisories">
     <div className="traffic-advisories-heading"><MaterialIcon name="notifications" /><div>

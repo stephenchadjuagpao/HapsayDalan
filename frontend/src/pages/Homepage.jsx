@@ -1,6 +1,5 @@
 import Navbar from "../components/reusablecode/Navbar";
 import MaterialIcon from "../components/MaterialIcon";
-import TrafficAdvisories from "../components/TrafficAdvisories";
 import ContactQuickActions from "../components/ContactQuickActions";
 
 // Inline map illustration (SVG-based, no external deps)
@@ -461,8 +460,6 @@ export default function Homepage() {
 
       <div className="sc-homepage">
         <Navbar />
-        <TrafficAdvisories />
-
         {/* Hero Section */}
         <section className="sc-hero" id="home">
           <div className="sc-hero-left">

@@ -7,35 +7,19 @@ jest.mock("../services/api", () => ({ get: jest.fn(), patch: jest.fn() }));
 beforeEach(() => { jest.useFakeTimers(); jest.clearAllMocks(); window.localStorage.clear(); });
 afterEach(() => jest.useRealTimers());
 
-test("public advisory counts down from five seconds and only reappears for a new advisory", async () => {
-  let rows = [{ id: 1, message: "Road work on Rizal St.", created_at: "2026-10-28T03:00:00Z" }];
-  API.get.mockImplementation(() => Promise.resolve({ data: rows }));
-  const { rerender } = render(<TrafficAdvisories />);
+test("public advisory component renders nothing (users go to /advisory page instead)", async () => {
+  API.get.mockResolvedValue({ data: [{ id: 1, message: "Road work on Rizal St.", created_at: "2026-10-28T03:00:00Z" }] });
+  const { container } = render(<TrafficAdvisories />);
   await act(async () => {});
-  expect(screen.getByText("Road work on Rizal St.")).toBeInTheDocument();
-  expect(screen.getByText("Closes in 5s")).toBeInTheDocument();
-  act(() => jest.advanceTimersByTime(1000));
-  expect(screen.getByText("Closes in 4s")).toBeInTheDocument();
-  act(() => jest.advanceTimersByTime(4000));
-  expect(screen.queryByText("Road work on Rizal St.")).not.toBeInTheDocument();
-  rerender(<TrafficAdvisories refreshKey={1} />);
-  await act(async () => {});
-  expect(screen.queryByText("Road work on Rizal St.")).not.toBeInTheDocument();
-  rows = [{ id: 2, message: "New traffic update", created_at: "2026-10-28T03:01:00Z" }];
-  rerender(<TrafficAdvisories refreshKey={2} />);
-  await act(async () => {});
-  expect(screen.getByText("New traffic update")).toBeInTheDocument();
-  expect(screen.getByText("Closes in 5s")).toBeInTheDocument();
+  // Public users now navigate to /advisory; this component returns null for non-admin
+  expect(container.firstChild).toBeNull();
 });
 
-test("a citizen does not see the same advisory again after reopening the homepage", async () => {
+test("public advisory does not display even when API returns data", async () => {
   API.get.mockResolvedValue({ data: [{ id: 42, message: "Lane closure", created_at: "2026-10-28T03:00:00Z" }] });
-  const firstVisit = render(<TrafficAdvisories />);
+  const { container } = render(<TrafficAdvisories />);
   await act(async () => {});
-  expect(screen.getByText("Lane closure")).toBeInTheDocument();
-  firstVisit.unmount();
-  render(<TrafficAdvisories />);
-  await act(async () => {});
+  expect(container.firstChild).toBeNull();
   expect(screen.queryByText("Lane closure")).not.toBeInTheDocument();
 });
 

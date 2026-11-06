@@ -21,8 +21,17 @@ class TrafficAdvisorySerializer(serializers.ModelSerializer):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def public_advisories(request):
-    rows = TrafficAdvisory.objects.filter(archived_at__isnull=True, audience__in=["all", "public"])[:5]
-    response = Response(TrafficAdvisorySerializer(rows, many=True).data)
+    qs = TrafficAdvisory.objects.filter(
+        archived_at__isnull=True, audience__in=["all", "public"]
+    ).order_by("-created_at")
+    paginator = PageNumberPagination()
+    paginator.page_size = int(request.query_params.get("page_size", 10))
+    paginator.page_size_query_param = "page_size"
+    paginator.max_page_size = 50
+    rows = paginator.paginate_queryset(qs, request)
+    response = paginator.get_paginated_response(
+        TrafficAdvisorySerializer(rows, many=True).data
+    )
     response["Cache-Control"] = "no-store"
     return response
 

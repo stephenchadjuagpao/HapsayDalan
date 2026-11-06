@@ -12,6 +12,7 @@ import AdminDashboardPage from "./pages/AdminDashboardPage";
 import HowItWorksPage from "./pages/HowItWorksPage";
 import FAQsPage from "./pages/FAQsPage";
 import ContactHelpPage from "./pages/ContactHelpPage";
+import TrafficAdvisoryPage from "./pages/TrafficAdvisoryPage";
 
 function UserLayout() {
   return <div className="user-dashboard"><Outlet /></div>;
@@ -30,6 +31,7 @@ function AppContent() {
           <Route path="/how-it-works" element={<HowItWorksPage />} />
           <Route path="/faqs" element={<FAQsPage />} />
           <Route path="/contact" element={<ContactHelpPage />} />
+          <Route path="/advisory" element={<TrafficAdvisoryPage />} />
         </Route>
         <Route path="/admin-ctmo" element={<AdminLoginPage />} />
         <Route path="/admin" element={<AdminDashboardPage />} />
