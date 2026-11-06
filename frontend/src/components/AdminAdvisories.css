@@ -318,7 +318,7 @@
 /* Modal Form Extras */
 .admin-adv-composer-modal {
   max-width: 640px;
-  width: 95%;
+  width: min(640px, calc(100vw - 24px));
   border-radius: 16px;
   overflow: hidden;
 }
@@ -501,8 +501,12 @@ html[data-theme=dark] .admin-adv-preview-name {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 14px;
+  min-width: 0;
 }
-@media (max-width: 540px) {
+/* Collapse to 1 column whenever the modal is narrower than the full 2-col width.
+   The modal is max-width:640px, so on any mobile screen ≤640px wide it always
+   gets a single-column layout, preventing datetime-local overflow. */
+@media (max-width: 640px) {
   .admin-adv-row-2 {
     grid-template-columns: 1fr;
   }
@@ -511,6 +515,13 @@ html[data-theme=dark] .admin-adv-preview-name {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0;
+  overflow: hidden;
+}
+.admin-adv-date-field input[type="datetime-local"] {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 .admin-adv-date-label {
   font-size: 12px;
@@ -794,6 +805,12 @@ html[data-theme=dark] .admin-adv-btn-draft {
 
   .admin-adv-radios {
     grid-template-columns: 1fr;
+  }
+
+  /* Date/time inputs — ensure they fit inside narrow modal on small phones */
+  .admin-adv-date-field input[type="datetime-local"] {
+    font-size: 14px; /* iOS Safari prevents zoom at ≥16px; 14px is acceptable here */
+    padding: 10px 10px;
   }
 
   .admin-adv-card-header {

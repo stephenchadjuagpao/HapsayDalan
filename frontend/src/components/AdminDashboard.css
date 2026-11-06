@@ -235,7 +235,7 @@ html[data-theme=dark] .admin-officer-actions .admin-officer-edit:hover:not(:disa
 .admin-modal-title { font-size:20px; font-weight:700; color:#274c77; line-height:1.5; letter-spacing:-.5px; overflow-wrap:anywhere; }
 .admin-modal-close-btn { display:grid; place-items:center; width:40px; height:40px; flex-shrink:0; border:0; border-radius:10px; background:#f2f5fa; color:#66809d; font-size:22px; }
 .admin-modal-close-btn:hover { background:#e5edf8; }
-.admin-modal-body { min-height:0; overflow-y:auto; overscroll-behavior:contain; display:flex; flex-direction:column; gap:20px; padding-right:5px; scrollbar-width:thin; }
+.admin-modal-body { min-height:0; overflow-y:auto; overflow-x:hidden; overscroll-behavior:contain; display:flex; flex-direction:column; gap:20px; padding-right:5px; scrollbar-width:thin; }
 .admin-modal-body>p[role=status] { background:#eef5fe; border:1px solid #dce9f9; border-radius:9px; padding:12px 14px; color:#4f6d92; font-size:12px; line-height:1.8; }
 .admin-detail-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; background:var(--admin-inset); border:1px solid #b9c9df; border-radius:11px; padding:18px; }
 .admin-detail-cell { display:flex; flex-direction:column; gap:6px; min-width:0; }
@@ -243,9 +243,9 @@ html[data-theme=dark] .admin-officer-actions .admin-officer-edit:hover:not(:disa
 .admin-detail-val { color:#39526e; font-size:12px; font-weight:550; line-height:1.8; overflow-wrap:anywhere; }
 .admin-detail-remarks { display:block; padding:12px 14px; border:1px solid #c7d5e8; border-radius:9px; background:var(--admin-surface); font-weight:400; white-space:pre-line; line-height:1.9; }
 .admin-detail-val a { color:#2e68ae; text-underline-offset:3px; }
-.admin-field-group { display:flex; flex-direction:column; gap:8px; }
+.admin-field-group { display:flex; flex-direction:column; gap:8px; min-width:0; }
 .admin-field-label { font-size:12px; font-weight:600; color:#49617d; }
-.admin-modal-textarea, .admin-modal-input { width:100%; border:1px solid #d9e3ef; padding:11px 12px; border-radius:9px; font-size:13px; color:#2e4866; background:var(--admin-control); line-height:1.7; }
+.admin-modal-textarea, .admin-modal-input { width:100%; min-width:0; box-sizing:border-box; border:1px solid #d9e3ef; padding:11px 12px; border-radius:9px; font-size:13px; color:#2e4866; background:var(--admin-control); line-height:1.7; }
 .admin-modal-textarea { resize:vertical; min-height:100px; }
 .admin-modal .responsive-select-trigger { background:var(--admin-control); border-color:#a9bdd9; color:#3b5676; border-radius:9px; }
 .admin-modal-footer { flex-shrink:0; display:flex; justify-content:flex-end; align-items:center; gap:10px; border-top:1px solid #e6ecf4; margin-top:22px; padding-top:18px; }
