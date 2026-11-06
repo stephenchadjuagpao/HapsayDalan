@@ -115,7 +115,7 @@ describe("AdminSecurityGate Component", () => {
     expect(localStorage.getItem("ctmo_gate_failed_attempts")).toBeNull();
   });
 
-  test("supports on-screen keypad entry with CLR and Material backspace", () => {
+  test("supports on-screen keypad entry with C and Material backspace", () => {
     const onUnlockMock = jest.fn();
     render(<AdminSecurityGate onUnlock={onUnlockMock} />);
 

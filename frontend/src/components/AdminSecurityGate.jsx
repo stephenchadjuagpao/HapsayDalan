@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import MaterialIcon from "./MaterialIcon";
-import ctmoShieldLogo from "../assets/ctmo-shield-logo-transparent.png";
 import ThemeToggle from "./ThemeToggle";
 import "./AdminSecurityGate.css";
 
@@ -259,10 +258,6 @@ export default function AdminSecurityGate({ onUnlock }) {
         </div>
 
         <div className="admin-gate-header">
-          <div className="admin-gate-logo-badge">
-            <img src={ctmoShieldLogo} alt="CTMO shield" className="admin-gate-logo" />
-          </div>
-
           <div
             className={`admin-gate-lock-icon ${
               status === "unlocked"
@@ -391,12 +386,12 @@ export default function AdminSecurityGate({ onUnlock }) {
             ))}
             <button
               type="button"
-              className="admin-gate-key admin-gate-key-action"
+              className="admin-gate-key admin-gate-key-action admin-gate-key-clear"
               onClick={() => handleKeypadPress("clear")}
               disabled={status === "unlocked" || isLockedOut}
               aria-label="Clear all digits"
             >
-              CLR
+              C
             </button>
             <button
               type="button"
@@ -408,12 +403,12 @@ export default function AdminSecurityGate({ onUnlock }) {
             </button>
             <button
               type="button"
-              className="admin-gate-key admin-gate-key-action"
+              className="admin-gate-key admin-gate-key-action admin-gate-key-backspace"
               onClick={() => handleKeypadPress("backspace")}
               disabled={status === "unlocked" || isLockedOut}
               aria-label="Delete last digit"
             >
-              <MaterialIcon name="backspace" size={20} />
+              <MaterialIcon name="backspace" size={22} />
             </button>
           </div>
 
