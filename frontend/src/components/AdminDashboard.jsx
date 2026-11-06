@@ -516,6 +516,18 @@ export default function AdminDashboard() {
               {item.key === "queue" && stats.pendingReview > 0 && <span className="admin-tab-badge">{stats.pendingReview}</span>}
               {item.key === "messages" && unreadMessages > 0 && <span className="admin-tab-badge" aria-label={`${unreadMessages} unread messages`}>{unreadMessages}</span>}
             </button>)}
+            <Link
+              to="/"
+              className="admin-tab-btn admin-user-dashboard-tab"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <span className="admin-nav-icon"><AdminIcon name="home" /></span>
+              <span className="admin-nav-copy">
+                <span>User Dashboard</span>
+                <small aria-hidden="true">Public citizen portal</small>
+              </span>
+              <span className="admin-nav-tab-arrow"><AdminIcon name="arrow" /></span>
+            </Link>
             <div className="admin-mobile-actions">
               <div className="admin-mobile-actions-time"><AdminIcon name="clock" /><span>Local time</span><strong>{currentTime}</strong></div>
               <ThemeToggle showLabel />
@@ -527,8 +539,23 @@ export default function AdminDashboard() {
           </nav>
           <div className="admin-sidebar-note"><AdminIcon name="shield" /><strong>Verify before publishing.</strong>
             <p>Only approved reports appear on the public hotspot map.</p></div>
-          <div className="admin-sidebar-footer"><span className="admin-avatar">{adminUser.trim().charAt(0).toUpperCase()}</span>
-            <div><strong>{adminUser}</strong><small>CTMO administrator</small></div></div>
+          <div className="admin-sidebar-footer">
+            <span className="admin-avatar">{adminUser.trim().charAt(0).toUpperCase()}</span>
+            <div className="admin-sidebar-user-meta">
+              <strong>{adminUser}</strong>
+              <small>CTMO administrator</small>
+            </div>
+            <button
+              type="button"
+              className="admin-sidebar-logout-btn"
+              onClick={handleLogout}
+              title="Log out of session"
+              aria-label="Log Out"
+            >
+              <AdminIcon name="logout" />
+              <span>Log Out</span>
+            </button>
+          </div>
         </aside>
         <header className="admin-header">
           <div className="admin-header-brand">
@@ -536,13 +563,15 @@ export default function AdminDashboard() {
               <h1 className="admin-header-title">CTMO Admin Dashboard</h1></div>
           </div>
           <div className="admin-header-right">
-              <ThemeToggle showLabel />
+            <ThemeToggle showLabel />
             <div className="admin-time-pill" title="Current time on your device">
               <span className="admin-clock-icon"><AdminIcon name="clock" /></span>
               <span className="admin-clock-copy"><small>LOCAL TIME</small><strong>{currentTime}</strong></span>
             </div>
-            <Link to="/" className="admin-header-btn"><AdminIcon name="home" /><span>User Dashboard</span><AdminIcon name="arrow" className="admin-header-link-arrow" /></Link>
-            <button className="admin-logout-btn" onClick={handleLogout}><AdminIcon name="logout" /><span>Log Out</span></button>
+            <button className="admin-logout-btn" onClick={handleLogout}>
+              <AdminIcon name="logout" />
+              <span>Log Out</span>
+            </button>
           </div>
         </header>
 
@@ -607,79 +636,79 @@ export default function AdminDashboard() {
                 <div className="admin-workflow-legend">{workflow.map((item) => <div key={item.label}><i style={{ background: item.color }} />
                   <span>{item.label}</span><strong>{displayCount(item.count)}</strong></div>)}</div>
               </section>
-            <div className="admin-overview-grid">
-              {/* Left Column: Recent Reports */}
-              <div className="admin-panel-card">
-                <div className="admin-section-heading"><div><span className="admin-eyebrow">CITIZEN SUBMISSIONS</span><h2 className="admin-panel-title">Recent Reports</h2></div>
-                  <button className="admin-text-action" onClick={() => openQueue()}>View all<AdminIcon name="arrow" /></button></div>
-                <p className="admin-panel-subtitle">The latest reports, ready for your attention.</p>
+              <div className="admin-overview-grid">
+                {/* Left Column: Recent Reports */}
+                <div className="admin-panel-card">
+                  <div className="admin-section-heading"><div><span className="admin-eyebrow">CITIZEN SUBMISSIONS</span><h2 className="admin-panel-title">Recent Reports</h2></div>
+                    <button className="admin-text-action" onClick={() => openQueue()}>View all<AdminIcon name="arrow" /></button></div>
+                  <p className="admin-panel-subtitle">The latest reports, ready for your attention.</p>
 
-                <div className="admin-recent-list" aria-busy={reportLoad.loading}>
-                  {!reports.length ? <div className="admin-empty-state"><AdminIcon name="reports" /><strong>{reportLoad.loading ? "Loading recent reports..." : reportLoad.error ? "Reports are currently unavailable" : "No reports yet"}</strong>
-                    <p>{reportLoad.error ? "Retry the connection to load citizen reports." : "New citizen submissions will appear here."}</p></div> : null}
-                  {reports.slice(0, 5).map((report) => (
-                    <button type="button"
-                      key={report.reference_id}
-                      className="admin-recent-row"
-                      onClick={() => handleOpenReview(report)}
-                      title="Click to view & review report"
-                    >
-                      <span className="admin-report-icon"><AdminIcon name="reports" /></span>
-                      <span className="admin-recent-info">
-                        <span className="admin-recent-id">{report.reference_id}</span>
-                        <span className="admin-recent-type">{report.violation_type}</span>
-                        <span className="admin-recent-meta admin-report-location"><AdminIcon name="map" /><span>{report.location}</span></span>
-                        {report.evidence_status ? <span className={`ae-badge${report.evidence_status === "submitted" ? " is-submitted" : ""}`}>{report.evidence_status === "submitted" ? "New evidence received" : "Evidence requested"}</span> : null}
-                      </span>
-                      <span className="admin-recent-right">
-                        <span className={`status-badge ${getStatusBadgeClass(report.status)}`}>
-                          {statusLabel(report.status)}
+                  <div className="admin-recent-list" aria-busy={reportLoad.loading}>
+                    {!reports.length ? <div className="admin-empty-state"><AdminIcon name="reports" /><strong>{reportLoad.loading ? "Loading recent reports..." : reportLoad.error ? "Reports are currently unavailable" : "No reports yet"}</strong>
+                      <p>{reportLoad.error ? "Retry the connection to load citizen reports." : "New citizen submissions will appear here."}</p></div> : null}
+                    {reports.slice(0, 5).map((report) => (
+                      <button type="button"
+                        key={report.reference_id}
+                        className="admin-recent-row"
+                        onClick={() => handleOpenReview(report)}
+                        title="Click to view & review report"
+                      >
+                        <span className="admin-report-icon"><AdminIcon name="reports" /></span>
+                        <span className="admin-recent-info">
+                          <span className="admin-recent-id">{report.reference_id}</span>
+                          <span className="admin-recent-type">{report.violation_type}</span>
+                          <span className="admin-recent-meta admin-report-location"><AdminIcon name="map" /><span>{report.location}</span></span>
+                          {report.evidence_status ? <span className={`ae-badge${report.evidence_status === "submitted" ? " is-submitted" : ""}`}>{report.evidence_status === "submitted" ? "New evidence received" : "Evidence requested"}</span> : null}
                         </span>
-                        <span className="admin-recent-time">{report.submitted}</span>
-                      </span>
-                    </button>
-                  ))}
+                        <span className="admin-recent-right">
+                          <span className={`status-badge ${getStatusBadgeClass(report.status)}`}>
+                            {statusLabel(report.status)}
+                          </span>
+                          <span className="admin-recent-time">{report.submitted}</span>
+                        </span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              {/* Right Column: Quick Actions */}
-              <div className="admin-quick-actions-card">
-                <h3 className="admin-quick-actions-title">Quick Actions</h3>
-                <div className="admin-action-btn-list">
-                  <button className="admin-action-item-btn" onClick={() => openQueue("pending")}>
-                    <AdminIcon name="reports" />
-                    <span>Review New Reports ({stats.pendingReview})</span>
-                  </button>
-                  <button className="admin-action-item-btn" onClick={() => setActiveTab("assignment")}>
-                    <AdminIcon name="officers" />
-                    <span>Assign Cases to Officers</span>
-                  </button>
-                  <button
-                    className="admin-action-item-btn"
-                    onClick={() => {
-                      setActiveTab("advisories");
-                      setShowNotificationModal(true);
-                    }}
-                    aria-label="Send Advisory Alert"
-                  >
-                    <AdminIcon name="bell" />
-                    <span>Traffic Advisories</span>
-                  </button>
-                  <button className="admin-action-item-btn" onClick={() => setActiveTab("analytics")}>
-                    <AdminIcon name="analytics" />
-                    <span>View Analytics & Trends</span>
-                  </button>
-                  <button className="admin-action-item-btn" onClick={() => setActiveTab("hotspot")}>
-                    <AdminIcon name="map" />
-                    <span>View Live Hotspot Map</span>
-                  </button>
-                  <button className="admin-action-item-btn" onClick={handleExportCSV}>
-                    <AdminIcon name="download" />
-                    <span>Export Reports (CSV)</span>
-                  </button>
+                {/* Right Column: Quick Actions */}
+                <div className="admin-quick-actions-card">
+                  <h3 className="admin-quick-actions-title">Quick Actions</h3>
+                  <div className="admin-action-btn-list">
+                    <button className="admin-action-item-btn" onClick={() => openQueue("pending")}>
+                      <AdminIcon name="reports" />
+                      <span>Review New Reports ({stats.pendingReview})</span>
+                    </button>
+                    <button className="admin-action-item-btn" onClick={() => setActiveTab("assignment")}>
+                      <AdminIcon name="officers" />
+                      <span>Assign Cases to Officers</span>
+                    </button>
+                    <button
+                      className="admin-action-item-btn"
+                      onClick={() => {
+                        setActiveTab("advisories");
+                        setShowNotificationModal(true);
+                      }}
+                      aria-label="Send Advisory Alert"
+                    >
+                      <AdminIcon name="bell" />
+                      <span>Traffic Advisories</span>
+                    </button>
+                    <button className="admin-action-item-btn" onClick={() => setActiveTab("analytics")}>
+                      <AdminIcon name="analytics" />
+                      <span>View Analytics & Trends</span>
+                    </button>
+                    <button className="admin-action-item-btn" onClick={() => setActiveTab("hotspot")}>
+                      <AdminIcon name="map" />
+                      <span>View Live Hotspot Map</span>
+                    </button>
+                    <button className="admin-action-item-btn" onClick={handleExportCSV}>
+                      <AdminIcon name="download" />
+                      <span>Export Reports (CSV)</span>
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
             </div>
           )}
 
@@ -719,10 +748,10 @@ export default function AdminDashboard() {
               </div>
 
               <div className="admin-queue-filters">
-              <label className="duplicate-filter"><input type="checkbox" checked={duplicatesOnly}
-                onChange={(event) => setDuplicatesOnly(event.target.checked)} />Show possible duplicates only</label>
-              <label className="duplicate-filter"><input type="checkbox" checked={flaggedOnly}
-                onChange={(event) => setFlaggedOnly(event.target.checked)} />Show reports with review flags only</label>
+                <label className="duplicate-filter"><input type="checkbox" checked={duplicatesOnly}
+                  onChange={(event) => setDuplicatesOnly(event.target.checked)} />Show possible duplicates only</label>
+                <label className="duplicate-filter"><input type="checkbox" checked={flaggedOnly}
+                  onChange={(event) => setFlaggedOnly(event.target.checked)} />Show reports with review flags only</label>
               </div>
               <div className="admin-results-meta"><span>{filteredQueue.length} of {reports.length} reports</span>
                 {(searchQuery || statusFilter !== "all" || flaggedOnly || duplicatesOnly) ? <button className="admin-text-action" onClick={() => openQueue()}>Clear filters</button> : null}</div>
@@ -888,147 +917,147 @@ export default function AdminDashboard() {
                   <p>Case {selectedReport.reference_id} will be removed from the reports queue and public map. This cannot be undone. The deletion will remain in Activity History.</p>
                   {deleteError && <p role="alert" className="admin-delete-error">{deleteError}</p>}
                 </div> : <>
-                <p role="status">{selectedReport.public_verified_at && !["Pending", "Rejected"].includes(selectedReport.status)
-                  ? "Verified: included in the public hotspot map."
-                  : "Not public. Review the evidence, then save as Validated to approve this report for the public hotspot map."}</p>
-                <SuspiciousReportNotice report={selectedReport} onReviewRelated={(id) => {
-                  const related = reports.find((item) => item.id === id);
-                  if (related) handleOpenReview(related);
-                }} />
-                <DuplicateReportNotice key={`duplicates-${selectedReport.id}`} report={selectedReport} onReviewMatch={(id) => {
-                  const match = reports.find((item) => item.id === id);
-                  if (match) handleOpenReview(match);
-                }} />
-                <div className="admin-detail-grid">
-                  <div className="admin-detail-cell">
-                    <span className="admin-detail-label">Violation</span>
-                    <span className="admin-detail-val">{selectedReport.violation_type}</span>
-                  </div>
-                  <div className="admin-detail-cell">
-                    <span className="admin-detail-label">Current Status</span>
-                    <span className="admin-detail-val">{statusLabel(selectedReport.status)}</span>
-                  </div>
-                  <div className="admin-detail-cell" style={{ gridColumn: "span 2" }}>
-                    <span className="admin-detail-label">Location</span>
-                    <span className="admin-detail-val">{selectedReport.location}</span>
-                    {selectedReport.location_captured_at ? (
-                      <span className="admin-detail-val" style={{ fontWeight: 400 }}>
-                        Violation pin: {selectedReport.location_source === "manual" ? "Selected by reporter" : "Automatic GPS"}
-                        <br />Coordinates: {selectedReport.latitude}, {selectedReport.longitude}
-                        <br /><a target="_blank" rel="noreferrer"
-                          href={`https://www.openstreetmap.org/?mlat=${selectedReport.latitude}&mlon=${selectedReport.longitude}#map=18/${selectedReport.latitude}/${selectedReport.longitude}`}>
-                          View violation pin on map
-                        </a>
-                        <br />Reporter device location: {selectedReport.reporter_latitude ?? selectedReport.latitude}, {selectedReport.reporter_longitude ?? selectedReport.longitude}
-                        <br />Device GPS accuracy: {Math.ceil(selectedReport.location_accuracy)} m
-                        <br />GPS captured: {new Date(selectedReport.location_captured_at).toLocaleString()}
-                        <br /><a target="_blank" rel="noreferrer"
-                          href={`https://www.openstreetmap.org/?mlat=${selectedReport.reporter_latitude ?? selectedReport.latitude}&mlon=${selectedReport.reporter_longitude ?? selectedReport.longitude}`}>
-                          View reporter device location on map
-                        </a>
+                  <p role="status">{selectedReport.public_verified_at && !["Pending", "Rejected"].includes(selectedReport.status)
+                    ? "Verified: included in the public hotspot map."
+                    : "Not public. Review the evidence, then save as Validated to approve this report for the public hotspot map."}</p>
+                  <SuspiciousReportNotice report={selectedReport} onReviewRelated={(id) => {
+                    const related = reports.find((item) => item.id === id);
+                    if (related) handleOpenReview(related);
+                  }} />
+                  <DuplicateReportNotice key={`duplicates-${selectedReport.id}`} report={selectedReport} onReviewMatch={(id) => {
+                    const match = reports.find((item) => item.id === id);
+                    if (match) handleOpenReview(match);
+                  }} />
+                  <div className="admin-detail-grid">
+                    <div className="admin-detail-cell">
+                      <span className="admin-detail-label">Violation</span>
+                      <span className="admin-detail-val">{selectedReport.violation_type}</span>
+                    </div>
+                    <div className="admin-detail-cell">
+                      <span className="admin-detail-label">Current Status</span>
+                      <span className="admin-detail-val">{statusLabel(selectedReport.status)}</span>
+                    </div>
+                    <div className="admin-detail-cell" style={{ gridColumn: "span 2" }}>
+                      <span className="admin-detail-label">Location</span>
+                      <span className="admin-detail-val">{selectedReport.location}</span>
+                      {selectedReport.location_captured_at ? (
+                        <span className="admin-detail-val" style={{ fontWeight: 400 }}>
+                          Violation pin: {selectedReport.location_source === "manual" ? "Selected by reporter" : "Automatic GPS"}
+                          <br />Coordinates: {selectedReport.latitude}, {selectedReport.longitude}
+                          <br /><a target="_blank" rel="noreferrer"
+                            href={`https://www.openstreetmap.org/?mlat=${selectedReport.latitude}&mlon=${selectedReport.longitude}#map=18/${selectedReport.latitude}/${selectedReport.longitude}`}>
+                            View violation pin on map
+                          </a>
+                          <br />Reporter device location: {selectedReport.reporter_latitude ?? selectedReport.latitude}, {selectedReport.reporter_longitude ?? selectedReport.longitude}
+                          <br />Device GPS accuracy: {Math.ceil(selectedReport.location_accuracy)} m
+                          <br />GPS captured: {new Date(selectedReport.location_captured_at).toLocaleString()}
+                          <br /><a target="_blank" rel="noreferrer"
+                            href={`https://www.openstreetmap.org/?mlat=${selectedReport.reporter_latitude ?? selectedReport.latitude}&mlon=${selectedReport.reporter_longitude ?? selectedReport.longitude}`}>
+                            View reporter device location on map
+                          </a>
+                        </span>
+                      ) : null}
+                    </div>
+                    <div className="admin-detail-cell" style={{ gridColumn: "span 2" }}>
+                      <span className="admin-detail-label">Citizen Remarks</span>
+                      <span className="admin-detail-val admin-detail-remarks">
+                        {formatCitizenRemarks(selectedReport.description)}
                       </span>
-                    ) : null}
+                    </div>
                   </div>
-                  <div className="admin-detail-cell" style={{ gridColumn: "span 2" }}>
-                    <span className="admin-detail-label">Citizen Remarks</span>
-                    <span className="admin-detail-val admin-detail-remarks">
-                      {formatCitizenRemarks(selectedReport.description)}
-                    </span>
-                  </div>
-                </div>
 
-                <ReportDirections latitude={selectedReport.latitude} longitude={selectedReport.longitude}
-                  label={selectedReport.location} />
+                  <ReportDirections latitude={selectedReport.latitude} longitude={selectedReport.longitude}
+                    label={selectedReport.location} />
 
-                {selectedReport.image && (
+                  {selectedReport.image && (
+                    <div className="admin-field-group">
+                      <label className="admin-field-label">Evidence Photo</label>
+                      <img
+                        src={selectedReport.image}
+                        alt="Violation Evidence"
+                        style={{
+                          width: "100%",
+                          maxHeight: "400px",
+                          objectFit: "contain",
+                          borderRadius: "10px",
+                          border: "1px solid #e2e8f0",
+                          background: "#f8fafc",
+                        }}
+                      />
+                    </div>
+                  )}
+
+                  <AdditionalEvidence key={`evidence-${selectedReport.id}`} report={selectedReport} admin onChanged={(evidenceStatus) => {
+                    setSelectedReport((current) => current ? { ...current, evidence_status: evidenceStatus } : current);
+                    setReports((current) => current.map((item) => item.id === selectedReport.id ? { ...item, evidence_status: evidenceStatus } : item));
+                    setRefreshVersion((version) => version + 1);
+                  }} />
+
                   <div className="admin-field-group">
-                    <label className="admin-field-label">Evidence Photo</label>
-                    <img
-                      src={selectedReport.image}
-                      alt="Violation Evidence"
-                      style={{
-                        width: "100%",
-                        maxHeight: "400px",
-                        objectFit: "contain",
-                        borderRadius: "10px",
-                        border: "1px solid #e2e8f0",
-                        background: "#f8fafc",
-                      }}
-                    />
-                  </div>
-                )}
-
-                <AdditionalEvidence key={`evidence-${selectedReport.id}`} report={selectedReport} admin onChanged={(evidenceStatus) => {
-                  setSelectedReport((current) => current ? { ...current, evidence_status: evidenceStatus } : current);
-                  setReports((current) => current.map((item) => item.id === selectedReport.id ? { ...item, evidence_status: evidenceStatus } : item));
-                  setRefreshVersion((version) => version + 1);
-                }} />
-
-                <div className="admin-field-group">
-                  <label className="admin-field-label">Update Case Status</label>
-                  <ResponsiveSelect
-                    className="admin-modal-select"
-                    aria-label="Update Case Status" value={editStatus}
-                    onChange={(e) => setEditStatus(e.target.value)}
-                  >
-                    <option value="Pending">Pending Verification</option>
-                    <option value="Validated">Validated: approve for public map</option>
-                    <option value="Assigned" disabled={!selectedReport.public_verified_at}>Assigned</option>
-                    <option value="In Progress" disabled={!selectedReport.public_verified_at}>In Progress</option>
-                    <option value="Resolved" disabled={!selectedReport.public_verified_at}>Resolved</option>
-                    <option value="Rejected">Rejected</option>
-                  </ResponsiveSelect>
-                </div>
-
-                {editStatus === "Rejected" ? <>
-                  <div className="admin-field-group">
-                    <label className="admin-field-label" htmlFor="rejection-reason">Rejection reason *</label>
-                    <ResponsiveSelect id="rejection-reason" className="admin-modal-select" required value={rejectionReason}
-                      onChange={(event) => setRejectionReason(event.target.value)}>
-                      <option value="">Select a rejection reason</option>
-                      {REJECTION_REASONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                    <label className="admin-field-label">Update Case Status</label>
+                    <ResponsiveSelect
+                      className="admin-modal-select"
+                      aria-label="Update Case Status" value={editStatus}
+                      onChange={(e) => setEditStatus(e.target.value)}
+                    >
+                      <option value="Pending">Pending Verification</option>
+                      <option value="Validated">Validated: approve for public map</option>
+                      <option value="Assigned" disabled={!selectedReport.public_verified_at}>Assigned</option>
+                      <option value="In Progress" disabled={!selectedReport.public_verified_at}>In Progress</option>
+                      <option value="Resolved" disabled={!selectedReport.public_verified_at}>Resolved</option>
+                      <option value="Rejected">Rejected</option>
                     </ResponsiveSelect>
                   </div>
+
+                  {editStatus === "Rejected" ? <>
+                    <div className="admin-field-group">
+                      <label className="admin-field-label" htmlFor="rejection-reason">Rejection reason *</label>
+                      <ResponsiveSelect id="rejection-reason" className="admin-modal-select" required value={rejectionReason}
+                        onChange={(event) => setRejectionReason(event.target.value)}>
+                        <option value="">Select a rejection reason</option>
+                        {REJECTION_REASONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                      </ResponsiveSelect>
+                    </div>
+                    <div className="admin-field-group">
+                      <label className="admin-field-label" htmlFor="rejection-details">Explanation for the reporter *</label>
+                      <textarea id="rejection-details" className="admin-modal-textarea" required rows="3" maxLength={1000}
+                        value={rejectionDetails} onChange={(event) => setRejectionDetails(event.target.value)}
+                        placeholder="Explain the decision clearly. This will be visible on Track My Report." />
+                      <p style={{ fontSize: 12, color: "#526b86" }}>Visible to the reporter. Include only information appropriate to share.</p>
+                    </div>
+                  </> : null}
+
                   <div className="admin-field-group">
-                    <label className="admin-field-label" htmlFor="rejection-details">Explanation for the reporter *</label>
-                    <textarea id="rejection-details" className="admin-modal-textarea" required rows="3" maxLength={1000}
-                      value={rejectionDetails} onChange={(event) => setRejectionDetails(event.target.value)}
-                      placeholder="Explain the decision clearly. This will be visible on Track My Report." />
-                    <p style={{ fontSize: 12, color: "#526b86" }}>Visible to the reporter. Include only information appropriate to share.</p>
+                    <label className="admin-field-label">Assign Traffic Enforcer / Officer</label>
+                    <ResponsiveSelect
+                      className="admin-modal-select"
+                      aria-label="Assign Traffic Enforcer / Officer" value={editOfficer}
+                      onChange={(e) => setEditOfficer(e.target.value)}
+                    >
+                      <option value="">-- Select Officer --</option>
+                      {editOfficer && !officers.some((officer) => officer.name === editOfficer) &&
+                        <option value={editOfficer}>{editOfficer} (not in current directory)</option>}
+                      {officers.map((o) => (
+                        <option key={o.id} value={o.name}>
+                          {o.name} ({o.unit} - {officerWorkload(o.name)} active cases)
+                        </option>
+                      ))}
+                    </ResponsiveSelect>
                   </div>
-                </> : null}
 
-                <div className="admin-field-group">
-                  <label className="admin-field-label">Assign Traffic Enforcer / Officer</label>
-                  <ResponsiveSelect
-                    className="admin-modal-select"
-                    aria-label="Assign Traffic Enforcer / Officer" value={editOfficer}
-                    onChange={(e) => setEditOfficer(e.target.value)}
-                  >
-                    <option value="">-- Select Officer --</option>
-                    {editOfficer && !officers.some((officer) => officer.name === editOfficer) &&
-                      <option value={editOfficer}>{editOfficer} (not in current directory)</option>}
-                    {officers.map((o) => (
-                      <option key={o.id} value={o.name}>
-                        {o.name} ({o.unit} - {officerWorkload(o.name)} active cases)
-                      </option>
-                    ))}
-                  </ResponsiveSelect>
-                </div>
-
-                <div className="admin-field-group">
-                  <label className="admin-field-label" htmlFor="admin-action-notes">Officer Admin Action Notes</label>
-                  <textarea
-                    id="admin-action-notes" maxLength={2000}
-                    className="admin-modal-textarea"
-                    rows="3"
-                    placeholder="Enter verification notes, dispatch instructions, or citation ticket number..."
-                    value={adminNotes}
-                    onChange={(e) => setAdminNotes(e.target.value)}
-                  />
-                  <small>Private note saved in admin activity history. Not shown to the reporter.</small>
-                </div>
-                <AdminActivityHistory key={`activity-${selectedReport.id}`} reportId={selectedReport.id} compact refreshKey={refreshVersion} />
+                  <div className="admin-field-group">
+                    <label className="admin-field-label" htmlFor="admin-action-notes">Officer Admin Action Notes</label>
+                    <textarea
+                      id="admin-action-notes" maxLength={2000}
+                      className="admin-modal-textarea"
+                      rows="3"
+                      placeholder="Enter verification notes, dispatch instructions, or citation ticket number..."
+                      value={adminNotes}
+                      onChange={(e) => setAdminNotes(e.target.value)}
+                    />
+                    <small>Private note saved in admin activity history. Not shown to the reporter.</small>
+                  </div>
+                  <AdminActivityHistory key={`activity-${selectedReport.id}`} reportId={selectedReport.id} compact refreshKey={refreshVersion} />
                 </>}
               </div>
 
