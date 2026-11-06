@@ -23,6 +23,7 @@ const VIOLATION_OPTIONS = [
   "Deffective Signal / Break / Tail Lights",
   "No Loading / No Unloading",
   "Allowing Passenger on Top of MV",
+  "CITY ORDINANCE NO. 133",
   "Other Violation/s (Specify)",
 ];
 const SURIGAO_CITY_BOUNDS = {

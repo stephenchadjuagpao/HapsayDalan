@@ -3,18 +3,28 @@ import ViolationGuide, { VIOLATION_GUIDE } from "./ViolationGuide";
 
 const cards = () => within(screen.getByRole("group", { name: /Slide \d of/ })).getAllByRole("button");
 
-test("shows three cards per slide and makes all 17 types reachable without duplicates", () => {
+test("City Ordinance No. 133 has a guide illustration and selects the report value", () => {
+  const select = jest.fn();
+  render(<ViolationGuide value="CITY ORDINANCE NO. 133" onSelect={select} />);
+  const card = screen.getByRole("button", { name: "Select City Ordinance No. 133" });
+  expect(card).toHaveAttribute("aria-pressed", "true");
+  expect(within(card).getByRole("img", { name: "Illustration: City Ordinance No. 133" })).toBeInTheDocument();
+  fireEvent.click(card);
+  expect(select).toHaveBeenCalledWith("CITY ORDINANCE NO. 133");
+});
+
+test("shows three cards per slide and makes all 18 types reachable without duplicates", () => {
   render(<ViolationGuide value="" onSelect={jest.fn()} />);
   expect(screen.getByRole("button", { name: "Previous violation types" })).toBeDisabled();
   const seen = [];
   for (let page = 0; page < 6; page += 1) {
-    expect(cards()).toHaveLength(page === 5 ? 2 : 3);
+    expect(cards()).toHaveLength(3);
     expect(screen.getByRole("button", { name: `Go to slide ${page + 1}` })).toHaveAttribute("aria-current", "true");
     seen.push(...cards().map((card) => card.getAttribute("aria-label")));
     if (page < 5) fireEvent.click(screen.getByRole("button", { name: "Next violation types" }));
   }
   expect(new Set(seen).size).toBe(VIOLATION_GUIDE.length);
-  expect(screen.getByText("16–17 of 17 types")).toBeInTheDocument();
+  expect(screen.getByText("16–18 of 18 types")).toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Next violation types" })).toBeDisabled();
   fireEvent.click(screen.getByRole("button", { name: "Previous violation types" }));
   expect(screen.getByRole("group", { name: "Slide 5 of 6" })).toBeInTheDocument();
@@ -43,7 +53,7 @@ test("keyboard navigation stays within the carousel and does not select a violat
   expect(viewport).toHaveFocus();
   expect(screen.getByRole("group", { name: "Slide 2 of 6" })).toBeInTheDocument();
   fireEvent.keyDown(viewport, { key: "End" });
-  expect(cards()).toHaveLength(2);
+  expect(cards()).toHaveLength(3);
   fireEvent.keyDown(viewport, { key: "Home" });
   fireEvent.keyDown(viewport, { key: "ArrowLeft" });
   expect(screen.getByRole("group", { name: "Slide 1 of 6" })).toBeInTheDocument();

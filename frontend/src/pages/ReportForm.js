@@ -7,6 +7,7 @@ import useReportLocation, { MAX_LOCATION_ACCURACY_METERS } from "../hooks/useRep
 import ReportCaptcha from "../components/ReportCaptcha";
 import useAutomaticReportRoute from "../hooks/useAutomaticReportRoute";
 import ViolationGuide, { VIOLATION_GUIDE } from "../components/ViolationGuide";
+import PhotoAnalysis from "../components/PhotoAnalysis";
 import SubmissionEmailVerification from "../components/SubmissionEmailVerification";
 import { MAP_TILE_URL, MAP_TILE_OPTIONS } from "../utils/mapTiles";
 
@@ -18,12 +19,24 @@ const STEP_TITLES = [
 
 const VIOLATION_OPTIONS = VIOLATION_GUIDE.map((item) => item.value);
 
+function openDateTimePicker(event) {
+  if (event.type === "keydown" && !["Enter", " ", "ArrowDown"].includes(event.key)) return;
+  // Open synchronously during the user gesture, including clicks on the
+  // custom calendar/clock area. Keep native behavior when unsupported.
+  const input = event.currentTarget;
+  if (typeof input.showPicker !== "function") return;
+  try {
+    input.showPicker();
+    event.preventDefault();
+  } catch { /* Some browsers restrict showPicker; preserve their native interaction. */ }
+}
+
 const WHAT_TO_INCLUDE = [
   { icon: "check", text: "Clear photos or videos of the violation" },
   { icon: "check", text: "License plate number (if visible)" },
   { icon: "check", text: "Date, time, and exact location" },
   { icon: "check", text: "Detailed description of the violation" },
-  { icon: "ai", text: "New: AI image analysis automatically detects violation type from your photos" },
+  { icon: "ai", text: "Optional AI photo analysis can suggest a violation type for you to review, when enabled" },
 ];
 
 const WHAT_HAPPENS_NEXT = [
@@ -902,6 +915,8 @@ function ReportForm() {
               type="date"
               name="date"
               className="report-datetime-input"
+              onClick={openDateTimePicker}
+              onKeyDown={openDateTimePicker}
               value={formData.date}
               onChange={handleChange}
               aria-invalid={invalidField === "date"}
@@ -924,6 +939,8 @@ function ReportForm() {
               type="time"
               name="time"
               className="report-datetime-input"
+              onClick={openDateTimePicker}
+              onKeyDown={openDateTimePicker}
               value={formData.time}
               onChange={handleChange}
               aria-invalid={invalidField === "time"}
@@ -1011,10 +1028,8 @@ function ReportForm() {
         </button>
       </div>
 
-      <div className="report-tip-box">
-        Tip: Clear photos with visible violation and plate number (if safe) help us process your
-        report faster. AI analysis works best with well-lit, clear images.
-      </div>
+      <PhotoAnalysis file={formData.image} selectedType={formData.violation_type}
+        onSelect={(violation_type) => setFormData((current) => ({ ...current, violation_type }))} />
 
       {renderInlineStepError()}
 

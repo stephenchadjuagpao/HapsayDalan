@@ -3,6 +3,8 @@
 import React from "react";
 
 const materialIcons = {
+  mail: <path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 2-8 5-8-5h16zM4 18V8l8 5 8-5v10H4z" />,
+  key: <path d="M7 6a6 6 0 1 0 5.65 8H16v4h4v-4h2v-4h-9.35A6 6 0 0 0 7 6zm0 10a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm0-6a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm6 2h7v0h-2v4h0v-4h-5z" />,
   arrow_back: <><path d="M0 0h24v24H0V0z" fill="none" /><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" /></>,
   arrow_forward: <><path d="M0 0h24v24H0V0z" fill="none" /><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8-8-8z" /></>,
   article: <><g><rect fill="none" height="24" width="24" /><g><path d="M19,5v14H5V5H19 M19,3H5C3.9,3,3,3.9,3,5v14c0,1.1,0.9,2,2,2h14c1.1,0,2-0.9,2-2V5C21,3.9,20.1,3,19,3L19,3z" /></g><path d="M14,17H7v-2h7V17z M17,13H7v-2h10V13z M17,9H7V7h10V9z" /></g></>,

@@ -40,6 +40,25 @@ test("Messages menu badge refreshes and decreases after a message is read", asyn
 });
 afterEach(() => { jest.useRealTimers(); sessionStorage.clear(); });
 
+test("dashboard entry and section changes trigger the page loader without repeating on refresh", async () => {
+  API.get.mockResolvedValue({ data: [] });
+  const onLoader = jest.fn();
+  window.addEventListener("hapsay:show-loader", onLoader);
+  try {
+    render(<AdminDashboard />);
+    await act(async () => {});
+    expect(onLoader).toHaveBeenCalledTimes(1);
+    expect(onLoader.mock.calls[0][0].detail.duration).toBe(600);
+    fireEvent.click(screen.getByRole("button", { name: /Reports Queue/ }));
+    expect(onLoader).toHaveBeenCalledTimes(2);
+    fireEvent.click(screen.getByRole("button", { name: /Reports Queue/ }));
+    await act(async () => { jest.advanceTimersByTime(30000); });
+    expect(onLoader).toHaveBeenCalledTimes(2);
+  } finally {
+    window.removeEventListener("hapsay:show-loader", onLoader);
+  }
+});
+
 test("admin menu opens, closes after selection or Escape, and resets when resizing to desktop", async () => {
   const original = window.matchMedia;
   const desktop = { matches: false, addEventListener: jest.fn(), removeEventListener: jest.fn() };

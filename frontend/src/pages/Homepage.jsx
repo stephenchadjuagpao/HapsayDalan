@@ -1,6 +1,7 @@
 import Navbar from "../components/reusablecode/Navbar";
 import MaterialIcon from "../components/MaterialIcon";
 import TrafficAdvisories from "../components/TrafficAdvisories";
+import ContactQuickActions from "../components/ContactQuickActions";
 
 // Inline map illustration (SVG-based, no external deps)
 function MapIllustration() {
@@ -404,8 +405,10 @@ export default function Homepage() {
           display: grid;
           grid-template-columns: 1.4fr 1fr 1fr 1.4fr;
           gap: 40px;
-          padding-bottom: 40px;
+          padding-bottom: 28px;
         }
+        .sc-footer-connect { max-width:1100px; margin:0 auto 24px; text-align:center; }
+        .sc-footer-connect-title { margin:0 0 12px; color:#dbe9fb; font-size:14px; font-weight:600; line-height:1.5; }
         .sc-footer-col-title { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 14px; }
         .sc-footer-about { line-height: 1.7; }
         .sc-footer-links { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
@@ -590,6 +593,10 @@ export default function Homepage() {
                 Hours: 8AM – 5PM (Mon-Fri)
               </p>
             </div>
+          </div>
+          <div className="sc-footer-connect">
+            <p className="sc-footer-connect-title">Connect with CTMO</p>
+            <ContactQuickActions variant="footer" messageHref="/contact#contact-form" />
           </div>
           <div className="sc-footer-bottom">
             <span>© 2026 Surigao City Traffic Reports. All rights reserved.</span>

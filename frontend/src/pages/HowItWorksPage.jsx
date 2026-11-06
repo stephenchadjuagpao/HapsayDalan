@@ -6,11 +6,11 @@ const WORKFLOW_STEPS = [
     number: "1",
     title: "You Submit a Report",
     text:
-      "Capture the violation with clear photos or videos. Provide the violation type, description, date, time, and location. Optionally include the plate number if safely visible. Use our AI-powered voice-to-text feature to submit your description hands-free, and let AI automatically detect violation types from your images.",
+      "Capture the violation with clear photos or videos. Provide the violation type, description, date, time, and location. Optionally include the plate number if safely visible. When enabled, the AI photo assistant can suggest a violation type after you agree to photo analysis. Review the suggestion before using it.",
     bullets: [
       "Multiple file uploads supported",
       "GPS location tagging",
-      "AI image analysis for violation detection (new)",
+      "Optional AI photo suggestions, when enabled",
       "Anonymous reporting available",
     ],
     image:
@@ -139,7 +139,7 @@ const BENEFITS = [
   },
   {
     title: "AI Image Analysis",
-    text: "Automatic violation detection from photos analyzes images and suggests violation types with high accuracy.",
+    text: "When enabled, Google Gemini analyzes a photo with your permission and suggests a possible violation based on visible evidence. You review the suggestion; CTMO verifies the report. Videos and violations that cannot be established from a still photo require manual selection.",
   },
 ];
 

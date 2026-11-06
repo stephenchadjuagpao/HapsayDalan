@@ -1,0 +1,27 @@
+/* FEZ expanding links, adapted for CTMO contact actions. */
+.contact-expand-links { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:24px; padding:14px; border:1px solid #d8e3f1; border-radius:20px; background:#f0f5fc; }
+.contact-card .contact-expand-links { box-sizing:border-box; width:fit-content; max-width:100%; gap:6px; margin-top:18px; padding:8px; border-radius:999px; }
+.contact-expand-link { box-sizing:border-box; display:inline-flex; align-items:center; flex:0 0 auto; gap:0; width:48px; min-height:48px; max-width:100%; padding:12px; overflow:hidden; border:1px solid #b9cce4; border-radius:999px; background:#e3ecf8; color:#1e3a5f; text-decoration:none; transition:width .35s cubic-bezier(.2,.8,.2,1),background .2s ease,color .2s ease,box-shadow .2s ease; }
+.contact-expand-icon { display:flex; align-items:center; justify-content:center; width:22px; height:22px; flex:0 0 22px; transition:transform .4s ease; }
+.contact-expand-label { margin-left:10px; opacity:0; white-space:nowrap; font-size:14px; line-height:1.4; font-weight:700; transform:translateX(-8px); transition:opacity .2s ease,transform .3s ease; }
+.contact-expand-link:hover,.contact-expand-link:focus-visible { width:174px; border-color:#1e3a5f; background:#1e3a5f; color:#fff; box-shadow:0 5px 14px #1e3a5f26; }
+.contact-expand-link:hover .contact-expand-label,.contact-expand-link:focus-visible .contact-expand-label { opacity:1; transform:translateX(0); }
+.contact-expand-link:hover .contact-expand-icon { transform:rotate(360deg); }
+.contact-expand-link:focus-visible { outline:3px solid #497fc7; outline-offset:3px; }
+#contact-form { scroll-margin-top:100px; }
+html[data-theme=dark] .contact-expand-links { background:#17273d; border-color:#405873; }
+html[data-theme=dark] .contact-expand-link { background:#263e5c; border-color:#58769a; color:#e3edfc; }
+html[data-theme=dark] .contact-expand-link:hover,html[data-theme=dark] .contact-expand-link:focus-visible { background:#355a86; border-color:#a4c2e8; color:#fff; }
+.sc-footer .contact-expand-links--footer { box-sizing:border-box; justify-content:center; width:fit-content; max-width:100%; margin:0 auto; padding:8px; border-radius:999px; background:#16304f; border-color:#527398; box-shadow:0 6px 18px #09274726; }
+.sc-footer .contact-expand-links--footer .contact-expand-link { background:#284b74; border-color:#7191b6; color:#fff; }
+.sc-footer .contact-expand-links--footer .contact-expand-link:hover,.sc-footer .contact-expand-links--footer .contact-expand-link:focus-visible { background:#16304f; border-color:#b7d3f5; box-shadow:0 5px 14px #0c223e66; }
+.sc-footer .contact-expand-links--footer .contact-expand-link:focus-visible { outline-color:#b7d3f5; }
+@media(max-width:768px),(hover:none),(pointer:coarse) {
+  .contact-card .contact-expand-links { width:100%; border-radius:16px; }
+  .sc-footer .contact-expand-links--footer { width:100%; max-width:440px; border-radius:18px; }
+  .contact-expand-link,.contact-expand-link:hover,.contact-expand-link:focus-visible { flex:1 1 calc(50% - 4px); width:auto; }
+  .contact-expand-label { opacity:1; transform:none; white-space:normal; }
+  .contact-expand-link:hover .contact-expand-icon { transform:none; }
+}
+@media(max-width:380px) { .contact-expand-link,.contact-expand-link:hover,.contact-expand-link:focus-visible { flex-basis:100%; } }
+@media(prefers-reduced-motion:reduce) { .contact-expand-link,.contact-expand-icon,.contact-expand-label { transition:none; } .contact-expand-link:hover .contact-expand-icon { transform:none; } }

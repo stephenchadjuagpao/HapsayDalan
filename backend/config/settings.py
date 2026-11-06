@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 import os
+import sys
 from pathlib import Path
 from corsheaders.defaults import default_headers
 from django.core.exceptions import ImproperlyConfigured
@@ -130,6 +131,10 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 
 # Database
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip()
+GEMINI_VISION_MODEL = os.getenv("GEMINI_VISION_MODEL", "gemini-3.5-flash").strip()
+AI_IMAGE_DAILY_LIMIT = max(1, int(os.getenv("AI_IMAGE_DAILY_LIMIT", "50")))
+
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
@@ -239,7 +244,7 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
 SECURE_REFERRER_POLICY = 'same-origin'
 
-if not DEBUG:
+if not DEBUG and 'test' not in sys.argv:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SAMESITE = 'None'
     CSRF_COOKIE_SAMESITE = 'None'

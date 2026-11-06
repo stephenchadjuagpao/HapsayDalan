@@ -2,6 +2,8 @@ from rest_framework.routers import DefaultRouter
 from django.urls import path
 from .views import ReportViewSet, admin_login_view, csrf_cookie_view, reverse_geocode_view
 from .views import admin_password_reset_request, admin_password_reset_confirm
+from .password_recovery import request_password_code, verify_password_code
+from .image_analysis import image_analysis_config, analyze_report_photo
 from .views import captcha_config_view
 from .routing import report_route, public_report_route
 from .submission_verification import request_submission_code, verify_submission_code
@@ -16,6 +18,8 @@ router = DefaultRouter()
 router.register(r'reports', ReportViewSet)
 
 urlpatterns = [
+    path("image-analysis/config/", image_analysis_config, name="image-analysis-config"),
+    path("image-analysis/", analyze_report_photo, name="image-analysis"),
     path("admin/officers/", officers, name="admin-officers"),
     path("admin/officers/<int:officer_id>/", officer_detail, name="admin-officer-detail"),
     path("advisories/", public_advisories, name="public-advisories"),
@@ -43,6 +47,8 @@ urlpatterns = [
     path("admin/staff/", staff_accounts, name="admin-staff-accounts"),
     path("admin/staff/<int:user_id>/", update_staff_account, name="admin-staff-account-update"),
     path("admin/staff/<int:user_id>/invite/", resend_staff_invitation, name="admin-staff-account-invite"),
+    path("admin/password-reset/code/", request_password_code, name="admin-password-code"),
+    path("admin/password-reset/code/verify/", verify_password_code, name="admin-password-code-verify"),
     path("admin/password-reset/", admin_password_reset_request, name="admin-password-reset"),
     path("admin/password-reset/confirm/", admin_password_reset_confirm, name="admin-password-reset-confirm"),
 ] + router.urls

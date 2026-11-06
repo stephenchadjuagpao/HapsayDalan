@@ -3,6 +3,7 @@ import API from "../services/api";
 import ctmoShieldLogo from "../assets/ctmo-shield-logo-transparent.png";
 import ThemeToggle from "./ThemeToggle";
 import MaterialIcon from "./MaterialIcon";
+import PasswordRecovery from "./PasswordRecovery";
 
 function PasswordInput({ id, ...props }) {
   const [visible, setVisible] = useState(false);
@@ -25,7 +26,6 @@ export default function AdminLogin() {
     return { uid: params.get("uid") || "", token: params.get("token") || "" };
   });
   const [mode, setMode] = useState(() => new URLSearchParams(window.location.search).has("token") ? "reset" : "login");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -50,12 +50,8 @@ export default function AdminLogin() {
     setMessage("");
     setError("");
 
-    if ((mode !== "reset" && !formData.username.trim()) || (mode !== "forgot" && !formData.password)) {
-      setError(mode === "forgot" ? "Please enter your CTMO account email." : "Please complete the required fields.");
-      return;
-    }
-    if (mode === "reset" && formData.password !== confirmPassword) {
-      setError("The passwords do not match.");
+    if (!formData.username.trim() || !formData.password) {
+      setError("Please complete the required fields.");
       return;
     }
 
@@ -70,23 +66,6 @@ export default function AdminLogin() {
         // CSRF retrieval optional
       }
 
-      const requestOptions = { headers: csrfToken ? { "X-CSRFToken": csrfToken } : undefined };
-      if (mode === "forgot") {
-        const response = await API.post("admin/password-reset/", { email: formData.username.trim() }, requestOptions);
-        setMessage(response.data.detail);
-        return;
-      }
-      if (mode === "reset") {
-        const response = await API.post("admin/password-reset/confirm/", {
-          ...resetLink, password: formData.password,
-        }, requestOptions);
-        setMode("login");
-        setFormData((current) => ({ ...current, password: "" }));
-        setConfirmPassword("");
-        window.history.replaceState(null, "", window.location.pathname);
-        setMessage(response.data.detail);
-        return;
-      }
       const response = await API.post("admin/login/", {
         username: formData.username.trim(),
         password: formData.password,
@@ -128,6 +107,13 @@ export default function AdminLogin() {
     }
   };
 
+  if (mode !== "login") return <PasswordRecovery initialEmail={formData.username}
+    resetLink={mode === "reset" ? resetLink : undefined} onBack={() => {
+      setMode("login"); setError(""); setMessage("");
+      setFormData((current) => ({ ...current, password: "" }));
+      window.history.replaceState(null, "", window.location.pathname);
+    }} />;
+
   return (
     <>
       <style>{`
@@ -141,10 +127,9 @@ export default function AdminLogin() {
           justify-content: center;
           position: relative;
           overflow-x: hidden;
-          overflow-y: hidden;
-          height: 100vh;
-          height: 100dvh;
-          padding: 18px 16px;
+          overflow-y: auto;
+          width: 100%;
+          padding: clamp(16px, 3vh, 32px) clamp(12px, 3vw, 24px);
           box-sizing: border-box;
           background:
             radial-gradient(circle at 10% 18%, rgba(90, 127, 255, 0.34) 0, rgba(90, 127, 255, 0.34) 14%, transparent 36%),
@@ -184,14 +169,15 @@ export default function AdminLogin() {
           margin: auto;
           width: min(100%, 500px);
           box-sizing: border-box;
-          max-height: calc(100dvh - 24px);
+          max-height: calc(100dvh - 32px);
           position: relative;
           z-index: 1;
-          overflow: hidden;
+          overflow-y: auto;
+          overflow-x: hidden;
           background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(251, 252, 255, 0.94) 100%);
           border: 1px solid rgba(221, 229, 243, 0.95);
           border-radius: 26px;
-          padding: 36px 30px 18px;
+          padding: clamp(24px, 4vw, 36px) clamp(16px, 4vw, 30px) 20px;
           box-shadow:
             0 28px 60px rgba(90, 108, 166, 0.18),
             0 8px 20px rgba(90, 108, 166, 0.08);
@@ -440,22 +426,22 @@ export default function AdminLogin() {
 
         @media (max-width: 520px) {
           .admin-login-page {
-            padding: 16px 18px 20px;
+            padding: 14px 12px 18px;
             justify-content: center;
-            height: 100vh;
-            height: 100dvh;
             min-height: 100vh;
             min-height: 100dvh;
-            overflow: hidden;
+            height: auto;
+            overflow-y: auto;
           }
 
           .admin-login-card {
-            width: min(100%, 420px);
+            width: 100%;
+            max-width: 420px;
             margin-inline: auto;
             border-radius: 18px;
-            max-height: calc(100dvh - 20px);
-            min-height: 470px;
-            padding: 30px 16px 28px;
+            max-height: none;
+            min-height: 0;
+            padding: 24px 16px 20px;
           }
 
           .admin-login-logo-shell {
@@ -573,10 +559,9 @@ export default function AdminLogin() {
             </div>
           </div>
 
-          <h1 className="admin-login-title">{mode === "login" ? "CTMO Portal" : "Reset CTMO Password"}</h1>
-          <p className="admin-login-subtitle">{mode === "forgot" ? "Receive a reset link at your account email" : "Authorized Personnel Only"}</p>
+          <h1 className="admin-login-title">CTMO Portal</h1>
+          <p className="admin-login-subtitle">Authorized Personnel Only</p>
 
-          {mode !== "reset" ? <>
           <label className="admin-login-label" htmlFor="username">
             Email Address
           </label>
@@ -591,11 +576,8 @@ export default function AdminLogin() {
             autoComplete="username"
             required
           />
-          </> : null}
-
-          {mode !== "forgot" ? <>
           <label className="admin-login-label" htmlFor="password">
-            {mode === "reset" ? "New Password" : "Password"}
+            Password
           </label>
           <PasswordInput
             key={mode}
@@ -606,16 +588,8 @@ export default function AdminLogin() {
             value={formData.password}
             onChange={handleChange}
             required
-            autoComplete={mode === "reset" ? "new-password" : "current-password"}
+            autoComplete="current-password"
           />
-          </> : null}
-          {mode === "reset" ? <>
-            <label className="admin-login-label" htmlFor="confirm-password">Confirm New Password</label>
-            <PasswordInput id="confirm-password" className="admin-login-input" autoComplete="new-password"
-              required value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} />
-          </> : null}
-
-          {mode === "login" ? (
           <div className="admin-login-row">
             <label className="admin-login-checkbox" htmlFor="rememberMe">
               <input
@@ -635,16 +609,10 @@ export default function AdminLogin() {
               Forgot password?
             </button>
           </div>
-          ) : null}
 
           <button type="submit" className="admin-login-button" disabled={isSubmitting}>
-            {isSubmitting ? "Please wait..." : mode === "forgot" ? "Send Reset Link" : mode === "reset" ? "Save New Password" : "Log In"}
+            {isSubmitting ? "Please wait..." : "Log In"}
           </button>
-          {mode !== "login" ? <button type="button" className="admin-login-link" disabled={isSubmitting} onClick={() => {
-            setMode("login"); setError(""); setMessage(""); setConfirmPassword("");
-            setFormData((current) => ({ ...current, password: "" }));
-            window.history.replaceState(null, "", window.location.pathname);
-          }}>Back to Log In</button> : null}
 
           {error ? <div className="admin-login-error">{error}</div> : null}
           {message ? <div className="admin-login-message">{message}</div> : null}

@@ -10,36 +10,37 @@ beforeEach(() => {
   API.get.mockResolvedValue({ data: { csrfToken: "csrf" } });
 });
 
-test("forgot password sends the account email and returns to login", async () => {
-  API.post.mockResolvedValue({ data: { detail: "Check your inbox for a reset link." } });
+test("forgot password opens code recovery and returns safely to login", async () => {
+  API.post.mockResolvedValue({ data: { challenge_id: "challenge-1", detail: "Code sent.", resend_after: 60 } });
   render(<AdminLogin />);
   fireEvent.change(screen.getByLabelText("Email Address"), { target: { value: "officer@example.com" } });
   fireEvent.click(screen.getByRole("button", { name: "Forgot password?" }));
-  expect(screen.queryByLabelText("Password")).not.toBeInTheDocument();
-  fireEvent.click(screen.getByRole("button", { name: "Send Reset Link" }));
-  await screen.findByText("Check your inbox for a reset link.");
-  expect(API.post).toHaveBeenCalledWith("admin/password-reset/", { email: "officer@example.com" }, { headers: { "X-CSRFToken": "csrf" } });
+  expect(screen.getByRole("heading", { name: "Forgot password?" })).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Send verification code" }));
+  await screen.findByRole("heading", { name: "Check your email" });
+  expect(API.post).toHaveBeenCalledWith("admin/password-reset/code/", { email: "officer@example.com" });
+  expect(screen.getByRole("button", { name: "Resend in 60s" })).toBeDisabled();
   fireEvent.click(screen.getByRole("button", { name: "Back to Log In" }));
   expect(screen.getByLabelText("Password")).toHaveValue("");
 });
 
-test("email link opens reset form, checks confirmation, then returns to login", async () => {
+test("email link opens new password form and success screen", async () => {
   window.history.replaceState(null, "", "/admin-ctmo?uid=MQ&token=reset-token");
-  API.post.mockResolvedValue({ data: { detail: "Password updated. Log in with your new password." } });
+  API.post.mockResolvedValue({ data: { detail: "Password updated." } });
   render(<AdminLogin />);
   fireEvent.change(screen.getByLabelText("New Password"), { target: { value: "New!RoadSafety4829" } });
   fireEvent.change(screen.getByLabelText("Confirm New Password"), { target: { value: "DifferentPassword" } });
-  fireEvent.click(screen.getByRole("button", { name: "Save New Password" }));
-  expect(screen.getByText("The passwords do not match.")).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Reset password" })).toBeDisabled();
   expect(API.post).not.toHaveBeenCalled();
   fireEvent.change(screen.getByLabelText("Confirm New Password"), { target: { value: "New!RoadSafety4829" } });
-  fireEvent.click(screen.getByRole("button", { name: "Save New Password" }));
-  await screen.findByText("Password updated. Log in with your new password.");
+  fireEvent.click(screen.getByRole("button", { name: "Reset password" }));
+  await screen.findByRole("heading", { name: "Password updated!" });
   expect(API.post).toHaveBeenCalledWith("admin/password-reset/confirm/", {
     uid: "MQ", token: "reset-token", password: "New!RoadSafety4829",
-  }, { headers: { "X-CSRFToken": "csrf" } });
-  expect(screen.getByLabelText("Password")).toHaveValue("");
+  });
   expect(window.location.search).toBe("");
+  fireEvent.click(screen.getByRole("button", { name: "Back to Log In" }));
+  expect(screen.getByLabelText("Password")).toHaveValue("");
 });
 
 test("failed delivery displays the server error", async () => {
@@ -47,8 +48,9 @@ test("failed delivery displays the server error", async () => {
   render(<AdminLogin />);
   fireEvent.click(screen.getByRole("button", { name: "Forgot password?" }));
   fireEvent.change(screen.getByLabelText("Email Address"), { target: { value: "officer@example.com" } });
-  fireEvent.click(screen.getByRole("button", { name: "Send Reset Link" }));
-  expect(await screen.findByText("Unable to send the reset email.")).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Send verification code" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("Unable to send the reset email.");
+  expect(screen.getByRole("heading", { name: "Forgot password?" })).toBeInTheDocument();
 });
 
 test("login explains when the CTMO server is unreachable", async () => {

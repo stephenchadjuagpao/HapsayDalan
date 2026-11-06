@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import Navbar from "../components/reusablecode/Navbar";
 import HelpForm from "../components/HelpForm";
 import MaterialIcon from "../components/MaterialIcon";
+import ContactQuickActions from "../components/ContactQuickActions";
 
 const QUICK_HELP_ITEMS = [
   {
@@ -121,6 +122,7 @@ export default function ContactHelpPage() {
           max-width: 980px;
           margin: 0 auto 12px;
           display: grid;
+          align-items: start;
           grid-template-columns: repeat(2, minmax(0, 1fr));
           gap: 28px;
         }
@@ -189,14 +191,14 @@ export default function ContactHelpPage() {
 
         .contact-quick-links {
           display: grid;
-          gap: 14px;
+          gap: 10px;
         }
 
         .contact-quick-link {
           display: flex;
           align-items: flex-start;
           gap: 16px;
-          padding: 16px;
+          padding: 14px;
           border-radius: 18px;
           text-decoration: none;
           transition: background 0.18s ease, transform 0.18s ease;
@@ -648,6 +650,7 @@ export default function ContactHelpPage() {
                     </p>
                   </div>
                 </div>
+                <ContactQuickActions />
               </div>
 
               <div className="contact-card">

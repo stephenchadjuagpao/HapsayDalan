@@ -254,11 +254,31 @@ html[data-theme=dark] .admin-officer-actions .admin-officer-edit:hover:not(:disa
 .admin-modal-cancel, .admin-modal-save { border:1px solid #d9e3ef; border-radius:8px; padding:11px 18px; font-size:12px; font-weight:600; min-height:44px; background:#f7f9fc; color:#5f7592; }
 .admin-modal-save { background:#2d547f; color:white; border-color:#294e79; }
 .admin-modal-save:hover { background:#24476f; }
+.admin-modal-footer .admin-modal-cancel { background:#e3ecf8; color:#23486f; border:1px solid #7897bc; font-weight:700; box-shadow:0 1px 2px #18365314; cursor:pointer; transition:background .15s ease, border-color .15s ease; }
+.admin-modal-footer .admin-modal-cancel:hover:not(:disabled) { background:#d2e1f3; border-color:#3f6b9c; }
+.admin-modal-footer .admin-modal-cancel:active:not(:disabled) { background:#c5d7ee; }
+.admin-modal-footer .admin-modal-cancel:disabled { opacity:.6; cursor:wait; }
+html[data-theme=dark] .admin-modal-footer .admin-modal-cancel { background:#2b405a; color:#edf4ff; border-color:#829fc2; }
+html[data-theme=dark] .admin-modal-footer .admin-modal-cancel:hover:not(:disabled) { background:#385373; border-color:#aac5e8; }
+html[data-theme=dark] .admin-modal-footer .admin-modal-cancel:active:not(:disabled) { background:#425f80; }
 .admin-modal-delete { min-height:44px; padding:11px 18px; border:1px solid #a94a54; border-radius:8px; background:#a93442; color:#fff; font-size:12px; font-weight:650; }
 .admin-modal-delete:hover:not(:disabled) { background:#8f2632; }
 .admin-modal-delete:disabled { opacity:.65; cursor:wait; }
 .admin-modal-delete-trigger { background:transparent; color:#9e2d3a; }
 .admin-modal-delete-trigger:hover:not(:disabled) { background:#fff0f2; }
+.admin-modal-footer .admin-fez-delete { display:inline-flex; align-items:center; justify-content:center; gap:10px; min-height:48px; padding:11px 20px; border:1px solid #b91c1c; border-radius:999px; background:#dc2626; color:#fff; font-weight:700; box-shadow:0 4px 14px #dc262633; cursor:pointer; transition:background .2s ease, box-shadow .2s ease, transform .2s ease; }
+.admin-modal-footer .admin-fez-delete:hover:not(:disabled) { background:#b91c1c; box-shadow:0 6px 20px #dc26264d; transform:translateY(-1px); }
+.admin-modal-footer .admin-fez-delete:active:not(:disabled) { background:#991b1b; transform:scale(.97); }
+.admin-fez-trash { flex-shrink:0; overflow:visible; color:#e2e8f0; }
+.admin-fez-trash-lid { transform-origin:19px 6px; transition:transform .25s ease; }
+.admin-fez-delete:hover:not(:disabled) .admin-fez-trash-lid { transform:translate(1px,-2px) rotate(25deg); }
+.admin-modal-footer .admin-fez-delete.is-deleting { width:48px; min-width:48px; height:48px; padding:11px; background:#991b1b; opacity:1; cursor:wait; animation:admin-fez-collapse .35s ease-out; }
+.admin-fez-delete.is-deleting .admin-fez-delete-label { position:absolute; width:1px; height:1px; padding:0; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+.admin-fez-delete.is-deleting .admin-fez-trash-lid { transform:translate(2px,-4px) rotate(35deg); }
+.admin-fez-delete.is-deleting .admin-fez-trash-body { transform-origin:12px 14px; animation:admin-fez-shake .3s ease-in-out infinite; }
+@keyframes admin-fez-collapse { from { transform:scale(1.12); } to { transform:scale(1); } }
+@keyframes admin-fez-shake { 0%,100% { transform:rotate(-4deg); } 50% { transform:rotate(4deg); } }
+@media(prefers-reduced-motion:reduce) { .admin-modal-footer .admin-fez-delete,.admin-fez-trash-lid { transition:none; } .admin-modal-footer .admin-fez-delete.is-deleting,.admin-fez-delete.is-deleting .admin-fez-trash-body { animation:none; } .admin-modal-footer .admin-fez-delete:hover:not(:disabled),.admin-modal-footer .admin-fez-delete:active:not(:disabled) { transform:none; } }
 .admin-modal-footer-with-delete .admin-modal-save { margin-right:auto; }
 .admin-delete-warning { padding:18px; border:1px solid #d5a4aa; border-radius:10px; background:#fff2f2; color:#6d2732; line-height:1.7; overflow-wrap:anywhere; }
 .admin-delete-warning strong { display:block; margin-bottom:8px; font-size:16px; }

@@ -6,14 +6,14 @@ export default function NavigationTransition() {
   const location = useLocation();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [targetPath, setTargetPath] = useState("");
+  const [transition, setTransition] = useState({ id: 0, duration: 720 });
   const previousPathRef = useRef(location.pathname);
   const isNavigatingRef = useRef(false);
   const isTest = process.env.NODE_ENV === "test";
 
   const startTransition = useCallback((path, duration = 700) => {
     if (isTest) return;
-    setTargetPath(path);
+    setTransition((current) => ({ id: current.id + 1, duration }));
     setIsLoading(true);
     isNavigatingRef.current = true;
   }, [isTest]);
@@ -111,9 +111,9 @@ export default function NavigationTransition() {
 
   return (
     <PageLoadingScreen
+      key={transition.id}
       active={isLoading}
-      targetPath={targetPath}
-      duration={720}
+      duration={transition.duration}
       onComplete={handleLoadingComplete}
     />
   );

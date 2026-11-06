@@ -20,6 +20,12 @@ import OfficerEditor from "./OfficerEditor";
 import useOfficers from "../hooks/useOfficers";
 
 const statusLabel = (status) => status === "Pending" ? "Pending Verification" : status;
+const FezDeleteIcon = () => (
+  <svg className="admin-fez-trash" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <g className="admin-fez-trash-body"><path d="M5 6v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6" /><path d="M10 11v6m4-6v6" /></g>
+    <g className="admin-fez-trash-lid"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></g>
+  </svg>
+);
 const formatCitizenRemarks = (description) => {
   const remarks = description?.trim();
   if (!remarks) return "No further details submitted.";
@@ -34,6 +40,9 @@ const REJECTION_REASONS = [
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview"); // overview | queue | assignment | analytics | hotspot
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("hapsay:show-loader", { detail: { duration: 600 } }));
+  }, [activeTab]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [messageVersion, setMessageVersion] = useState(0);
@@ -994,15 +1003,16 @@ export default function AdminDashboard() {
               {!confirmDelete && reviewError && <p role="alert" style={{ color: "#b91c1c", margin: "12px 0 0", flexShrink: 0 }}>{reviewError}</p>}
               {confirmDelete ? <div className="admin-modal-footer">
                 <button ref={deleteCancelRef} type="button" className="admin-modal-cancel" onClick={closeCaseReview} disabled={deletingCase}>Keep Case</button>
-                <button type="button" className="admin-modal-delete" onClick={handleDeleteCase} disabled={deletingCase}>
-                  {deletingCase ? "Deleting..." : "Delete Case Permanently"}
+                <button type="button" className={`admin-modal-delete admin-fez-delete${deletingCase ? " is-deleting" : ""}`} onClick={handleDeleteCase} disabled={deletingCase} aria-label={deletingCase ? "Deleting case" : "Delete Case Permanently"} aria-busy={deletingCase}>
+                  <FezDeleteIcon />
+                  <span className="admin-fez-delete-label">{deletingCase ? "Deleting..." : "Delete Case Permanently"}</span>
                 </button>
               </div> : <div className="admin-modal-footer admin-modal-footer-with-delete">
                 <button type="button" className="admin-modal-save" onClick={handleSaveReportUpdate} disabled={savingReview}>
                   {savingReview ? "Saving..." : "Save & Update Case"}
                 </button>
                 <button type="button" className="admin-modal-cancel" onClick={closeCaseReview} disabled={savingReview}>Cancel</button>
-                <button type="button" className="admin-modal-delete admin-modal-delete-trigger" onClick={() => setConfirmDelete(true)} disabled={savingReview}>Delete Case</button>
+                <button type="button" className="admin-modal-delete admin-fez-delete" onClick={() => setConfirmDelete(true)} disabled={savingReview}><FezDeleteIcon /><span className="admin-fez-delete-label">Delete Case</span></button>
               </div>}
             </div>
           </div>

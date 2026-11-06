@@ -138,6 +138,18 @@ class ReportRecoveryChallenge(models.Model):
     used = models.BooleanField(default=False)
 
 
+class AdminPasswordResetChallenge(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.CASCADE)
+    email_key = models.CharField(max_length=64, db_index=True)
+    code_hash = models.CharField(max_length=128)
+    reset_token = models.CharField(max_length=256, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    attempts = models.PositiveSmallIntegerField(default=0)
+    used = models.BooleanField(default=False)
+
+
 class AdminActivity(models.Model):
     ACTIONS = [("case_created", "Case created"), ("case_updated", "Case updated"),
                ("case_deleted", "Case deleted"), ("evidence_requested", "Additional evidence requested"),

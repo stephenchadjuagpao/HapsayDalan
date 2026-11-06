@@ -1,31 +1,349 @@
-/* Scale content density with the viewport; keep controls large enough to tap. */
-.user-dashboard, .admin-dashboard-root, .admin-login-page { -webkit-text-size-adjust:100%; text-size-adjust:100%; }
-@media(min-width:481px) and (max-width:1023px) {
-  .user-dashboard :is(.sc-section-title,.how-section-title,.faq-section-title,.contact-section-title,.contact-feedback-title,.faq-cta-title) { font-size:26px; line-height:1.3; }
-  .user-dashboard :is(.sc-hero-text,.report-hero-text,.track-hero-text,.hotspot-hero-text,.how-hero-text,.faq-hero-text,.contact-hero-text) { font-size:15px; }
-  .user-dashboard :is(.contact-card-title,.help-form-title,.contact-emergency-title,.contact-resource-title) { font-size:22px; }
+/* ==========================================================================
+   HapsayDalan Responsive UI Framework
+   Adaptive viewport scaling, fluid typography, touch target ergonomics,
+   and horizontal overflow safeguards across mobile, tablet, and desktop.
+   ========================================================================== */
+
+/* Universal Layout & Overflow Safeguards */
+html,
+body {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
-@media(max-width:480px) {
-  .user-dashboard :is(.sc-hero-title,.report-hero-title,.track-hero-title,.hotspot-hero-title,.how-hero-title,.faq-hero-title,.contact-hero-title) { font-size:clamp(26px,7vw,32px); line-height:1.2; }
-  .user-dashboard :is(.sc-hero-text,.report-hero-text,.track-hero-text,.hotspot-hero-text,.how-hero-text,.faq-hero-text,.contact-hero-text) { font-size:14px; line-height:1.6; }
-  .user-dashboard :is(.sc-section-title,.how-section-title,.faq-section-title,.contact-section-title,.contact-feedback-title,.faq-cta-title) { font-size:22px; line-height:1.3; }
-  .user-dashboard :is(.report-card-title,.track-panel-title,.track-faq-title,.contact-card-title,.help-form-title,.contact-emergency-title,.hotspot-panel-title) { font-size:19px; line-height:1.35; }
-  .user-dashboard .track-form-card:not(.my-reports) > .track-form-title { font-size:20px; }
-  .user-dashboard :is(.sc-step-title,.sc-benefit-title,.contact-resource-title,.contact-quick-title,.how-step-title) { font-size:16px; line-height:1.4; }
-  .user-dashboard :is(.faq-trigger,.track-faq-trigger,.contact-info-link) { font-size:14px; line-height:1.5; }
-  .user-dashboard :is(.faq-answer,.track-timeline-description,.track-detail-value,.help-form-text,.contact-resource-text,.contact-quick-text,.contact-emergency-text,.contact-feedback-text,.sc-section-subtitle) { font-size:13px; line-height:1.6; }
-  .user-dashboard :is(.report-label,.track-label,.help-form-label,.contact-info-label,.track-detail-label) { font-size:12px; }
-  .user-dashboard :is(.track-help,.report-helper-text,.report-reference-help,.report-upload-hint) { font-size:12px; line-height:1.55; }
-  .user-dashboard :is(.report-button,.track-submit,.contact-btn,.faq-cta-link,.help-form-submit,.sc-btn-primary,.sc-btn-secondary,.report-upload-action) { font-size:13px; padding:10px 14px; }
-  .user-dashboard :is(.report-card,.track-form-card,.track-status-card,.track-details-card,.contact-card,.help-form-card,.contact-resource-card) { border-radius:12px; }
-  .report-captcha-dialog h2 { font-size:20px; }
-  .report-captcha-dialog p, .report-captcha-dialog label { font-size:13px; line-height:1.6; }
-  .report-captcha-actions button { font-size:12px; padding:10px; }
-  .admin-dashboard-root :is(.admin-panel-title,.admin-modal-title) { font-size:18px; line-height:1.35; }
-  .admin-dashboard-root :is(.admin-panel-subtitle,.admin-detail-val,.admin-modal-textarea,.admin-search-input) { font-size:13px; line-height:1.5; }
-  .admin-dashboard-root :is(.admin-detail-label,.admin-field-label,.admin-filter-select,.admin-modal-select,.admin-modal-save,.admin-modal-cancel) { font-size:12px; }
-  .admin-dashboard-root .admin-table { font-size:12px; }
-  .admin-dashboard-root :is(.admin-modal-body,.admin-modal-header,.admin-modal-footer) { min-width:0; }
-  .admin-login-page .admin-login-title { font-size:24px; }
-  .admin-login-page :is(.admin-login-subtitle,.admin-login-label,.admin-login-footer,.admin-login-row,.admin-login-link) { font-size:12px; }
+
+#root {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.user-dashboard,
+.admin-dashboard-root,
+.admin-login-page,
+.password-recovery-page {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Fluid Media Containment */
+.user-dashboard img:not(.leaflet-tile):not(.leaflet-marker-icon):not(.leaflet-marker-shadow),
+.user-dashboard video,
+.admin-dashboard-root img,
+.admin-login-page img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Universal Text Wrapping to Prevent Broken Layouts */
+:where(h1, h2, h3, h4, h5, h6, p, label, a, button, span, dt, dd, li) {
+  overflow-wrap: break-word;
+}
+
+/* ==========================================================================
+   TABLET & INTERMEDIATE BREAKPOINT (481px - 1023px)
+   ========================================================================== */
+@media (min-width: 481px) and (max-width: 1023px) {
+  .user-dashboard :is(.sc-section-title, .how-section-title, .faq-section-title, .contact-section-title, .contact-feedback-title, .faq-cta-title) {
+    font-size: 26px;
+    line-height: 1.3;
+  }
+
+  .user-dashboard :is(.sc-hero-text, .report-hero-text, .track-hero-text, .hotspot-hero-text, .how-hero-text, .faq-hero-text, .contact-hero-text) {
+    font-size: 15px;
+  }
+
+  .user-dashboard :is(.contact-card-title, .help-form-title, .contact-emergency-title, .contact-resource-title) {
+    font-size: 22px;
+  }
+
+  /* Grid adaptations for tablets */
+  .user-dashboard .sc-hero {
+    gap: 28px;
+    padding: clamp(28px, 4vw, 48px) clamp(20px, 3vw, 36px);
+  }
+
+  .user-dashboard :is(.report-shell, .track-shell, .hotspot-section, .contact-section, .how-section, .faq-section) {
+    padding-left: clamp(20px, 3vw, 36px);
+    padding-right: clamp(20px, 3vw, 36px);
+  }
+}
+
+/* ==========================================================================
+   MOBILE VIEWPORT SAFEGUARDS & ERGONOMICS (max-width: 768px)
+   ========================================================================== */
+@media (max-width: 768px) {
+  /* Prevent iOS Safari auto-zoom on input focus by ensuring at least 16px font */
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  /* Touch Target Ergonomics: WCAG 44px Minimum */
+  button,
+  .report-button,
+  .track-submit,
+  .contact-btn,
+  .faq-btn,
+  .sc-btn-primary,
+  .sc-btn-secondary,
+  .report-upload-action,
+  .admin-review-btn {
+    min-height: 44px;
+  }
+
+  /* Mobile container paddings */
+  .user-dashboard :is(.report-shell, .track-shell, .hotspot-section, .contact-section, .contact-section-muted, .contact-feedback, .faq-section, .how-section) {
+    padding-left: clamp(14px, 4vw, 24px);
+    padding-right: clamp(14px, 4vw, 24px);
+  }
+
+  /* Hero section single-column stacking */
+  .user-dashboard .sc-hero {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 24px;
+    padding: clamp(24px, 5vw, 40px) clamp(16px, 4vw, 24px);
+  }
+
+  .user-dashboard .sc-hero-actions {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: 12px;
+    margin-top: 6px;
+  }
+
+  .user-dashboard .sc-hero-actions > * {
+    width: 100%;
+    text-align: center;
+  }
+
+  /* Maps on mobile */
+  .user-dashboard :is(.report-live-map, .hotspot-live-map) {
+    height: clamp(260px, 42vh, 380px) !important;
+    min-height: 260px;
+    width: 100%;
+    border-radius: 12px;
+  }
+
+  .user-dashboard :is(.report-map-box, .hotspot-map-box) {
+    min-height: 260px;
+  }
+
+  /* Modal Dialog Ergonomics */
+  .user-dashboard .report-camera-modal,
+  .report-captcha-dialog,
+  .admin-modal {
+    width: min(100%, 540px) !important;
+    max-height: calc(100dvh - 24px) !important;
+    margin: auto;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+}
+
+/* ==========================================================================
+   COMPACT MOBILE PHONES (max-width: 480px)
+   ========================================================================== */
+@media (max-width: 480px) {
+  /* Fluid Typographic Scale */
+  .user-dashboard :is(.sc-hero-title, .report-hero-title, .track-hero-title, .hotspot-hero-title, .how-hero-title, .faq-hero-title, .contact-hero-title) {
+    font-size: clamp(24px, 7vw, 30px);
+    line-height: 1.2;
+    letter-spacing: -0.5px;
+  }
+
+  .user-dashboard :is(.sc-hero-text, .report-hero-text, .track-hero-text, .hotspot-hero-text, .how-hero-text, .faq-hero-text, .contact-hero-text) {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .user-dashboard :is(.sc-section-title, .how-section-title, .faq-section-title, .contact-section-title, .contact-feedback-title, .faq-cta-title) {
+    font-size: 21px;
+    line-height: 1.3;
+  }
+
+  .user-dashboard :is(.report-card-title, .track-panel-title, .track-faq-title, .contact-card-title, .help-form-title, .contact-emergency-title, .hotspot-panel-title) {
+    font-size: 18px;
+    line-height: 1.35;
+  }
+
+  .user-dashboard .track-form-card:not(.my-reports) > .track-form-title {
+    font-size: 19px;
+  }
+
+  .user-dashboard :is(.sc-step-title, .sc-benefit-title, .contact-resource-title, .contact-quick-title, .how-step-title) {
+    font-size: 15px;
+    line-height: 1.4;
+  }
+
+  .user-dashboard :is(.faq-trigger, .track-faq-trigger, .contact-info-link) {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .user-dashboard :is(.faq-answer, .track-timeline-description, .track-detail-value, .help-form-text, .contact-resource-text, .contact-quick-text, .contact-emergency-text, .contact-feedback-text, .sc-section-subtitle) {
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .user-dashboard :is(.report-label, .track-label, .help-form-label, .contact-info-label, .track-detail-label) {
+    font-size: 12px;
+  }
+
+  .user-dashboard :is(.track-help, .report-helper-text, .report-reference-help, .report-upload-hint) {
+    font-size: 12px;
+    line-height: 1.55;
+  }
+
+  .user-dashboard :is(.report-button, .track-submit, .contact-btn, .faq-cta-link, .help-form-submit, .sc-btn-primary, .sc-btn-secondary, .report-upload-action) {
+    font-size: 13px;
+    padding: 10px 14px;
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Card padding and border radiuses on small devices */
+  .user-dashboard :is(.report-card, .report-success-card, .track-form-card, .track-status-card, .track-details-card, .contact-card, .help-form-card, .contact-resource-card) {
+    padding: clamp(14px, 4vw, 20px) !important;
+    border-radius: 14px !important;
+  }
+
+  .report-captcha-dialog h2 {
+    font-size: 19px;
+  }
+
+  .report-captcha-dialog p,
+  .report-captcha-dialog label {
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .report-captcha-actions button {
+    font-size: 12px;
+    padding: 10px;
+  }
+
+  /* Admin Dashboard Mobile Tuning */
+  .admin-dashboard-root :is(.admin-panel-title, .admin-modal-title) {
+    font-size: 17px;
+    line-height: 1.35;
+  }
+
+  .admin-dashboard-root :is(.admin-panel-subtitle, .admin-detail-val, .admin-modal-textarea, .admin-search-input) {
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .admin-dashboard-root :is(.admin-detail-label, .admin-field-label, .admin-filter-select, .admin-modal-select, .admin-modal-save, .admin-modal-cancel) {
+    font-size: 12px;
+  }
+
+  .admin-dashboard-root .admin-table {
+    font-size: 12px;
+  }
+
+  .admin-dashboard-root :is(.admin-modal-body, .admin-modal-header, .admin-modal-footer) {
+    min-width: 0;
+  }
+
+  .admin-login-page .admin-login-title {
+    font-size: 22px;
+  }
+
+  .admin-login-page :is(.admin-login-subtitle, .admin-login-label, .admin-login-footer, .admin-login-row, .admin-login-link) {
+    font-size: 12px;
+  }
+
+  /* Hotspot page stacking */
+  .user-dashboard .hotspot-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .user-dashboard .hotspot-select {
+    width: 100%;
+  }
+
+  /* Footer Links */
+  .user-dashboard :is(.sc-footer-grid, .report-footer-grid, .track-footer-grid, .hotspot-footer-grid, .how-footer-grid, .faq-footer-grid, .contact-footer-grid) {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 20px 0 !important;
+  }
+
+  .user-dashboard :is(.contact-actions, .faq-cta-actions) {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+}
+
+/* ==========================================================================
+   ULTRA-COMPACT PHONES (max-width: 360px)
+   ========================================================================== */
+@media (max-width: 360px) {
+  .user-dashboard :is(.report-shell, .track-shell, .hotspot-section, .contact-section, .how-section, .faq-section) {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .user-dashboard :is(.sc-hero-title, .report-hero-title, .track-hero-title, .hotspot-hero-title) {
+    font-size: 22px;
+  }
+
+  .user-dashboard :is(.report-card, .track-form-card, .contact-card, .help-form-card) {
+    padding: 12px 10px !important;
+    border-radius: 12px !important;
+  }
+
+  .admin-login-card,
+  .pr-card {
+    padding: 14px 10px !important;
+    border-radius: 14px !important;
+  }
+}
+
+/* ==========================================================================
+   LANDSCAPE OR LOW HEIGHT VIEWPORTS (max-height: 600px)
+   ========================================================================== */
+@media (max-height: 600px) {
+  .admin-login-page,
+  .password-recovery-page {
+    height: auto !important;
+    min-height: 100vh !important;
+    min-height: 100dvh !important;
+    padding-top: 14px;
+    padding-bottom: 14px;
+    overflow-y: auto !important;
+  }
+
+  .admin-login-card,
+  .pr-card {
+    max-height: none !important;
+  }
+}
+
+/* ==========================================================================
+   ACCESSIBILITY: REDUCED MOTION PREFERENCE
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

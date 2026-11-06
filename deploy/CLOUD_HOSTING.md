@@ -8,6 +8,18 @@ Email API verification passed after authorizing Render's outbound ranges (`74.22
 
 ## Services
 
+### Optional AI photo suggestions
+
+Set `GEMINI_API_KEY` privately in Render Environment to enable the photo assistant.
+`GEMINI_VISION_MODEL` defaults to `gemini-3.5-flash`; use a supported Gemini image-understanding model available to your project.
+`AI_IMAGE_DAILY_LIMIT` defaults to 50 analysis requests per day, with at most two provider attempts per request. Temporary provider server/network failures are retried once within a bounded 45-second window; key/access/quota errors and invalid model output are not retried. This is a best-effort in-memory cap on the current single-worker deployment; it resets on process restart. Set provider-side quotas in Google AI Studio for persistent usage controls. Per-IP requests are additionally throttled to six per hour.
+
+The reporter explicitly agrees to send the photo to Google and clicks **Analyze photo**. Only a resized JPEG without EXIF/GPS metadata is sent; visible faces and licence plates may remain. The original evidence is unchanged. Check Google's data-use terms for your chosen project/tier before enabling this for real reports. No photo is sent when analysis is disabled or consent is absent. Videos are not analyzed.
+
+AI output is a suggestion, never a final finding. The reporter must choose **Use this suggestion**; existing selections are not silently overwritten. Unsupported or unclear situations return no suggestion, and manual reporting remains available if the provider fails. The API validates allowed categories and never stores or submits an AI-created report. The key is server-side only; do not place it in any `REACT_APP_` variable.
+
+Provider references: [image understanding](https://ai.google.dev/gemini-api/docs/image-understanding), [structured output](https://ai.google.dev/gemini-api/docs/structured-output).
+
 - Render Free: one Docker web service builds React and runs Django/Gunicorn. React and `/api/` share one HTTPS origin, avoiding cross-site login cookies. Render supplies an `https://<available-service-name>.onrender.com` address; no domain purchase or Tailscale installation is required.
 - Supabase Free: PostgreSQL using the IPv4-compatible **Session pooler** and one **private** Storage bucket named `evidence`. The same bucket has separate `media/` and `private-evidence/` prefixes. Django returns temporary signed URLs for original evidence. Follow-up attachments still require the existing owner/staff API authorization and have no direct public URL in the app.
 - Brevo Free: transactional email via HTTPS. Render Free blocks outbound SMTP, including Gmail ports 465/587. A verified sender and an activated transactional account are required. Provider acceptance does not guarantee inbox delivery; verify actual arrival before switching users.

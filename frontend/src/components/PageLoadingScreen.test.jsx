@@ -58,5 +58,28 @@ describe("PageLoadingScreen component (FEZ Loading Page)", () => {
     });
 
     expect(handleComplete).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  });
+
+  test("cancels the completion callback when unmounted during the exit animation", () => {
+    const onComplete = jest.fn();
+    const { unmount } = render(<PageLoadingScreen active duration={500} onComplete={onComplete} />);
+    act(() => { jest.advanceTimersByTime(500); });
+    unmount();
+    act(() => { jest.advanceTimersByTime(500); });
+    expect(onComplete).not.toHaveBeenCalled();
+  });
+
+  test("rerenders do not restart the loader timer", () => {
+    const first = jest.fn();
+    const latest = jest.fn();
+    const { rerender } = render(<PageLoadingScreen active duration={500} onComplete={first} />);
+    act(() => { jest.advanceTimersByTime(400); });
+    rerender(<PageLoadingScreen active duration={500} onComplete={latest} />);
+    act(() => { jest.advanceTimersByTime(100); });
+    act(() => { jest.advanceTimersByTime(200); });
+    expect(first).not.toHaveBeenCalled();
+    expect(latest).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 });

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import shieldLogoImg from "../assets/ctmo-shield-logo-transparent.png";
 import "./PageLoadingScreen.css";
 
@@ -9,34 +9,33 @@ export default function PageLoadingScreen({
 }) {
   const [visible, setVisible] = useState(active);
   const [isExiting, setIsExiting] = useState(false);
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
 
   useEffect(() => {
-    if (!active) {
-      if (visible && !isExiting) {
-        setIsExiting(true);
-        const exitTimer = setTimeout(() => {
-          setVisible(false);
-          setIsExiting(false);
-        }, 200);
-        return () => clearTimeout(exitTimer);
-      }
-      return;
-    }
-
-    setVisible(true);
-    setIsExiting(false);
-
-    const finishTimer = setTimeout(() => {
+    let finishTimer;
+    let exitTimer;
+    const finish = (notify) => {
       setIsExiting(true);
-      setTimeout(() => {
+      exitTimer = setTimeout(() => {
         setVisible(false);
         setIsExiting(false);
-        if (onComplete) onComplete();
+        if (notify) onCompleteRef.current?.();
       }, 200);
-    }, duration);
+    };
+    if (active) {
+      setVisible(true);
+      setIsExiting(false);
+      finishTimer = setTimeout(() => finish(true), duration);
+    } else {
+      finish(false);
+    }
 
-    return () => clearTimeout(finishTimer);
-  }, [active, duration, onComplete, visible, isExiting]);
+    return () => {
+      clearTimeout(finishTimer);
+      clearTimeout(exitTimer);
+    };
+  }, [active, duration]);
 
   if (!visible) return null;
 

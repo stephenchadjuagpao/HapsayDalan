@@ -18,6 +18,7 @@ export const VIOLATION_GUIDE = [
   { value: "Deffective Signal / Break / Tail Lights", title: "Defective vehicle lights", scene: "lights", description: "Signal, brake light, o tail light nga guba o dili mosiga sa hustong higayon." },
   { value: "No Loading / No Unloading", title: "Loading in a prohibited area", scene: "loading", description: "Pagpasakay, pagpanaog, o pagkarga sa lugar nga adunay No Loading / No Unloading nga karatula." },
   { value: "Allowing Passenger on Top of MV", title: "Passenger on vehicle roof", scene: "roof", description: "Pagpasakay og tawo sa atop sa motor vehicle imbis sa hustong lingkoranan." },
+  { value: "CITY ORDINANCE NO. 133", title: "City Ordinance No. 133", scene: "ordinance", description: "Pagbilin o pagparada sa sakyanan tibuok gabii sa national, provincial, o city road sa Surigao City." },
   { value: "Other Violation/s (Specify)", title: "Other road concern", scene: "other", description: "Kung wala sa lista ang imong nakita, pilia kini ug ipasabot og klaro sa Description." },
 ];
 
@@ -70,6 +71,7 @@ function Illustration({ scene, title }) {
     {scene === "lights" ? <><rect x="49" y="28" width="80" height="69" rx="12" fill="#2878bf" /><rect x="58" y="37" width="62" height="26" rx="5" fill="#d9f2ff" /><rect x="49" y="72" width="17" height="12" fill="#ee777b" /><rect x="112" y="72" width="17" height="12" fill="#65798f" /><path d="M57 97v9m64-9v9" stroke="#31475d" strokeWidth="11" /><Cross x={139} y={77} /></> : null}
     {scene === "loading" ? <><Car x={12} y={64} /><Person x={101} y={49} /><Prohibited x={145} y={30}><path d="M-12 0h23m-6-6 6 6-6 6" stroke="#304d68" strokeWidth="3" fill="none" /></Prohibited></> : null}
     {scene === "roof" ? <><Car x={45} y={65} /><Person x={76} y={22} /><path d="M110 22h17" stroke="#d34251" strokeWidth="3" /><Cross x={138} y={27} /></> : null}
+    {scene === "ordinance" ? <><Car x={12} y={65} /><rect x="94" y="10" width="64" height="76" rx="6" fill="white" stroke="#aac2d8" strokeWidth="2" /><path d="M106 23h40m-40 9h29m-29 39h40" stroke="#aac2d8" strokeWidth="3" /><text x="126" y="59" textAnchor="middle" fontSize="23" fontWeight="800" fill="#2878bf">133</text></> : null}
     {scene === "other" ? <><Car x={20} y={62} /><circle cx="132" cy="35" r="24" fill="white" stroke="#aac2d8" strokeWidth="2" /><text x="123" y="45" fontSize="30" fontWeight="800" fill="#2878bf">?</text></> : null}
   </svg>;
 }
