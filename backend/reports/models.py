@@ -118,14 +118,59 @@ class SupportMessage(models.Model):
 
 class TrafficAdvisory(models.Model):
     AUDIENCES = [("all", "Public and CTMO staff"), ("public", "Public"), ("officers", "CTMO staff")]
-    message = models.TextField(max_length=1000)
-    audience = models.CharField(max_length=8, choices=AUDIENCES)
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
+    CATEGORIES = [
+        ("Road Closure", "Road Closure"),
+        ("Construction", "Construction"),
+        ("Heavy Traffic", "Heavy Traffic"),
+        ("Rerouting", "Rerouting"),
+        ("Accident", "Accident"),
+        ("Emergency", "Emergency"),
+    ]
+    STATUS_CHOICES = [
+        ("published", "Published"),
+        ("draft", "Draft"),
+        ("scheduled", "Scheduled"),
+    ]
+
+    title = models.CharField(max_length=255, blank=True, default="")
+    category = models.CharField(max_length=50, choices=CATEGORIES, default="Road Closure")
+    message = models.TextField(max_length=2000)
+    affected_location = models.CharField(max_length=255, blank=True, default="")
+    alternative_route = models.CharField(max_length=255, blank=True, default="")
+    media = models.FileField(upload_to="advisories/", null=True, blank=True)
+    start_datetime = models.DateTimeField(null=True, blank=True)
+    end_datetime = models.DateTimeField(null=True, blank=True)
+    is_pinned = models.BooleanField(default=False, db_index=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="published", db_index=True)
+    likes_count = models.PositiveIntegerField(default=0)
+    audience = models.CharField(max_length=8, choices=AUDIENCES, default="all")
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    updated_at = models.DateTimeField(auto_now=True)
     archived_at = models.DateTimeField(null=True, blank=True, db_index=True)
 
     class Meta:
-        ordering = ["-created_at", "-pk"]
+        ordering = ["-is_pinned", "-created_at", "-pk"]
+
+
+class TrafficAdvisoryComment(models.Model):
+    advisory = models.ForeignKey(TrafficAdvisory, related_name="comments", on_delete=models.CASCADE)
+    author_name = models.CharField(max_length=100, default="Citizen")
+    comment = models.TextField(max_length=1000)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ["created_at"]
+
+
+class TrafficAdvisoryReaction(models.Model):
+    advisory = models.ForeignKey(TrafficAdvisory, related_name="reactions", on_delete=models.CASCADE)
+    client_id = models.CharField(max_length=64, db_index=True)
+    reaction = models.CharField(max_length=16, default="like")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("advisory", "client_id")
 
 
 class ReportRecoveryChallenge(models.Model):

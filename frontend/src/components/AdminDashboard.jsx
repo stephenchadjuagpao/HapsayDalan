@@ -103,6 +103,10 @@ export default function AdminDashboard() {
   const [assigningOfficer, setAssigningOfficer] = useState(null);
   const [assigningCaseId, setAssigningCaseId] = useState(null);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const [notificationTitle, setNotificationTitle] = useState("");
+  const [notificationCategory, setNotificationCategory] = useState("Road Closure");
+  const [notificationLocation, setNotificationLocation] = useState("");
+  const [notificationRoute, setNotificationRoute] = useState("");
   const [notificationMessage, setNotificationMessage] = useState("");
   const [notificationTarget, setNotificationTarget] = useState("all");
   const [advisoryVersion, setAdvisoryVersion] = useState(0);
@@ -399,8 +403,21 @@ export default function AdminDashboard() {
     setSendingAdvisory(true);
     setAdvisoryError("");
     try {
-      await API.post("admin/advisories/", { message: notificationMessage.trim(), audience: notificationTarget });
+      const payload = {
+        message: notificationMessage.trim(),
+        audience: notificationTarget,
+      };
+      if (notificationTitle.trim()) payload.title = notificationTitle.trim();
+      if (notificationCategory && notificationCategory !== "Road Closure") payload.category = notificationCategory;
+      if (notificationLocation.trim()) payload.affected_location = notificationLocation.trim();
+      if (notificationRoute.trim()) payload.alternative_route = notificationRoute.trim();
+
+      await API.post("admin/advisories/", payload);
       setAdvisoryVersion((value) => value + 1);
+      setNotificationTitle("");
+      setNotificationCategory("Road Closure");
+      setNotificationLocation("");
+      setNotificationRoute("");
       setNotificationMessage("");
       setShowNotificationModal(false);
       showToast("Traffic advisory published.");
@@ -1115,6 +1132,34 @@ export default function AdminDashboard() {
 
                 <div className="admin-modal-body">
                   <div className="admin-field-group">
+                    <label className="admin-field-label">Announcement Title</label>
+                    <input
+                      type="text"
+                      className="admin-modal-input"
+                      placeholder="e.g. Temporary Road Closure: Bilang-Bilang St."
+                      value={notificationTitle}
+                      onChange={(e) => setNotificationTitle(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="admin-field-group">
+                    <label className="admin-field-label">Category</label>
+                    <ResponsiveSelect
+                      className="admin-modal-select"
+                      aria-label="Advisory category"
+                      value={notificationCategory}
+                      onChange={(e) => setNotificationCategory(e.target.value)}
+                    >
+                      <option value="Road Closure">Road Closure</option>
+                      <option value="Construction">Construction</option>
+                      <option value="Heavy Traffic">Heavy Traffic</option>
+                      <option value="Rerouting">Rerouting</option>
+                      <option value="Accident">Accident</option>
+                      <option value="Emergency">Emergency</option>
+                    </ResponsiveSelect>
+                  </div>
+
+                  <div className="admin-field-group">
                     <label className="admin-field-label">Target Audience</label>
                     <ResponsiveSelect
                       className="admin-modal-select"
@@ -1129,7 +1174,29 @@ export default function AdminDashboard() {
                   </div>
 
                   <div className="admin-field-group">
-                    <label className="admin-field-label">Advisory Message</label>
+                    <label className="admin-field-label">Affected Location (Optional)</label>
+                    <input
+                      type="text"
+                      className="admin-modal-input"
+                      placeholder="e.g. Rizal St. cor. Borromeo"
+                      value={notificationLocation}
+                      onChange={(e) => setNotificationLocation(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="admin-field-group">
+                    <label className="admin-field-label">Alternative Route (Optional)</label>
+                    <input
+                      type="text"
+                      className="admin-modal-input"
+                      placeholder="e.g. Reroute via Taft St. or Boulevard"
+                      value={notificationRoute}
+                      onChange={(e) => setNotificationRoute(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="admin-field-group">
+                    <label className="admin-field-label">Advisory Message *</label>
                     <textarea
                       className="admin-modal-textarea"
                       rows="4"

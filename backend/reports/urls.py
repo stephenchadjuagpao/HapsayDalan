@@ -10,7 +10,10 @@ from .submission_verification import request_submission_code, verify_submission_
 from .evidence import evidence_history, request_evidence, reply_evidence, evidence_file
 from .activity import admin_activity_history
 from .support import send_support_message, support_inbox, read_support_message, unread_message_count
-from .advisories import public_advisories, admin_advisories, archive_advisory
+from .advisories import (
+    public_advisories, like_advisory, advisory_comments,
+    admin_advisories, admin_advisory_detail, admin_advisory_pin, archive_advisory
+)
 from .staff_accounts import admin_me, admin_logout, staff_accounts, update_staff_account, resend_staff_invitation
 from .officers import officers, officer_detail
 
@@ -23,7 +26,11 @@ urlpatterns = [
     path("admin/officers/", officers, name="admin-officers"),
     path("admin/officers/<int:officer_id>/", officer_detail, name="admin-officer-detail"),
     path("advisories/", public_advisories, name="public-advisories"),
+    path("advisories/<int:advisory_id>/like/", like_advisory, name="advisory-like"),
+    path("advisories/<int:advisory_id>/comments/", advisory_comments, name="advisory-comments"),
     path("admin/advisories/", admin_advisories, name="admin-advisories"),
+    path("admin/advisories/<int:advisory_id>/", admin_advisory_detail, name="admin-advisory-detail"),
+    path("admin/advisories/<int:advisory_id>/pin/", admin_advisory_pin, name="admin-advisory-pin"),
     path("admin/advisories/<int:advisory_id>/archive/", archive_advisory, name="admin-advisory-archive"),
     path("support/messages/", send_support_message, name="support-message-send"),
     path("admin/messages/", support_inbox, name="support-inbox"),

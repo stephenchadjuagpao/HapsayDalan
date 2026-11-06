@@ -115,9 +115,17 @@ export default function TrafficAdvisories({ admin = false, refreshKey = 0 }) {
     {error && <p className="traffic-advisories-error" role="alert">{error}</p>}
     {!advisories.length && admin && !error && <p className="traffic-advisories-empty">{view === "all" ? "No advisories have been published yet." : "No active advisories yet."}</p>}
     <div className="traffic-advisories-list">{advisories.map((advisory) => <article className="traffic-advisory" key={advisory.id}>
+      {advisory.title && <h3 style={{ margin: "0 0 6px", fontSize: "15px", fontWeight: 700 }}>{advisory.title}</h3>}
       <p className="traffic-advisory-message">{advisory.message}</p>
+      {advisory.affected_location && (
+        <div style={{ marginTop: "6px", fontSize: "12px", color: "#dc2626", fontWeight: 600 }}>
+          📍 Affected: {advisory.affected_location}
+          {advisory.alternative_route && <span> · 🛣️ Route: {advisory.alternative_route}</span>}
+        </div>
+      )}
       <div className="traffic-advisory-meta">
         <span>{new Date(advisory.created_at).toLocaleString("en-PH", { dateStyle: "medium", timeStyle: "short" })}</span>
+        {advisory.category && <span style={{ fontWeight: 700, color: "#1877f2" }}>[{advisory.category}]</span>}
         {admin && <span>{AUDIENCE_LABELS[advisory.audience] || advisory.audience}</span>}
         {admin && view === "all" && <span className={`traffic-advisory-status ${advisory.archived_at ? "is-archived" : ""}`}>
           {advisory.archived_at ? `Archived ${new Date(advisory.archived_at).toLocaleString("en-PH", { dateStyle: "medium", timeStyle: "short" })}` : "Active"}

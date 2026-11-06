@@ -68,3 +68,80 @@ class TrafficAdvisoryTests(TestCase):
         self.assertEqual(first.data["count"], 23)
         self.assertEqual(len(first.data["results"]), 20)
         self.assertEqual(len(second.data["results"]), 3)
+
+    def test_full_announcement_workflow_and_interactions(self):
+        self.client.force_authenticate(self.staff)
+        # Create full announcement
+        payload = {
+            "title": "Emergency Bridge Repair",
+            "category": "Construction",
+            "message": "Major construction work along Bilang-Bilang bridge.",
+            "affected_location": "Bilang-Bilang St. / Boulevard",
+            "alternative_route": "Use Borromeo St.",
+            "is_pinned": True,
+            "status": "published",
+        }
+        create_res = self.client.post("/api/admin/advisories/", payload)
+        self.assertEqual(create_res.status_code, 201)
+        advisory_id = create_res.data["id"]
+        self.assertTrue(create_res.data["is_pinned"])
+        self.assertEqual(create_res.data["category"], "Construction")
+
+        # Public feed can see published announcement
+        self.client.force_authenticate(user=None)
+        public_res = self.client.get("/api/advisories/?page=1")
+        self.assertEqual(public_res.status_code, 200)
+        self.assertGreaterEqual(public_res.data["count"], 1)
+        first_item = public_res.data["results"][0]
+        self.assertEqual(first_item["title"], "Emergency Bridge Repair")
+        self.assertEqual(first_item["affected_location"], "Bilang-Bilang St. / Boulevard")
+
+        # Test Citizen Like / Unlike
+        like_res = self.client.post(f"/api/advisories/{advisory_id}/like/", HTTP_X_CLIENT_ID="citizen-browser-123")
+        self.assertEqual(like_res.status_code, 200)
+        self.assertTrue(like_res.data["liked"])
+        self.assertEqual(like_res.data["likes_count"], 1)
+
+        unlike_res = self.client.post(f"/api/advisories/{advisory_id}/like/", HTTP_X_CLIENT_ID="citizen-browser-123")
+        self.assertEqual(unlike_res.status_code, 200)
+        self.assertFalse(unlike_res.data["liked"])
+        self.assertEqual(unlike_res.data["likes_count"], 0)
+
+        # Test Citizen Comments
+        comment_payload = {"author_name": "Juan Dela Cruz", "comment": "Salamat sa pahibalo CTMO!"}
+        comm_res = self.client.post(f"/api/advisories/{advisory_id}/comments/", comment_payload)
+        self.assertEqual(comm_res.status_code, 201)
+        self.assertEqual(comm_res.data["author_name"], "Juan Dela Cruz")
+
+        list_comm = self.client.get(f"/api/advisories/{advisory_id}/comments/")
+        self.assertEqual(list_comm.status_code, 200)
+        self.assertEqual(len(list_comm.data), 1)
+
+        # Test Draft Visibility: public cannot see drafts
+        self.client.force_authenticate(self.staff)
+        draft_res = self.client.post("/api/admin/advisories/", {
+            "title": "Secret Draft Notice",
+            "message": "Not yet public",
+            "status": "draft",
+        })
+        self.assertEqual(draft_res.status_code, 201)
+        draft_id = draft_res.data["id"]
+
+        self.client.force_authenticate(user=None)
+        feed_items = self.client.get("/api/advisories/")
+        feed_titles = [row["title"] for row in (feed_items.data if isinstance(feed_items.data, list) else feed_items.data.get("results", []))]
+        self.assertNotIn("Secret Draft Notice", feed_titles)
+
+        # Admin can pin/unpin, edit, and delete
+        self.client.force_authenticate(self.staff)
+        pin_res = self.client.patch(f"/api/admin/advisories/{advisory_id}/pin/", {"is_pinned": False})
+        self.assertEqual(pin_res.status_code, 200)
+        self.assertFalse(pin_res.data["is_pinned"])
+
+        edit_res = self.client.patch(f"/api/admin/advisories/{advisory_id}/", {"title": "Updated Bridge Repair"})
+        self.assertEqual(edit_res.status_code, 200)
+        self.assertEqual(edit_res.data["title"], "Updated Bridge Repair")
+
+        del_res = self.client.delete(f"/api/admin/advisories/{draft_id}/")
+        self.assertEqual(del_res.status_code, 204)
+        self.assertFalse(TrafficAdvisory.objects.filter(pk=draft_id).exists())
