@@ -11,14 +11,18 @@ jest.mock("react-router-dom", () => ({
 
 test("publishing an advisory saves it and shows it in the admin workspace", async () => {
   let saved = [];
-  API.get.mockImplementation((url) => Promise.resolve({ data: url === "admin/advisories/" ? saved : [] }));
+  API.get.mockImplementation((url) => {
+    if (url.includes("admin/advisories")) return Promise.resolve({ data: saved });
+    return Promise.resolve({ data: [] });
+  });
   API.post.mockImplementation((_url, payload) => {
     const advisory = { id: 1, ...payload, created_at: "2026-10-28T03:00:00Z" };
     saved = [advisory];
     return Promise.resolve({ data: advisory });
   });
   render(<AdminDashboard />);
-  fireEvent.click(screen.getByRole("button", { name: "Send Advisory Alert" }));
+  const advButtons = screen.getAllByRole("button", { name: /Traffic Advisories|Send Advisory Alert/i });
+  fireEvent.click(advButtons[advButtons.length - 1]);
   fireEvent.change(screen.getByPlaceholderText(/Heavy congestion along Rizal St/), { target: { value: "Road closed at Rizal St." } });
   fireEvent.click(screen.getByRole("button", { name: "Broadcast Advisory" }));
   await waitFor(() => expect(API.post).toHaveBeenCalledWith("admin/advisories/", {

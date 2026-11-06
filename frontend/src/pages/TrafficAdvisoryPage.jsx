@@ -54,7 +54,6 @@ export default function TrafficAdvisoryPage() {
   // Filters
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [statusTab, setStatusTab] = useState("published"); // published | draft | archived (admin only)
 
   // Modals & Forms
   const [showComposer, setShowComposer] = useState(false);
@@ -148,22 +147,12 @@ export default function TrafficAdvisoryPage() {
     }
   };
 
-  // Fetch Advisories
+  // Fetch Advisories (Public feed always fetches published advisories)
   const loadAdvisories = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      let endpoint = "advisories/";
       const params = new URLSearchParams();
-
-      if (isAdmin && (statusTab === "draft" || statusTab === "archived")) {
-        endpoint = "admin/advisories/";
-        params.append("status", statusTab);
-      } else if (isAdmin && statusTab === "all") {
-        endpoint = "admin/advisories/";
-        params.append("status", "all");
-      }
-
       if (selectedCategory && selectedCategory !== "All") {
         params.append("category", selectedCategory);
       }
@@ -172,7 +161,7 @@ export default function TrafficAdvisoryPage() {
       }
 
       const queryString = params.toString();
-      const url = `${endpoint}${queryString ? `?${queryString}` : ""}`;
+      const url = `advisories/${queryString ? `?${queryString}` : ""}`;
       const { data } = await API.get(url);
       const rows = Array.isArray(data) ? data : data?.results || [];
       setAdvisories(rows);
@@ -181,7 +170,7 @@ export default function TrafficAdvisoryPage() {
     } finally {
       setLoading(false);
     }
-  }, [isAdmin, statusTab, selectedCategory, searchQuery]);
+  }, [selectedCategory, searchQuery]);
 
   useEffect(() => {
     const timer = setTimeout(loadAdvisories, 250);
@@ -216,24 +205,6 @@ export default function TrafficAdvisoryPage() {
     const interval = setInterval(poll, 60000);
     return () => clearInterval(interval);
   }, [notifEnabled, loadAdvisories]);
-
-  // Open Composer for New Announcement
-  const openNewComposer = () => {
-    setEditingAdvisory(null);
-    setFormTitle("");
-    setFormCategory("Road Closure");
-    setFormMessage("");
-    setFormLocation("");
-    setFormRoute("");
-    setFormStartDate("");
-    setFormEndDate("");
-    setFormIsPinned(false);
-    setFormStatus("published");
-    setFormMediaFile(null);
-    setFormMediaPreview(null);
-    setFormError("");
-    setShowComposer(true);
-  };
 
   // Open Composer for Editing Existing Announcement
   const openEditComposer = (advisory) => {
@@ -518,66 +489,8 @@ export default function TrafficAdvisoryPage() {
           </div>
         </aside>
 
-        {/* Center Column: Feed & Composer */}
+        {/* Center Column: Public Feed */}
         <main className="ta-main-feed">
-          {/* Admin Announcement Composer Box */}
-          {!isAdminLoading && isAdmin && (
-            <section className="ta-composer-card">
-              <div className="ta-composer-top">
-                <img src={ctmoShieldLogo} alt="CTMO Admin" className="ta-composer-avatar" />
-                <button
-                  type="button"
-                  className="ta-composer-placeholder-btn"
-                  onClick={openNewComposer}
-                >
-                  <MaterialIcon name="campaign" />
-                  <span>Create an announcement, road closure, or traffic alert...</span>
-                </button>
-              </div>
-              <div className="ta-composer-bottom">
-                <button type="button" className="ta-composer-action-btn" onClick={openNewComposer}>
-                  <MaterialIcon name="add_photo_alternate" className="text-green" />
-                  <span>Photo / Video</span>
-                </button>
-                <button type="button" className="ta-composer-action-btn" onClick={openNewComposer}>
-                  <MaterialIcon name="alt_route" className="text-blue" />
-                  <span>Rerouting Plan</span>
-                </button>
-                <button type="button" className="ta-composer-action-btn" onClick={openNewComposer}>
-                  <MaterialIcon name="push_pin" className="text-orange" />
-                  <span>Emergency Notice</span>
-                </button>
-              </div>
-            </section>
-          )}
-
-          {/* Admin Tab Navigation */}
-          {!isAdminLoading && isAdmin && (
-            <div className="ta-admin-tabs">
-              <button
-                type="button"
-                className={`ta-admin-tab ${statusTab === "published" ? "active" : ""}`}
-                onClick={() => setStatusTab("published")}
-              >
-                Published
-              </button>
-              <button
-                type="button"
-                className={`ta-admin-tab ${statusTab === "draft" ? "active" : ""}`}
-                onClick={() => setStatusTab("draft")}
-              >
-                Drafts
-              </button>
-              <button
-                type="button"
-                className={`ta-admin-tab ${statusTab === "archived" ? "active" : ""}`}
-                onClick={() => setStatusTab("archived")}
-              >
-                Archived
-              </button>
-            </div>
-          )}
-
           {/* Search & Category Filter Pills */}
           <div className="ta-filter-bar">
             <div className="ta-search-wrap">

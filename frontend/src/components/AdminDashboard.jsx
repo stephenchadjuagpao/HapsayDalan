@@ -15,6 +15,7 @@ import AdminActivityHistory from "./AdminActivityHistory";
 import AdminMessages from "./AdminMessages";
 import ThemeToggle from "./ThemeToggle";
 import TrafficAdvisories from "./TrafficAdvisories";
+import AdminAdvisories from "./AdminAdvisories";
 import AdminStaffAccounts from "./AdminStaffAccounts";
 import OfficerEditor from "./OfficerEditor";
 import useOfficers from "../hooks/useOfficers";
@@ -450,6 +451,7 @@ export default function AdminDashboard() {
   const navigation = [
     { key: "overview", label: "Overview", icon: "overview" },
     { key: "queue", label: "Reports Queue", icon: "reports" },
+    { key: "advisories", label: "Traffic Advisories", icon: "bell" },
     { key: "assignment", label: "Case Assignment", icon: "officers" },
     { key: "analytics", label: "Analytics", icon: "analytics" },
     { key: "hotspot", label: "Hotspot Map", icon: "map" },
@@ -508,7 +510,7 @@ export default function AdminDashboard() {
               }}>
               <span className="admin-nav-icon"><AdminIcon name={item.icon} /></span>
               <span className="admin-nav-copy"><span>{item.label}</span><small aria-hidden="true">{{
-                overview: "Summary & updates", queue: "Review citizen reports", assignment: "Coordinate officers",
+                overview: "Summary & updates", queue: "Review citizen reports", advisories: "Manage announcements", assignment: "Coordinate officers",
                 analytics: "Trends & statistics", hotspot: "Verified locations", activity: "Admin actions & notes", messages: "Citizen questions & help", accounts: "Manage staff access",
               }[item.key]}</small></span>
               {item.key === "queue" && stats.pendingReview > 0 && <span className="admin-tab-badge">{stats.pendingReview}</span>}
@@ -652,9 +654,16 @@ export default function AdminDashboard() {
                     <AdminIcon name="officers" />
                     <span>Assign Cases to Officers</span>
                   </button>
-                  <button className="admin-action-item-btn" onClick={() => setShowNotificationModal(true)}>
+                  <button
+                    className="admin-action-item-btn"
+                    onClick={() => {
+                      setActiveTab("advisories");
+                      setShowNotificationModal(true);
+                    }}
+                    aria-label="Send Advisory Alert"
+                  >
                     <AdminIcon name="bell" />
-                    <span>Send Advisory Alert</span>
+                    <span>Traffic Advisories</span>
                   </button>
                   <button className="admin-action-item-btn" onClick={() => setActiveTab("analytics")}>
                     <AdminIcon name="analytics" />
@@ -840,6 +849,12 @@ export default function AdminDashboard() {
                 <HotspotMap isEmbedded={true} />
               </div>
             </div>
+          )}
+          {activeTab === "advisories" && (
+            <AdminAdvisories
+              refreshKey={advisoryVersion}
+              onAdvisoryChange={() => setAdvisoryVersion((v) => v + 1)}
+            />
           )}
           {activeTab === "messages" && <AdminMessages onRead={refreshMessageCount} />}
           {activeTab === "accounts" && isSuperuser && <AdminStaffAccounts />}
