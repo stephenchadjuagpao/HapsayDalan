@@ -7,9 +7,10 @@ afterEach(() => { document.body.style.overflow = ""; window.matchMedia = origina
 test("the icon dock keeps real destinations, accessible labels, and the current page", () => {
   const { container, rerender } = render(<Navbar currentPage="report" />);
   const dock = within(container.querySelector('.sc-nav-links'));
-  expect(dock.getAllByRole("link")).toHaveLength(8);
+  expect(dock.getAllByRole("link")).toHaveLength(9);
   expect(dock.getByRole("link", { name: "Report a Violation" })).toHaveAttribute("aria-current", "page");
   expect(dock.getByRole("link", { name: "Track My Report" })).toHaveAttribute("href", "/track");
+  expect(dock.getByRole("link", { name: "Traffic Advisory" })).toHaveAttribute("href", "/advisory");
   expect(dock.getByRole("link", { name: "Admin/CTMO" })).toHaveAttribute("href", "/admin-ctmo");
   dock.getAllByRole("link").forEach((link) => expect(link.querySelector('svg[aria-hidden="true"]')).toBeInTheDocument());
   rerender(<Navbar currentPage="map" />);
@@ -23,9 +24,10 @@ test("mobile navigation exposes the current page and restores scrolling and focu
   const toggle = screen.getByRole("button", { name: "Open menu" });
   fireEvent.click(toggle);
   const menu = screen.getByRole("region", { name: "Explore HapsayDalan" });
-  expect(within(menu).getAllByRole("link")).toHaveLength(8);
+  expect(within(menu).getAllByRole("link")).toHaveLength(9);
   expect(within(menu).getByRole("link", { name: "Track My Report" })).toHaveAttribute("aria-current", "page");
   expect(within(menu).getByRole("link", { name: "Report a Violation" })).toHaveAttribute("href", "/report");
+  expect(within(menu).getByRole("link", { name: "Traffic Advisory" })).toHaveAttribute("href", "/advisory");
   expect(within(menu).getByRole("link", { name: "Admin/CTMO" })).toHaveAttribute("href", "/admin-ctmo");
   expect(document.body.style.overflow).toBe("hidden");
   fireEvent.keyDown(window, { key: "Escape" });

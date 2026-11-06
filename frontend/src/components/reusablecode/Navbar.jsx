@@ -12,10 +12,10 @@ const NAV_LINKS = [
   { label: "Track My Report", href: "/track", page: "track" },
   { label: "Hotspot Map", href: "/hotspot-map", page: "map" },
   { label: "Traffic Advisory", href: "/advisory", page: "advisory" },
+  { label: "Admin/CTMO", href: "/admin-ctmo", page: "admin" },
   { label: "How It Works", href: "/how-it-works", page: "how" },
   { label: "FAQs", href: "/faqs", page: "faqs" },
   { label: "Contact/Help", href: "/contact", page: "contact" },
-  { label: "Admin/CTMO", href: "/admin-ctmo", page: "admin" },
 ];
 
 export default function Navbar({ currentPage = "home" }) {
@@ -58,9 +58,18 @@ export default function Navbar({ currentPage = "home" }) {
     event.currentTarget.style.setProperty("--dock-y", `${(event.clientY - bounds.top - bounds.height / 2) * 0.1}px`);
   };
   const mobileLink = (link, secondary = false) => <a key={link.page} href={link.href}
-    className={`sc-menu-link${activeLink === link.page ? " active" : ""}`}
+    className={`sc-menu-link${link.page === "admin" ? " sc-menu-admin-item" : ""}${activeLink === link.page ? " active" : ""}`}
+    aria-label={link.label}
     aria-current={activeLink === link.page ? "page" : undefined} onClick={() => selectLink(link.page)}>
-    <span className="sc-menu-icon"><NavIcon name={link.page} /></span><span>{link.label}</span>
+    <span className="sc-menu-icon"><NavIcon name={link.page} /></span>
+    <span className="sc-menu-text">
+      {link.label}
+      {link.page === "admin" && (
+        <span className="sc-menu-lock-badge" aria-hidden="true">
+          <MaterialIcon name="lock" size={12} />
+        </span>
+      )}
+    </span>
     {secondary ? <NavIcon name="arrow" /> : null}
   </a>;
 
@@ -95,13 +104,9 @@ export default function Navbar({ currentPage = "home" }) {
       <div id="sc-mobile-navigation" className={`sc-mobile-menu${menuOpen ? " open" : ""}`} hidden={!menuOpen}
         role="region" aria-labelledby="sc-menu-title">
         <div className="sc-menu-heading"><strong id="sc-menu-title">Explore HapsayDalan</strong><span>NAVIGATION</span></div>
-        <div className="sc-menu-primary">{NAV_LINKS.slice(0, 5).map((link) => mobileLink(link))}</div>
+        <div className="sc-menu-primary">{NAV_LINKS.slice(0, 6).map((link) => mobileLink(link))}</div>
         <div className="sc-menu-group-label">HELP & INFORMATION</div>
-        <div className="sc-menu-secondary">{NAV_LINKS.slice(5, 8).map((link) => mobileLink(link, true))}</div>
-        <div className="sc-menu-staff"><a href="/admin-ctmo" className={`sc-menu-link${activeLink === "admin" ? " active" : ""}`}
-          aria-label="Admin/CTMO" aria-current={activeLink === "admin" ? "page" : undefined} onClick={() => selectLink("admin")}>
-          <span className="sc-menu-icon"><NavIcon name="admin" /></span><span><strong>Admin/CTMO <span className="sc-menu-lock-badge" aria-hidden="true"><MaterialIcon name="lock" size={13} /></span></strong><small>Authorized personnel • PIN Protected</small></span><NavIcon name="arrow" />
-        </a></div>
+        <div className="sc-menu-secondary">{NAV_LINKS.slice(6, 9).map((link) => mobileLink(link, true))}</div>
         <div className="sc-menu-theme"><ThemeToggle showLabel /></div>
       </div>
     </nav>
