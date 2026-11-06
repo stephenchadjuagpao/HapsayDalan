@@ -3,8 +3,8 @@ import "./ContactQuickActions.css";
 
 const actions = [
   { label: "Facebook", icon: "facebook", href: "https://www.facebook.com/surigaoctmo/", external: true },
-  { label: "Email CTMO", icon: "mail", href: "mailto:ctmo@surigaocity.gov.ph" },
-  { label: "Call CTMO", icon: "phone", href: "tel:+63862319999" },
+  { label: "Email CTMO", icon: "mail", href: "mailto:surigaoctmo@gmail.com" },
+  { label: "Call CTMO", icon: "phone", href: "tel:+639120646724" },
   { label: "Office Location", icon: "place", href: "https://www.google.com/maps/search/?api=1&query=Surigao%20City%20Traffic%20Management%20Office%2C%20City%20Hall%20Complex%2C%20Surigao%20City", external: true },
   { label: "Send Message", icon: "assignment", href: "#contact-form", isPrimary: true },
 ];

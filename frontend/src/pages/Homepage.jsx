@@ -589,7 +589,7 @@ export default function Homepage() {
               <div className="sc-footer-col-title">Contact CTMO</div>
               <p className="sc-footer-contact">
                 Surigao City Traffic Management Office<br />
-                Phone: (086) 231-9999<br />
+                Phone: 0912 064 6724<br />
                 Hours: 8AM – 5PM (Mon-Fri)
               </p>
             </div>

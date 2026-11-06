@@ -278,7 +278,7 @@ const FAQ_SECTIONS = [
                 <strong>Call 911 or your emergency hotline</strong> for life-threatening situations
               </li>
               <li>
-                <strong>Contact CTMO directly</strong> at <strong>(086) 231-9999</strong> for
+                <strong>Contact CTMO directly</strong> at <strong>0912 064 6724</strong> for
                 urgent traffic matters
               </li>
               <li>Use our report form for non-emergency violations</li>
@@ -658,7 +658,7 @@ export default function FAQsPage() {
               <div className="faq-footer-col-title">Contact CTMO</div>
               <p className="faq-footer-contact">
                 Surigao City Traffic Management Office<br />
-                Phone: (086) 231-9999<br />
+                Phone: 0912 064 6724<br />
                 Hours: 8AM - 5PM (Mon-Fri)
               </p>
             </div>

@@ -625,15 +625,15 @@ export default function ContactHelpPage() {
 
                   <div>
                     <p className="contact-info-label">Phone</p>
-                    <a href="tel:+63862319999" className="contact-info-link">
-                      (086) 231-9999
+                    <a href="tel:+639120646724" className="contact-info-link">
+                      0912 064 6724
                     </a>
                   </div>
 
                   <div>
                     <p className="contact-info-label">Email</p>
-                    <a href="mailto:ctmo@surigaocity.gov.ph" className="contact-info-link">
-                      ctmo@surigaocity.gov.ph
+                    <a href="mailto:surigaoctmo@gmail.com" className="contact-info-link">
+                      surigaoctmo@gmail.com
                     </a>
                   </div>
 
@@ -763,7 +763,7 @@ export default function ContactHelpPage() {
               <div className="contact-footer-col-title">Contact CTMO</div>
               <p className="contact-footer-contact">
                 Surigao City Traffic Management Office<br />
-                Phone: (086) 231-9999<br />
+                Phone: 0912 064 6724<br />
                 Hours: 8AM - 5PM (Mon-Fri)
               </p>
             </div>
