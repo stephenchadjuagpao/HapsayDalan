@@ -1,14 +1,13 @@
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import TrafficAdvisoryPage from "./TrafficAdvisoryPage";
+import API from "../services/api";
 
 jest.mock("react-router-dom", () => ({
   useNavigate: () => jest.fn(),
   useLocation: () => ({ pathname: "/advisory" }),
   Link: ({ children, to, ...props }) => <a href={to} {...props}>{children}</a>,
 }), { virtual: true });
-
-import TrafficAdvisoryPage from "./TrafficAdvisoryPage";
-import API from "../services/api";
 
 jest.mock("../services/api", () => ({
   get: jest.fn(),
@@ -139,5 +138,21 @@ describe("TrafficAdvisoryPage", () => {
 
     const notifyBtn = await screen.findByRole("button", { name: /Get Notified/i });
     expect(notifyBtn).toBeInTheDocument();
+  });
+
+  test("clicking different categories does not trigger duplicate notifications", async () => {
+    render(<TrafficAdvisoryPage />);
+    await screen.findByText("Urgent Road Closure: Bilang-Bilang St.");
+
+    // Click Category "Construction"
+    const constructionPill = screen.getByRole("button", { name: /Construction/i });
+    fireEvent.click(constructionPill);
+
+    // Click Category "All"
+    const allPill = screen.getByRole("button", { name: "All" });
+    fireEvent.click(allPill);
+
+    // Toast alert for new advisory should NOT be shown on category switch
+    expect(screen.queryByText("New traffic advisory published by CTMO.")).not.toBeInTheDocument();
   });
 });
