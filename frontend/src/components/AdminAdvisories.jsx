@@ -399,7 +399,9 @@ export default function AdminAdvisories({ refreshKey = 0, onAdvisoryChange }) {
                   <div className="admin-adv-details-box">
                     {advisory.affected_location && (
                       <div className="admin-adv-detail-row">
-                        <span className="admin-adv-detail-icon red">📍</span>
+                        <span className="admin-adv-detail-icon red">
+                          <MaterialIcon name="place" />
+                        </span>
                         <div>
                           <strong>Affected Location:</strong> {advisory.affected_location}
                         </div>
@@ -407,7 +409,9 @@ export default function AdminAdvisories({ refreshKey = 0, onAdvisoryChange }) {
                     )}
                     {advisory.alternative_route && (
                       <div className="admin-adv-detail-row">
-                        <span className="admin-adv-detail-icon blue">🛣️</span>
+                        <span className="admin-adv-detail-icon blue">
+                          <MaterialIcon name="alt_route" />
+                        </span>
                         <div>
                           <strong>Alternative Route:</strong> {advisory.alternative_route}
                         </div>
@@ -426,14 +430,16 @@ export default function AdminAdvisories({ refreshKey = 0, onAdvisoryChange }) {
                 {/* Stats Bar */}
                 <div className="admin-adv-stats-row">
                   <span className="admin-adv-stat">
-                    👍 {advisory.likes_count || 0} citizen reactions
+                    <MaterialIcon name="thumb_up" />
+                    <span>{advisory.likes_count || 0} citizen reactions</span>
                   </span>
                   <button
                     type="button"
                     className="admin-adv-comments-link"
                     onClick={() => openComments(advisory)}
                   >
-                    💬 {advisory.comments_count || 0} comments
+                    <MaterialIcon name="chat" />
+                    <span>{advisory.comments_count || 0} comments</span>
                   </button>
                 </div>
 
@@ -662,7 +668,10 @@ export default function AdminAdvisories({ refreshKey = 0, onAdvisoryChange }) {
                       checked={formIsPinned}
                       onChange={(e) => setFormIsPinned(e.target.checked)}
                     />
-                    <span>📌 <strong>Pin this announcement</strong> to the top of the feed</span>
+                    <span className="admin-adv-pin-label">
+                      <MaterialIcon name="push_pin" />
+                      <span><strong>Pin this announcement</strong> to the top of the feed</span>
+                    </span>
                   </label>
 
                   <div className="admin-adv-status-selector">
@@ -676,7 +685,10 @@ export default function AdminAdvisories({ refreshKey = 0, onAdvisoryChange }) {
                           checked={formStatus === "published"}
                           onChange={() => setFormStatus("published")}
                         />
-                        <span>🚀 Publish Immediately</span>
+                        <span className="admin-adv-radio-content">
+                          <MaterialIcon name="send" />
+                          <span>Publish Immediately</span>
+                        </span>
                       </label>
                       <label className={`admin-adv-radio-btn ${formStatus === "draft" ? "active" : ""}`}>
                         <input
@@ -686,7 +698,10 @@ export default function AdminAdvisories({ refreshKey = 0, onAdvisoryChange }) {
                           checked={formStatus === "draft"}
                           onChange={() => setFormStatus("draft")}
                         />
-                        <span>📝 Save as Draft</span>
+                        <span className="admin-adv-radio-content">
+                          <MaterialIcon name="drafts" />
+                          <span>Save as Draft</span>
+                        </span>
                       </label>
                     </div>
                   </div>

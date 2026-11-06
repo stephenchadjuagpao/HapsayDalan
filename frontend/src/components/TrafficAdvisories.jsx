@@ -118,9 +118,15 @@ export default function TrafficAdvisories({ admin = false, refreshKey = 0 }) {
       {advisory.title && <h3 style={{ margin: "0 0 6px", fontSize: "15px", fontWeight: 700 }}>{advisory.title}</h3>}
       <p className="traffic-advisory-message">{advisory.message}</p>
       {advisory.affected_location && (
-        <div style={{ marginTop: "6px", fontSize: "12px", color: "#dc2626", fontWeight: 600 }}>
-          📍 Affected: {advisory.affected_location}
-          {advisory.alternative_route && <span> · 🛣️ Route: {advisory.alternative_route}</span>}
+        <div style={{ marginTop: "6px", fontSize: "12px", color: "#dc2626", fontWeight: 600, display: "flex", alignItems: "center", gap: "4px", flexWrap: "wrap" }}>
+          <MaterialIcon name="place" />
+          <span>Affected: {advisory.affected_location}</span>
+          {advisory.alternative_route && (
+            <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", marginLeft: "6px" }}>
+              · <MaterialIcon name="alt_route" />
+              <span>Route: {advisory.alternative_route}</span>
+            </span>
+          )}
         </div>
       )}
       <div className="traffic-advisory-meta">

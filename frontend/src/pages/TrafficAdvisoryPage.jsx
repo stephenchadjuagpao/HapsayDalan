@@ -93,7 +93,7 @@ export default function TrafficAdvisoryPage() {
     if (perm === "granted") {
       localStorage.setItem("advisory_notifications", "true");
       setNotifEnabled(true);
-      showToast("🔔 You will now receive traffic advisory notifications!");
+      showToast("You will now receive traffic advisory notifications.");
     } else {
       showToast("Notification permission denied. Enable it in your browser settings.");
     }
@@ -136,7 +136,7 @@ export default function TrafficAdvisoryPage() {
               /* ignore notification errors */
             }
           }
-          showToast("🔔 New traffic advisory published by CTMO!");
+          showToast("New traffic advisory published by CTMO.");
         }
         lastAdvisoryIdRef.current = topId;
       }
@@ -378,7 +378,7 @@ export default function TrafficAdvisoryPage() {
                 onClick={toggleNotifications}
               >
                 <MaterialIcon name={notifEnabled ? "notifications" : "notifications_none"} />
-                <span>{notifEnabled ? "Advisory Alerts On" : "🔔 Tap to Get Real-Time Road Alerts"}</span>
+                <span>{notifEnabled ? "Advisory Alerts On" : "Get Real-Time Road Alerts"}</span>
               </button>
             </div>
 
@@ -492,7 +492,9 @@ export default function TrafficAdvisoryPage() {
                       <div className="ta-post-sub-row">
                         <span className="ta-post-time">{timeAgo(item.created_at)}</span>
                         <span className="ta-post-dot">·</span>
-                        <span className="ta-post-globe" title="Public">🌐</span>
+                        <span className="ta-post-globe" title="Public">
+                          <MaterialIcon name="public" />
+                        </span>
                         {item.status && item.status !== "published" && (
                           <span className={`ta-post-status-badge is-${item.status}`}>
                             {item.status.toUpperCase()}
@@ -590,7 +592,9 @@ export default function TrafficAdvisoryPage() {
                       <div className="ta-stats-row">
                         {(item.likes_count || 0) > 0 && (
                           <span className="ta-stats-reactions">
-                            <span className="ta-reaction-bubble">👍</span>
+                            <span className="ta-reaction-bubble" aria-label="Reaction">
+                              <MaterialIcon name="thumb_up" />
+                            </span>
                             <span>{item.likes_count} {item.likes_count === 1 ? "reaction" : "reactions"}</span>
                           </span>
                         )}
