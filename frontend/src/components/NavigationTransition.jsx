@@ -41,6 +41,7 @@ export default function NavigationTransition() {
         href.startsWith("https://") ||
         href.startsWith("mailto:") ||
         href.startsWith("tel:") ||
+        // eslint-disable-next-line no-script-url
         href.startsWith("javascript:") ||
         href.startsWith("//") ||
         anchor.getAttribute("target") === "_blank" ||

@@ -45,7 +45,7 @@ export default function AdminSecurityGate({ onUnlock }) {
     return 0;
   });
 
-  const inputRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
+  const inputRefs = useRef([]);
   const isLockedOut = lockoutTimer > 0;
 
   // Initialize lockout state if active on mount
@@ -69,7 +69,7 @@ export default function AdminSecurityGate({ onUnlock }) {
         } catch {
           // ignore
         }
-        setTimeout(() => inputRefs[0]?.current?.focus(), 50);
+        setTimeout(() => inputRefs.current[0]?.focus(), 50);
       }
       return;
     }
@@ -92,7 +92,7 @@ export default function AdminSecurityGate({ onUnlock }) {
   useEffect(() => {
     if (!isLockedOut) {
       const timer = setTimeout(() => {
-        inputRefs[0]?.current?.focus();
+        inputRefs.current[0]?.focus();
       }, 150);
       return () => clearTimeout(timer);
     }
@@ -146,7 +146,7 @@ export default function AdminSecurityGate({ onUnlock }) {
           `Incorrect Security PIN. ${remaining} attempt${remaining === 1 ? "" : "s"} remaining before lockout.`
         );
         setTimeout(() => {
-          inputRefs[0]?.current?.focus();
+          inputRefs.current[0]?.focus();
         }, 50);
       }
     }
@@ -163,7 +163,7 @@ export default function AdminSecurityGate({ onUnlock }) {
     setPinDigits(next);
 
     if (char && index < 3) {
-      inputRefs[index + 1]?.current?.focus();
+      inputRefs.current[index + 1]?.focus();
     }
 
     // Auto verify when 4th digit entered
@@ -181,16 +181,16 @@ export default function AdminSecurityGate({ onUnlock }) {
         const next = [...pinDigits];
         next[index - 1] = "";
         setPinDigits(next);
-        inputRefs[index - 1]?.current?.focus();
+        inputRefs.current[index - 1]?.focus();
       } else {
         const next = [...pinDigits];
         next[index] = "";
         setPinDigits(next);
       }
     } else if (event.key === "ArrowLeft" && index > 0) {
-      inputRefs[index - 1]?.current?.focus();
+      inputRefs.current[index - 1]?.focus();
     } else if (event.key === "ArrowRight" && index < 3) {
-      inputRefs[index + 1]?.current?.focus();
+      inputRefs.current[index + 1]?.focus();
     }
   };
 
@@ -208,10 +208,10 @@ export default function AdminSecurityGate({ onUnlock }) {
     setPinDigits(next);
 
     if (chars.length === 4) {
-      inputRefs[3]?.current?.focus();
+      inputRefs.current[3]?.focus();
       handleVerify(next.join(""));
     } else if (chars.length < 4) {
-      inputRefs[chars.length]?.current?.focus();
+      inputRefs.current[chars.length]?.focus();
     }
   };
 
@@ -223,7 +223,7 @@ export default function AdminSecurityGate({ onUnlock }) {
       setPinDigits(["", "", "", ""]);
       setStatus("idle");
       setErrorMessage("");
-      inputRefs[0]?.current?.focus();
+      inputRefs.current[0]?.focus();
       return;
     }
 
@@ -234,7 +234,7 @@ export default function AdminSecurityGate({ onUnlock }) {
         const next = [...pinDigits];
         next[targetIndex] = "";
         setPinDigits(next);
-        inputRefs[targetIndex]?.current?.focus();
+        inputRefs.current[targetIndex]?.focus();
       }
       return;
     }
@@ -315,7 +315,7 @@ export default function AdminSecurityGate({ onUnlock }) {
             {pinDigits.map((digit, idx) => (
               <input
                 key={idx}
-                ref={inputRefs[idx]}
+                ref={(el) => { inputRefs.current[idx] = el; }}
                 type={showPin ? "text" : "password"}
                 inputMode="numeric"
                 pattern="[0-9]*"

@@ -50,7 +50,6 @@ export default function TrafficAdvisoryPage() {
   const [error, setError] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
   const [isAdminLoading, setIsAdminLoading] = useState(true); // prevent flash of admin UI
-  const [adminUser, setAdminUser] = useState(null);
 
   // Filters
   const [searchQuery, setSearchQuery] = useState("");
@@ -83,9 +82,6 @@ export default function TrafficAdvisoryPage() {
   const [notifEnabled, setNotifEnabled] = useState(
     () => localStorage.getItem("advisory_notifications") === "true"
   );
-  const [notifPermission, setNotifPermission] = useState(
-    typeof Notification !== "undefined" ? Notification.permission : "default"
-  );
 
   // Active Dropdowns / Lightboxes / Comments
   const [openMenuId, setOpenMenuId] = useState(null);
@@ -105,7 +101,6 @@ export default function TrafficAdvisoryPage() {
         if (!alive) return;
         if (data && (data.is_staff || data.is_superuser || hasLocalFlag)) {
           setIsAdmin(true);
-          setAdminUser(data);
         }
       })
       .catch(() => {
@@ -143,7 +138,6 @@ export default function TrafficAdvisoryPage() {
     let perm = Notification.permission;
     if (perm === "default") {
       perm = await Notification.requestPermission();
-      setNotifPermission(perm);
     }
     if (perm === "granted") {
       localStorage.setItem("advisory_notifications", "true");
