@@ -145,3 +145,34 @@ class TrafficAdvisoryTests(TestCase):
         del_res = self.client.delete(f"/api/admin/advisories/{draft_id}/")
         self.assertEqual(del_res.status_code, 204)
         self.assertFalse(TrafficAdvisory.objects.filter(pk=draft_id).exists())
+
+    def test_expired_advisories_are_hidden_from_public_feed(self):
+        from django.utils import timezone
+        from datetime import timedelta
+
+        now = timezone.now()
+        # Active advisory (ends tomorrow)
+        TrafficAdvisory.objects.create(
+            title="Active Advisory",
+            message="Road ongoing repairs",
+            status="published",
+            audience="public",
+            end_datetime=now + timedelta(days=1),
+            created_by=self.staff
+        )
+        # Expired advisory (ended yesterday)
+        TrafficAdvisory.objects.create(
+            title="Expired Advisory",
+            message="Old road closure",
+            status="published",
+            audience="public",
+            end_datetime=now - timedelta(days=1),
+            created_by=self.staff
+        )
+
+        public_res = self.client.get("/api/advisories/")
+        self.assertEqual(public_res.status_code, 200)
+        titles = [item["title"] for item in public_res.data]
+        self.assertIn("Active Advisory", titles)
+        self.assertNotIn("Expired Advisory", titles)
+

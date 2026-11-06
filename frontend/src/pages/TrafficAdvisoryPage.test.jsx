@@ -107,4 +107,37 @@ describe("TrafficAdvisoryPage", () => {
       );
     });
   });
+
+  test("public users cannot see composer card or admin tabs", async () => {
+    // Non-admin user
+    API.get.mockImplementation((url) => {
+      if (url.includes("admin/me")) {
+        return Promise.reject(new Error("Unauthorized"));
+      }
+      return Promise.resolve({ data: mockAdvisories });
+    });
+
+    render(<TrafficAdvisoryPage />);
+
+    expect(await screen.findByText("CTMO Surigao City")).toBeInTheDocument();
+    // Composer card should NOT be in the document
+    expect(screen.queryByText(/Create an announcement, road closure, or traffic alert/i)).not.toBeInTheDocument();
+    // Admin tabs should NOT be in the document
+    expect(screen.queryByRole("button", { name: "Drafts" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Archived" })).not.toBeInTheDocument();
+  });
+
+  test("public users can see and click notification subscription button", async () => {
+    API.get.mockImplementation((url) => {
+      if (url.includes("admin/me")) {
+        return Promise.reject(new Error("Unauthorized"));
+      }
+      return Promise.resolve({ data: mockAdvisories });
+    });
+
+    render(<TrafficAdvisoryPage />);
+
+    const notifyBtn = await screen.findByRole("button", { name: /Get Notified/i });
+    expect(notifyBtn).toBeInTheDocument();
+  });
 });

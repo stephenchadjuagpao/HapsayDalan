@@ -1304,3 +1304,78 @@ html[data-theme=dark] .ta-footer {
   border-top-color: #334155;
   color: #94a3b8;
 }
+
+/* Post Header Subtitle & Category Row */
+.ta-post-sub-name {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 1px;
+}
+html[data-theme=dark] .ta-post-sub-name {
+  color: #94a3b8;
+}
+
+.ta-post-category-row {
+  padding: 0 16px 8px;
+}
+
+/* Notification Subscribe Button (User Side) */
+.ta-notify-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: calc(100% - 32px);
+  margin: 12px 16px 16px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid #1877f2;
+  background: #f0f7ff;
+  color: #1877f2;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.ta-notify-btn:hover {
+  background: #1877f2;
+  color: #ffffff;
+}
+.ta-notify-btn.is-subscribed {
+  background: #e6f4ea;
+  border-color: #137333;
+  color: #137333;
+}
+.ta-notify-btn.is-subscribed:hover {
+  background: #ceead6;
+}
+html[data-theme=dark] .ta-notify-btn {
+  background: #1e3a5f;
+  border-color: #3b82f6;
+  color: #93c5fd;
+}
+html[data-theme=dark] .ta-notify-btn.is-subscribed {
+  background: #064e3b;
+  border-color: #10b981;
+  color: #6ee7b7;
+}
+
+/* Stats Row Facebook Style */
+.ta-stats-row {
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  color: #64748b;
+}
+html[data-theme=dark] .ta-stats-row {
+  color: #94a3b8;
+}
+.ta-stats-reactions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.ta-stats-sep {
+  margin: 0 4px;
+}
+

@@ -49,6 +49,7 @@ export default function TrafficAdvisoryPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isAdminLoading, setIsAdminLoading] = useState(true); // prevent flash of admin UI
   const [adminUser, setAdminUser] = useState(null);
 
   // Filters
@@ -78,6 +79,14 @@ export default function TrafficAdvisoryPage() {
   const [formError, setFormError] = useState("");
   const fileInputRef = useRef(null);
 
+  // Notifications subscription (browser Push API / local polling)
+  const [notifEnabled, setNotifEnabled] = useState(
+    () => localStorage.getItem("advisory_notifications") === "true"
+  );
+  const [notifPermission, setNotifPermission] = useState(
+    typeof Notification !== "undefined" ? Notification.permission : "default"
+  );
+
   // Active Dropdowns / Lightboxes / Comments
   const [openMenuId, setOpenMenuId] = useState(null);
   const [activeMediaModal, setActiveMediaModal] = useState(null);
@@ -103,6 +112,9 @@ export default function TrafficAdvisoryPage() {
         if (alive && hasLocalFlag) {
           setIsAdmin(true);
         }
+      })
+      .finally(() => {
+        if (alive) setIsAdminLoading(false);
       });
     return () => {
       alive = false;
@@ -112,6 +124,34 @@ export default function TrafficAdvisoryPage() {
   const showToast = (msg) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(""), 3500);
+  };
+
+  // Toggle browser notification subscription
+  const toggleNotifications = async () => {
+    if (typeof Notification === "undefined") {
+      showToast("Your browser does not support notifications.");
+      return;
+    }
+    if (notifEnabled) {
+      // Unsubscribe
+      localStorage.setItem("advisory_notifications", "false");
+      setNotifEnabled(false);
+      showToast("Notification alerts turned off.");
+      return;
+    }
+    // Request permission if not yet granted
+    let perm = Notification.permission;
+    if (perm === "default") {
+      perm = await Notification.requestPermission();
+      setNotifPermission(perm);
+    }
+    if (perm === "granted") {
+      localStorage.setItem("advisory_notifications", "true");
+      setNotifEnabled(true);
+      showToast("🔔 You will now receive traffic advisory notifications!");
+    } else {
+      showToast("Notification permission denied. Enable it in your browser settings.");
+    }
   };
 
   // Fetch Advisories
@@ -153,6 +193,35 @@ export default function TrafficAdvisoryPage() {
     const timer = setTimeout(loadAdvisories, 250);
     return () => clearTimeout(timer);
   }, [loadAdvisories]);
+
+  // Poll for new advisories every 60 seconds and fire browser notification
+  const lastAdvisoryIdRef = useRef(null);
+  useEffect(() => {
+    if (!notifEnabled) return;
+    const poll = async () => {
+      try {
+        const { data } = await API.get("advisories/?page_size=1&page=1");
+        const newest = (Array.isArray(data) ? data : data?.results || [])[0];
+        if (!newest) return;
+        if (lastAdvisoryIdRef.current === null) {
+          lastAdvisoryIdRef.current = newest.id;
+          return;
+        }
+        if (newest.id !== lastAdvisoryIdRef.current && Notification.permission === "granted") {
+          lastAdvisoryIdRef.current = newest.id;
+          new Notification("CTMO Surigao City – New Traffic Advisory", {
+            body: newest.title || newest.message || "A new traffic advisory has been posted.",
+            icon: "/favicon.ico",
+          });
+          loadAdvisories();
+        }
+      } catch {
+        /* ignore polling errors */
+      }
+    };
+    const interval = setInterval(poll, 60000);
+    return () => clearInterval(interval);
+  }, [notifEnabled, loadAdvisories]);
 
   // Open Composer for New Announcement
   const openNewComposer = () => {
@@ -439,13 +508,26 @@ export default function TrafficAdvisoryPage() {
                 <span>Hotline: 0912 064 6724</span>
               </div>
             </div>
+
+            {/* Notification Subscribe Button — public users */}
+            {!isAdmin && (
+              <button
+                type="button"
+                className={`ta-notify-btn ${notifEnabled ? "is-subscribed" : ""}`}
+                onClick={toggleNotifications}
+                title={notifEnabled ? "Turn off notifications" : "Get notified of new advisories"}
+              >
+                <MaterialIcon name={notifEnabled ? "notifications" : "notifications_none"} />
+                <span>{notifEnabled ? "Notifications On" : "Get Notified"}</span>
+              </button>
+            )}
           </div>
         </aside>
 
         {/* Center Column: Feed & Composer */}
         <main className="ta-main-feed">
           {/* Admin Announcement Composer Box */}
-          {isAdmin && (
+          {!isAdminLoading && isAdmin && (
             <section className="ta-composer-card">
               <div className="ta-composer-top">
                 <img src={ctmoShieldLogo} alt="CTMO Admin" className="ta-composer-avatar" />
@@ -476,7 +558,7 @@ export default function TrafficAdvisoryPage() {
           )}
 
           {/* Admin Tab Navigation */}
-          {isAdmin && (
+          {!isAdminLoading && isAdmin && (
             <div className="ta-admin-tabs">
               <button
                 type="button"
@@ -605,17 +687,16 @@ export default function TrafficAdvisoryPage() {
                     <img src={ctmoShieldLogo} alt="CTMO" className="ta-post-avatar" />
                     <div className="ta-post-meta">
                       <div className="ta-post-author-row">
-                        <span className="ta-post-author">Surigao City Traffic Management Office</span>
+                        <span className="ta-post-author">CTMO Surigao City</span>
                         <span className="ta-verified-badge" title="Verified Government Office">
                           <MaterialIcon name="verified" />
                         </span>
                       </div>
+                      <div className="ta-post-sub-name">Surigao City Traffic Management Office</div>
                       <div className="ta-post-sub-row">
                         <span className="ta-post-time">{timeAgo(item.created_at)}</span>
                         <span className="ta-post-dot">·</span>
-                        <span className="ta-post-globe" title="Public">
-                          🌐
-                        </span>
+                        <span className="ta-post-globe" title="Public">🌐</span>
                         {item.status && item.status !== "published" && (
                           <span className={`ta-post-status-badge is-${item.status}`}>
                             {item.status.toUpperCase()}
@@ -627,70 +708,70 @@ export default function TrafficAdvisoryPage() {
                       </div>
                     </div>
 
-                    <div className="ta-post-header-right">
-                      {/* Category Badge */}
-                      <span
-                        className="ta-category-badge"
-                        style={{ color: catConfig.color, backgroundColor: catConfig.bg }}
-                      >
-                        <MaterialIcon name={catConfig.icon} />
-                        <span>{catConfig.label}</span>
-                      </span>
+                    {/* Admin 3-Dot Management Menu (top right) */}
+                    {!isAdminLoading && isAdmin && (
+                      <div className="ta-post-actions-menu">
+                        <button
+                          type="button"
+                          className="ta-icon-btn"
+                          onClick={() =>
+                            setOpenMenuId((cur) => (cur === item.id ? null : item.id))
+                          }
+                          title="Manage Post"
+                        >
+                          <MaterialIcon name="more_vert" />
+                        </button>
 
-                      {/* Admin 3-Dot Management Menu */}
-                      {isAdmin && (
-                        <div className="ta-post-actions-menu">
-                          <button
-                            type="button"
-                            className="ta-icon-btn"
-                            onClick={() =>
-                              setOpenMenuId((cur) => (cur === item.id ? null : item.id))
-                            }
-                            title="Manage Post"
-                          >
-                            <MaterialIcon name="more_vert" />
-                          </button>
+                        {openMenuId === item.id && (
+                          <div className="ta-menu-dropdown">
+                            <button
+                              type="button"
+                              className="ta-menu-item"
+                              onClick={() => togglePinAdvisory(item)}
+                            >
+                              <MaterialIcon name="push_pin" />
+                              <span>{item.is_pinned ? "Unpin Post" : "Pin to Top"}</span>
+                            </button>
+                            <button
+                              type="button"
+                              className="ta-menu-item"
+                              onClick={() => openEditComposer(item)}
+                            >
+                              <MaterialIcon name="edit" />
+                              <span>Edit Announcement</span>
+                            </button>
+                            <button
+                              type="button"
+                              className="ta-menu-item"
+                              onClick={() => toggleArchiveAdvisory(item)}
+                            >
+                              <MaterialIcon name="archive" />
+                              <span>{item.archived_at ? "Unarchive Post" : "Archive Post"}</span>
+                            </button>
+                            <div className="ta-menu-divider" />
+                            <button
+                              type="button"
+                              className="ta-menu-item is-danger"
+                              onClick={() => setDeletingId(item.id)}
+                            >
+                              <MaterialIcon name="delete" />
+                              <span>Delete Post</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
 
-                          {openMenuId === item.id && (
-                            <div className="ta-menu-dropdown">
-                              <button
-                                type="button"
-                                className="ta-menu-item"
-                                onClick={() => togglePinAdvisory(item)}
-                              >
-                                <MaterialIcon name="push_pin" />
-                                <span>{item.is_pinned ? "Unpin Post" : "Pin to Top"}</span>
-                              </button>
-                              <button
-                                type="button"
-                                className="ta-menu-item"
-                                onClick={() => openEditComposer(item)}
-                              >
-                                <MaterialIcon name="edit" />
-                                <span>Edit Announcement</span>
-                              </button>
-                              <button
-                                type="button"
-                                className="ta-menu-item"
-                                onClick={() => toggleArchiveAdvisory(item)}
-                              >
-                                <MaterialIcon name="archive" />
-                                <span>{item.archived_at ? "Unarchive Post" : "Archive Post"}</span>
-                              </button>
-                              <div className="ta-menu-divider" />
-                              <button
-                                type="button"
-                                className="ta-menu-item is-danger"
-                                onClick={() => setDeletingId(item.id)}
-                              >
-                                <MaterialIcon name="delete" />
-                                <span>Delete Post</span>
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
+                  {/* Category Badge — below header, matches screenshot */}
+                  <div className="ta-post-category-row">
+                    <span
+                      className="ta-category-badge"
+                      style={{ color: catConfig.color, backgroundColor: catConfig.bg }}
+                    >
+                      <MaterialIcon name={catConfig.icon} />
+                      <span>{catConfig.label.toUpperCase()}</span>
+                    </span>
                   </div>
 
                   {/* Post Content */}
@@ -761,24 +842,31 @@ export default function TrafficAdvisoryPage() {
                     </div>
                   )}
 
-                  {/* Reaction and Engagement Stats Bar */}
-                  <div className="ta-post-stats-bar">
-                    <div className="ta-stats-left">
-                      <span className="ta-reaction-bubble" title="Likes">
-                        👍
-                      </span>
-                      <span className="ta-stats-count">{item.likes_count || 0}</span>
+                  {/* Reaction and Engagement Stats Bar — matches screenshot exactly */}
+                  {((item.likes_count || 0) > 0 || (item.comments_count || 0) > 0) && (
+                    <div className="ta-post-stats-bar">
+                      <div className="ta-stats-row">
+                        {(item.likes_count || 0) > 0 && (
+                          <span className="ta-stats-reactions">
+                            <span className="ta-reaction-bubble">👍</span>
+                            <span>{item.likes_count} {item.likes_count === 1 ? "reaction" : "reactions"}</span>
+                          </span>
+                        )}
+                        {(item.likes_count || 0) > 0 && (item.comments_count || 0) > 0 && (
+                          <span className="ta-stats-sep"> · </span>
+                        )}
+                        {(item.comments_count || 0) > 0 && (
+                          <button
+                            type="button"
+                            className="ta-stats-btn"
+                            onClick={() => toggleComments(item.id)}
+                          >
+                            {item.comments_count} {item.comments_count === 1 ? "comment" : "comments"}
+                          </button>
+                        )}
+                      </div>
                     </div>
-                    <div className="ta-stats-right">
-                      <button
-                        type="button"
-                        className="ta-stats-btn"
-                        onClick={() => toggleComments(item.id)}
-                      >
-                        {item.comments_count || 0} comments
-                      </button>
-                    </div>
-                  </div>
+                  )}
 
                   {/* Action Buttons: Like, Comment, Share */}
                   <div className="ta-post-actions-bar">
