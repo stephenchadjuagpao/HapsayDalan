@@ -91,21 +91,20 @@ export default function TrafficAdvisoryPage() {
   const [newCommentAuthor, setNewCommentAuthor] = useState({});
   const [commentSubmitting, setCommentSubmitting] = useState({});
 
-  // Check admin authorization
+  // Check admin authorization — only trust the server response (never fall back to sessionStorage alone)
   useEffect(() => {
     let alive = true;
-    const hasLocalFlag = sessionStorage.getItem("ctmo_admin_authenticated") === "true";
     API.get("admin/me/")
       .then(({ data }) => {
         if (!alive) return;
-        if (data && (data.is_staff || data.is_superuser || hasLocalFlag)) {
+        // Only grant admin UI if the server confirms staff/superuser status
+        if (data && (data.is_staff || data.is_superuser)) {
           setIsAdmin(true);
         }
       })
       .catch(() => {
-        if (alive && hasLocalFlag) {
-          setIsAdmin(true);
-        }
+        // API error (not logged in / 401 / 403 / network): always treat as public user
+        // Do NOT fall back to sessionStorage — that caused the 3-dot menu leak
       })
       .finally(() => {
         if (alive) setIsAdminLoading(false);
