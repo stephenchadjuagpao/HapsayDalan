@@ -1,3 +1,4 @@
+import MaterialIcon from "../MaterialIcon";
 import { useEffect, useRef, useState } from "react";
 import NavIcon from "./NavIcon";
 import ThemeToggle from "../ThemeToggle";
@@ -80,7 +81,7 @@ export default function Navbar({ currentPage = "home" }) {
           <a href={link.href} className={activeLink === link.page ? "active" : ""} aria-label={link.label}
             aria-current={activeLink === link.page ? "page" : undefined} onClick={() => selectLink(link.page)}
             onPointerMove={moveMagnet} onPointerLeave={resetMagnet} onBlur={resetMagnet}>
-            <NavIcon name={link.page} />{link.page === "admin" && <span className="sc-dock-lock" aria-hidden="true">🔒</span>}<span className="sc-dock-label">{link.label}</span>
+            <NavIcon name={link.page} />{link.page === "admin" && <span className="sc-dock-lock" aria-hidden="true"><MaterialIcon name="lock" size={11} /></span>}<span className="sc-dock-label">{link.label}</span>
           </a>
         </li>)}</ul>
         <div className="sc-nav-actions"><ThemeToggle />
@@ -98,7 +99,7 @@ export default function Navbar({ currentPage = "home" }) {
         <div className="sc-menu-secondary">{NAV_LINKS.slice(4, 7).map((link) => mobileLink(link, true))}</div>
         <div className="sc-menu-staff"><a href="/admin-ctmo" className={`sc-menu-link${activeLink === "admin" ? " active" : ""}`}
           aria-label="Admin/CTMO" aria-current={activeLink === "admin" ? "page" : undefined} onClick={() => selectLink("admin")}>
-          <span className="sc-menu-icon"><NavIcon name="admin" /></span><span><strong>Admin/CTMO <span className="sc-menu-lock-badge" aria-hidden="true">🔒</span></strong><small>Authorized personnel • PIN Protected</small></span><NavIcon name="arrow" />
+          <span className="sc-menu-icon"><NavIcon name="admin" /></span><span><strong>Admin/CTMO <span className="sc-menu-lock-badge" aria-hidden="true"><MaterialIcon name="lock" size={13} /></span></strong><small>Authorized personnel • PIN Protected</small></span><NavIcon name="arrow" />
         </a></div>
         <div className="sc-menu-theme"><ThemeToggle showLabel /></div>
       </div>

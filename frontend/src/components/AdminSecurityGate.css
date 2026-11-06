@@ -595,3 +595,43 @@
   0%, 100% { transform: scale(1); opacity: 1; }
   50% { transform: scale(1.04); opacity: 0.9; }
 }
+
+/* Material SVG Icon Refinements */
+.admin-gate-inline-icon {
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.admin-gate-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.admin-gate-lockout-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.admin-gate-lockout-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  line-height: 1;
+}
+
+.admin-gate-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.admin-gate-success {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}

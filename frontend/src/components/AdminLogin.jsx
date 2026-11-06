@@ -597,7 +597,7 @@ export default function AdminLogin({ onLock }) {
                 onClick={onLock}
                 title="Lock portal and return to security gate"
               >
-                🔒 Lock Portal
+                <MaterialIcon name="lock" size={13} /> <span>Lock Portal</span>
               </button>
             ) : <div />}
             <ThemeToggle showLabel />

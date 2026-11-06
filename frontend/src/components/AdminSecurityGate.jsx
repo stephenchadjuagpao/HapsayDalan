@@ -5,11 +5,20 @@ import ThemeToggle from "./ThemeToggle";
 import "./AdminSecurityGate.css";
 
 const REQUIRED_PIN = "1016";
-const MAX_ATTEMPTS = 5;
-const LOCKOUT_SECONDS = 30;
+const MAX_ATTEMPTS = 3;
+const LOCKOUT_SECONDS = 60;
 
 const STORAGE_LOCKOUT_KEY = "ctmo_gate_lockout_until";
 const STORAGE_ATTEMPTS_KEY = "ctmo_gate_failed_attempts";
+
+function formatSeconds(sec) {
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  if (m > 0) {
+    return `${m}:${s < 10 ? "0" : ""}${s}`;
+  }
+  return `${s}s`;
+}
 
 export default function AdminSecurityGate({ onUnlock }) {
   const [pinDigits, setPinDigits] = useState(["", "", "", ""]);
@@ -44,7 +53,7 @@ export default function AdminSecurityGate({ onUnlock }) {
   useEffect(() => {
     if (lockoutTimer > 0) {
       setStatus("locked_out");
-      setErrorMessage(`Too many failed attempts. Security gate locked. Please wait ${lockoutTimer}s.`);
+      setErrorMessage(`Too many failed attempts. Security gate locked. Please wait ${formatSeconds(lockoutTimer)}.`);
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -53,7 +62,7 @@ export default function AdminSecurityGate({ onUnlock }) {
     if (lockoutTimer <= 0) {
       if (status === "locked_out") {
         setStatus("idle");
-        setErrorMessage("Lockout expired. You may now enter the Security PIN.");
+        setErrorMessage("Lockout period completed. You may now enter the Security PIN.");
         setFailedAttempts(0);
         try {
           localStorage.removeItem(STORAGE_LOCKOUT_KEY);
@@ -72,7 +81,7 @@ export default function AdminSecurityGate({ onUnlock }) {
         if (next <= 0) {
           return 0;
         }
-        setErrorMessage(`Too many failed attempts. Security gate locked. Please wait ${next}s.`);
+        setErrorMessage(`Too many failed attempts. Security gate locked. Please wait ${formatSeconds(next)}.`);
         return next;
       });
     }, 1000);
@@ -243,7 +252,8 @@ export default function AdminSecurityGate({ onUnlock }) {
       <div className="admin-gate-card">
         <div className="admin-gate-topbar">
           <a href="/" className="admin-gate-back-link">
-            <span aria-hidden="true">&larr;</span> Return to Homepage
+            <MaterialIcon name="arrow_back" size={16} className="admin-gate-inline-icon" />
+            <span>Return to Homepage</span>
           </a>
           <ThemeToggle showLabel={false} />
         </div>
@@ -269,26 +279,35 @@ export default function AdminSecurityGate({ onUnlock }) {
               size={36}
             />
             {isLockedOut && (
-              <span className="admin-gate-lockout-badge">{lockoutTimer}s</span>
+              <span className="admin-gate-lockout-badge">
+                <MaterialIcon name="timer" size={11} />
+                <span>{formatSeconds(lockoutTimer)}</span>
+              </span>
             )}
           </div>
 
           <div className="admin-gate-pill-group">
-            <span className="admin-gate-pill">RESTRICTED ACCESS</span>
+            <span className="admin-gate-pill">
+              <MaterialIcon name="security" size={13} className="admin-gate-inline-icon" />
+              <span>RESTRICTED ACCESS</span>
+            </span>
             {failedAttempts > 0 && !isLockedOut && (
               <span className="admin-gate-attempt-pill">
                 Attempt {failedAttempts}/{MAX_ATTEMPTS}
               </span>
             )}
             {isLockedOut && (
-              <span className="admin-gate-lockout-pill">GATE LOCKED</span>
+              <span className="admin-gate-lockout-pill">
+                <MaterialIcon name="timer" size={12} className="admin-gate-inline-icon" />
+                <span>GATE LOCKED ({formatSeconds(lockoutTimer)})</span>
+              </span>
             )}
           </div>
 
           <h1 className="admin-gate-title">CTMO Security Gate</h1>
           <p className="admin-gate-subtitle">
             {isLockedOut
-              ? `Security cooldown active. Please wait ${lockoutTimer} seconds to prevent unauthorized access.`
+              ? `Security cooldown active. Please wait ${formatSeconds(lockoutTimer)} before attempting again.`
               : "Enter the 4-digit security PIN to unlock the CTMO Admin portal"}
           </p>
         </div>
@@ -347,13 +366,19 @@ export default function AdminSecurityGate({ onUnlock }) {
               className={`admin-gate-error ${isLockedOut ? "lockout-alert" : ""}`}
               role="alert"
             >
-              <span aria-hidden="true">{isLockedOut ? "🚨" : "⚠️"}</span> {errorMessage}
+              <MaterialIcon
+                name={isLockedOut ? "timer" : "error_outline"}
+                size={18}
+                className="admin-gate-inline-icon"
+              />
+              <span>{errorMessage}</span>
             </div>
           )}
 
           {status === "unlocked" && (
             <div className="admin-gate-success" role="status">
-              <span aria-hidden="true">✅</span> Access granted. Unlocking CTMO Login...
+              <MaterialIcon name="check_circle" size={18} className="admin-gate-inline-icon" />
+              <span>Access granted. Unlocking CTMO Login...</span>
             </div>
           )}
 
@@ -377,7 +402,7 @@ export default function AdminSecurityGate({ onUnlock }) {
               disabled={status === "unlocked" || isLockedOut}
               aria-label="Clear all digits"
             >
-              C
+              CLR
             </button>
             <button
               type="button"
@@ -394,7 +419,7 @@ export default function AdminSecurityGate({ onUnlock }) {
               disabled={status === "unlocked" || isLockedOut}
               aria-label="Delete last digit"
             >
-              ⌫
+              <MaterialIcon name="backspace" size={20} />
             </button>
           </div>
 
@@ -406,14 +431,14 @@ export default function AdminSecurityGate({ onUnlock }) {
             {status === "unlocked"
               ? "Unlocking..."
               : isLockedOut
-              ? `Locked (${lockoutTimer}s)`
+              ? `Locked (${formatSeconds(lockoutTimer)})`
               : "Unlock CTMO Portal"}
           </button>
         </form>
 
         <div className="admin-gate-footer">
           <small>
-            Rate-limiting active • Max {MAX_ATTEMPTS} attempts • Protected by CTMO Surigao City
+            Rate-limiting active • Max {MAX_ATTEMPTS} attempts • 60s cooldown • Protected by CTMO Surigao City
           </small>
         </div>
       </div>

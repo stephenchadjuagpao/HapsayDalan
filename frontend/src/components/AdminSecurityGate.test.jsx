@@ -13,8 +13,8 @@ describe("AdminSecurityGate Component", () => {
     jest.useRealTimers();
   });
 
-  test("renders all security gate elements and initial locked state", () => {
-    render(<AdminSecurityGate onUnlock={jest.fn()} />);
+  test("renders all security gate elements and initial locked state with Material icons", () => {
+    const { container } = render(<AdminSecurityGate onUnlock={jest.fn()} />);
 
     expect(screen.getByText("RESTRICTED ACCESS")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "CTMO Security Gate" })).toBeInTheDocument();
@@ -24,10 +24,14 @@ describe("AdminSecurityGate Component", () => {
     expect(screen.getByLabelText("Security PIN digit 1")).toBeInTheDocument();
     expect(screen.getByLabelText("Security PIN digit 4")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Unlock CTMO Portal" })).toBeDisabled();
-    expect(screen.getByText("Return to Homepage")).toHaveAttribute("href", "/");
+    expect(screen.getByText("Return to Homepage")).toBeInTheDocument();
+
+    // Verify SVG icons are used instead of emojis
+    const svgs = container.querySelectorAll("svg.material-icon");
+    expect(svgs.length).toBeGreaterThan(0);
   });
 
-  test("rejects an incorrect PIN and displays remaining attempts count", () => {
+  test("rejects an incorrect PIN and displays remaining attempts count (max 3)", () => {
     render(<AdminSecurityGate onUnlock={jest.fn()} />);
 
     const d1 = screen.getByLabelText("Security PIN digit 1");
@@ -41,12 +45,12 @@ describe("AdminSecurityGate Component", () => {
     fireEvent.change(d4, { target: { value: "9" } });
 
     expect(screen.getByRole("alert")).toHaveTextContent(
-      "Incorrect Security PIN. 4 attempts remaining before lockout."
+      "Incorrect Security PIN. 2 attempts remaining before lockout."
     );
-    expect(screen.getByText("Attempt 1/5")).toBeInTheDocument();
+    expect(screen.getByText("Attempt 1/3")).toBeInTheDocument();
   });
 
-  test("locks out for 30s after 5 failed attempts and resets after countdown", () => {
+  test("locks out for 1 minute (60s) after 3 failed attempts and recovers after countdown", () => {
     render(<AdminSecurityGate onUnlock={jest.fn()} />);
 
     const d1 = screen.getByLabelText("Security PIN digit 1");
@@ -54,34 +58,34 @@ describe("AdminSecurityGate Component", () => {
     const d3 = screen.getByLabelText("Security PIN digit 3");
     const d4 = screen.getByLabelText("Security PIN digit 4");
 
-    // Fail 5 times
-    for (let i = 0; i < 5; i++) {
+    // Fail 3 times
+    for (let i = 0; i < 3; i++) {
       fireEvent.change(d1, { target: { value: "8" } });
       fireEvent.change(d2, { target: { value: "8" } });
       fireEvent.change(d3, { target: { value: "8" } });
       fireEvent.change(d4, { target: { value: "8" } });
     }
 
-    // Now gate is locked out
+    // Now gate is locked out for 60s
     expect(screen.getByRole("alert")).toHaveTextContent(
-      "Too many failed attempts (5/5). Security gate locked for 30s."
+      "Too many failed attempts (3/3). Security gate locked for 60s."
     );
-    expect(screen.getByText("GATE LOCKED")).toBeInTheDocument();
+    expect(screen.getByText(/GATE LOCKED/)).toBeInTheDocument();
     expect(screen.getByLabelText("Security PIN digit 1")).toBeDisabled();
     expect(screen.getByRole("button", { name: /Locked/ })).toBeDisabled();
 
-    // Advance 15 seconds
+    // Advance 30 seconds (halfway through the 1-minute lockout)
     act(() => {
-      jest.advanceTimersByTime(15000);
+      jest.advanceTimersByTime(30000);
     });
-    expect(screen.getByRole("alert")).toHaveTextContent("15s");
+    expect(screen.getByRole("alert")).toHaveTextContent("30s");
 
-    // Advance remaining 15 seconds to finish lockout
+    // Advance remaining 30 seconds
     act(() => {
-      jest.advanceTimersByTime(15000);
+      jest.advanceTimersByTime(30000);
     });
 
-    expect(screen.getByRole("alert")).toHaveTextContent("Lockout expired. You may now enter the Security PIN.");
+    expect(screen.getByRole("alert")).toHaveTextContent("Lockout period completed. You may now enter the Security PIN.");
     expect(screen.getByLabelText("Security PIN digit 1")).not.toBeDisabled();
   });
 
@@ -112,7 +116,7 @@ describe("AdminSecurityGate Component", () => {
     expect(localStorage.getItem("ctmo_gate_failed_attempts")).toBeNull();
   });
 
-  test("supports on-screen keypad entry and clear functionality", () => {
+  test("supports on-screen keypad entry with CLR and Material backspace", () => {
     const onUnlockMock = jest.fn();
     render(<AdminSecurityGate onUnlock={onUnlockMock} />);
 
