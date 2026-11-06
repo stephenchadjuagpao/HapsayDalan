@@ -20,7 +20,7 @@ function PasswordInput({ id, ...props }) {
   );
 }
 
-export default function AdminLogin() {
+export default function AdminLogin({ onLock }) {
   const [resetLink] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     return { uid: params.get("uid") || "", token: params.get("token") || "" };
@@ -548,11 +548,60 @@ export default function AdminLogin() {
             text-align: left;
           }
         }
+
+        .admin-login-appearance {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          width: 100%;
+          margin-bottom: 8px;
+          position: relative;
+          z-index: 2;
+        }
+
+        .admin-lock-gate-btn {
+          background: rgba(220, 38, 38, 0.1);
+          color: #dc2626;
+          border: 1px solid rgba(220, 38, 38, 0.25);
+          border-radius: 8px;
+          padding: 6px 10px;
+          font-size: 12px;
+          font-weight: 700;
+          cursor: pointer;
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          transition: all 0.15s ease;
+        }
+
+        .admin-lock-gate-btn:hover {
+          background: rgba(220, 38, 38, 0.2);
+          border-color: rgba(220, 38, 38, 0.4);
+        }
+
+        [data-theme="dark"] .admin-lock-gate-btn,
+        .theme-dark .admin-lock-gate-btn {
+          background: rgba(239, 68, 68, 0.15);
+          color: #f87171;
+          border-color: rgba(239, 68, 68, 0.35);
+        }
       `}</style>
 
       <div className="admin-login-page">
         <form className="admin-login-card" onSubmit={handleSubmit}>
-          <div className="admin-login-appearance"><ThemeToggle showLabel /></div>
+          <div className="admin-login-appearance">
+            {onLock ? (
+              <button
+                type="button"
+                className="admin-lock-gate-btn"
+                onClick={onLock}
+                title="Lock portal and return to security gate"
+              >
+                🔒 Lock Portal
+              </button>
+            ) : <div />}
+            <ThemeToggle showLabel />
+          </div>
           <div className="admin-login-logo-shell">
             <div className="admin-login-logo">
               <img src={ctmoShieldLogo} alt="CTMO shield logo" />
