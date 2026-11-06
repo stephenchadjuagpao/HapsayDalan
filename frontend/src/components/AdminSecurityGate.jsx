@@ -296,12 +296,6 @@ export default function AdminSecurityGate({ onUnlock }) {
                 Attempt {failedAttempts}/{MAX_ATTEMPTS}
               </span>
             )}
-            {isLockedOut && (
-              <span className="admin-gate-lockout-pill">
-                <MaterialIcon name="timer" size={12} className="admin-gate-inline-icon" />
-                <span>GATE LOCKED ({formatSeconds(lockoutTimer)})</span>
-              </span>
-            )}
           </div>
 
           <h1 className="admin-gate-title">CTMO Security Gate</h1>

@@ -70,7 +70,6 @@ describe("AdminSecurityGate Component", () => {
     expect(screen.getByRole("alert")).toHaveTextContent(
       "Too many failed attempts (3/3). Security gate locked for 60s."
     );
-    expect(screen.getByText(/GATE LOCKED/)).toBeInTheDocument();
     expect(screen.getByLabelText("Security PIN digit 1")).toBeDisabled();
     expect(screen.getByRole("button", { name: /Locked/ })).toBeDisabled();
 
