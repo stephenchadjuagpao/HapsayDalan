@@ -477,18 +477,17 @@ export default function AdminAdvisories({ refreshKey = 0, onAdvisoryChange }) {
           >
             <form onSubmit={handleSubmit}>
               <div className="admin-modal-header">
-                <div>
+                <div className="admin-adv-modal-title-wrap">
                   <h3 className="admin-modal-title">
                     {editingAdvisory ? "Edit Traffic Advisory" : "Create Traffic Advisory"}
                   </h3>
-                  <div style={{ fontSize: "13px", color: "#64748b", marginTop: "2px" }}>
-                    Publish official CTMO traffic alerts directly to the public feed
-                  </div>
+                  <span className="admin-adv-ctmo-badge">CTMO Admin</span>
                 </div>
                 <button
                   type="button"
                   className="admin-modal-close-btn"
                   onClick={() => setShowComposer(false)}
+                  aria-label="Close modal"
                 >
                   ×
                 </button>
@@ -502,8 +501,8 @@ export default function AdminAdvisories({ refreshKey = 0, onAdvisoryChange }) {
                   <label className="admin-field-label">Announcement Title *</label>
                   <input
                     type="text"
-                    className="admin-modal-input"
-                    placeholder="e.g. Temporary Road Closure: Bilang-Bilang St."
+                    className="admin-modal-input admin-adv-input-large"
+                    placeholder="Enter advisory title (e.g. Road Closure: Bilang-Bilang St.)..."
                     value={formTitle}
                     onChange={(e) => setFormTitle(e.target.value)}
                     required
@@ -514,7 +513,7 @@ export default function AdminAdvisories({ refreshKey = 0, onAdvisoryChange }) {
                 <div className="admin-field-group">
                   <label className="admin-field-label">Advisory Category *</label>
                   <select
-                    className="admin-modal-select"
+                    className="admin-modal-select admin-adv-select-field"
                     value={formCategory}
                     onChange={(e) => setFormCategory(e.target.value)}
                   >
@@ -528,16 +527,69 @@ export default function AdminAdvisories({ refreshKey = 0, onAdvisoryChange }) {
 
                 {/* Message / Description */}
                 <div className="admin-field-group">
-                  <label className="admin-field-label">Advisory Message / Description *</label>
+                  <label className="admin-field-label">Announcement Description *</label>
                   <textarea
-                    className="admin-modal-textarea"
+                    className="admin-modal-textarea admin-adv-textarea-large"
                     rows="4"
                     maxLength={1000}
-                    placeholder="Heavy congestion along Rizal St. / Boulevard... Provide details and instructions for motorists."
+                    placeholder="Write your traffic announcement, rerouting plan, reasons, and guidelines here..."
                     value={formMessage}
                     onChange={(e) => setFormMessage(e.target.value)}
                     required
                   />
+                </div>
+
+                {/* Upload Photos / Videos Dropzone */}
+                <div className="admin-field-group">
+                  <label className="admin-field-label">Upload Photos / Videos</label>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    style={{ display: "none" }}
+                    accept="image/*,video/*"
+                    onChange={handleMediaChange}
+                  />
+                  <div
+                    className="admin-adv-dropzone-btn"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => fileInputRef.current?.click()}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        fileInputRef.current?.click();
+                      }
+                    }}
+                  >
+                    <div className="admin-adv-dropzone-icon">
+                      <MaterialIcon name="add_photo_alternate" />
+                    </div>
+                    <div className="admin-adv-dropzone-text">
+                      <strong>Add photos or videos</strong>
+                      <span>Upload supporting advisory media or notice flyer</span>
+                    </div>
+                  </div>
+
+                  {formMediaPreview && (
+                    <div className="admin-adv-preview-card">
+                      <img src={formMediaPreview} alt="Selected preview" />
+                      <div className="admin-adv-preview-info">
+                        <span className="admin-adv-preview-name">
+                          {formMediaFile ? formMediaFile.name : "Attached Media"}
+                        </span>
+                        <button
+                          type="button"
+                          className="admin-adv-preview-delete"
+                          onClick={() => {
+                            setFormMediaFile(null);
+                            setFormMediaPreview(null);
+                          }}
+                        >
+                          <MaterialIcon name="delete" /> Remove Media
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Location & Alternative Route */}
@@ -547,7 +599,7 @@ export default function AdminAdvisories({ refreshKey = 0, onAdvisoryChange }) {
                     <input
                       type="text"
                       className="admin-modal-input"
-                      placeholder="e.g. Rizal St. cor. Borromeo"
+                      placeholder="Enter road or location (e.g. Rizal St. cor. Borromeo)..."
                       value={formLocation}
                       onChange={(e) => setFormLocation(e.target.value)}
                     />
@@ -557,126 +609,114 @@ export default function AdminAdvisories({ refreshKey = 0, onAdvisoryChange }) {
                     <input
                       type="text"
                       className="admin-modal-input"
-                      placeholder="e.g. Reroute via Boulevard / Taft St."
+                      placeholder="Enter alternative route (e.g. Reroute via Boulevard)..."
                       value={formRoute}
                       onChange={(e) => setFormRoute(e.target.value)}
                     />
                   </div>
                 </div>
 
-                {/* Schedule Start & End */}
-                <div className="admin-adv-row-2">
-                  <div className="admin-field-group">
-                    <label className="admin-field-label">Start Date & Time</label>
-                    <input
-                      type="datetime-local"
-                      className="admin-modal-input"
-                      value={formStartDate}
-                      onChange={(e) => setFormStartDate(e.target.value)}
-                    />
-                  </div>
-                  <div className="admin-field-group">
-                    <label className="admin-field-label">End Date & Time</label>
-                    <input
-                      type="datetime-local"
-                      className="admin-modal-input"
-                      value={formEndDate}
-                      onChange={(e) => setFormEndDate(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                {/* File Attachment Upload */}
+                {/* Advisory Schedule */}
                 <div className="admin-field-group">
-                  <label className="admin-field-label">Upload Photo / Notice Attachment</label>
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    style={{ display: "none" }}
-                    accept="image/*,video/*"
-                    onChange={handleMediaChange}
-                  />
-                  <button
-                    type="button"
-                    className="admin-adv-file-btn"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <MaterialIcon name="add_photo_alternate" />
-                    <span>{formMediaFile ? formMediaFile.name : "Select photo or notice file"}</span>
-                  </button>
-                  {formMediaPreview && (
-                    <div className="admin-adv-preview-box">
-                      <img src={formMediaPreview} alt="Preview" />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setFormMediaFile(null);
-                          setFormMediaPreview(null);
-                        }}
-                      >
-                        ×
-                      </button>
+                  <label className="admin-field-label">Advisory Schedule</label>
+                  <div className="admin-adv-row-2">
+                    <div className="admin-adv-date-field">
+                      <span className="admin-adv-date-label">Start date & time</span>
+                      <input
+                        type="datetime-local"
+                        className="admin-modal-input"
+                        value={formStartDate}
+                        onChange={(e) => setFormStartDate(e.target.value)}
+                      />
                     </div>
-                  )}
+                    <div className="admin-adv-date-field">
+                      <span className="admin-adv-date-label">End date & time</span>
+                      <input
+                        type="datetime-local"
+                        className="admin-modal-input"
+                        value={formEndDate}
+                        onChange={(e) => setFormEndDate(e.target.value)}
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                {/* Pin & Status */}
-                <div className="admin-adv-options-row">
+                {/* Pin & Status Options */}
+                <div className="admin-adv-options-card">
                   <label className="admin-adv-check">
                     <input
                       type="checkbox"
                       checked={formIsPinned}
                       onChange={(e) => setFormIsPinned(e.target.checked)}
                     />
-                    <span>📌 Pin announcement to top of feed</span>
+                    <span>📌 <strong>Pin this announcement</strong> to the top of the feed</span>
                   </label>
 
-                  <div className="admin-adv-radios">
-                    <label>
-                      <input
-                        type="radio"
-                        name="adv_status"
-                        value="published"
-                        checked={formStatus === "published"}
-                        onChange={() => setFormStatus("published")}
-                      />
-                      <span>Publish Immediately</span>
-                    </label>
-                    <label>
-                      <input
-                        type="radio"
-                        name="adv_status"
-                        value="draft"
-                        checked={formStatus === "draft"}
-                        onChange={() => setFormStatus("draft")}
-                      />
-                      <span>Save as Draft</span>
-                    </label>
+                  <div className="admin-adv-status-selector">
+                    <span className="admin-adv-status-title">Publishing Option:</span>
+                    <div className="admin-adv-radios">
+                      <label className={`admin-adv-radio-btn ${formStatus === "published" ? "active" : ""}`}>
+                        <input
+                          type="radio"
+                          name="adv_status"
+                          value="published"
+                          checked={formStatus === "published"}
+                          onChange={() => setFormStatus("published")}
+                        />
+                        <span>🚀 Publish Immediately</span>
+                      </label>
+                      <label className={`admin-adv-radio-btn ${formStatus === "draft" ? "active" : ""}`}>
+                        <input
+                          type="radio"
+                          name="adv_status"
+                          value="draft"
+                          checked={formStatus === "draft"}
+                          onChange={() => setFormStatus("draft")}
+                        />
+                        <span>📝 Save as Draft</span>
+                      </label>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <div className="admin-modal-footer">
+              {/* Big, Clear, Beautiful Action Buttons */}
+              <div className="admin-modal-footer admin-adv-modal-footer">
                 <button
                   type="button"
-                  className="admin-modal-cancel"
+                  className="admin-adv-btn-cancel"
                   onClick={() => setShowComposer(false)}
                 >
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  className="admin-modal-save"
-                  disabled={submittingForm}
-                >
-                  {submittingForm
-                    ? "Saving..."
-                    : editingAdvisory
-                    ? "Update Advisory"
-                    : formStatus === "draft"
-                    ? "Save Draft"
-                    : "Broadcast Advisory"}
-                </button>
+
+                <div className="admin-adv-footer-actions">
+                  {formStatus === "draft" ? (
+                    <button
+                      type="submit"
+                      className="admin-adv-btn-draft"
+                      disabled={submittingForm}
+                    >
+                      <MaterialIcon name="article" />
+                      <span>{submittingForm ? "Saving Draft..." : "Save as Draft"}</span>
+                    </button>
+                  ) : (
+                    <button
+                      type="submit"
+                      className="admin-adv-btn-publish"
+                      disabled={submittingForm}
+                    >
+                      <MaterialIcon name="campaign" />
+                      <span>
+                        {submittingForm
+                          ? "Publishing..."
+                          : editingAdvisory
+                          ? "Update Announcement"
+                          : "Publish Announcement"}
+                      </span>
+                    </button>
+                  )}
+                </div>
               </div>
             </form>
           </div>
@@ -785,3 +825,4 @@ export default function AdminAdvisories({ refreshKey = 0, onAdvisoryChange }) {
     </section>
   );
 }
+
