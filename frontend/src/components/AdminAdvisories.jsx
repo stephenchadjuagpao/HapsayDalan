@@ -78,6 +78,15 @@ export default function AdminAdvisories({ refreshKey = 0, onAdvisoryChange }) {
     loadAdvisories();
   }, [loadAdvisories, refreshKey]);
 
+  const broadcastAdvisoryChange = () => {
+    try {
+      localStorage.setItem("hapsaydalan_advisory_updated", Date.now().toString());
+      window.dispatchEvent(new CustomEvent("hapsaydalan_advisory_updated"));
+    } catch {
+      /* ignore */
+    }
+  };
+
   const openNewComposer = () => {
     setEditingAdvisory(null);
     setFormTitle("");
@@ -156,6 +165,7 @@ export default function AdminAdvisories({ refreshKey = 0, onAdvisoryChange }) {
 
       setShowComposer(false);
       loadAdvisories();
+      broadcastAdvisoryChange();
       onAdvisoryChange?.();
     } catch (err) {
       const detail =
@@ -173,6 +183,7 @@ export default function AdminAdvisories({ refreshKey = 0, onAdvisoryChange }) {
       await API.patch(`admin/advisories/${advisory.id}/pin/`, { is_pinned: !advisory.is_pinned });
       showToast(advisory.is_pinned ? "Advisory unpinned." : "Advisory pinned to top!");
       loadAdvisories();
+      broadcastAdvisoryChange();
       onAdvisoryChange?.();
     } catch {
       showToast("Could not update pin status.");
@@ -184,6 +195,7 @@ export default function AdminAdvisories({ refreshKey = 0, onAdvisoryChange }) {
       await API.patch(`admin/advisories/${advisory.id}/archive/`);
       showToast(advisory.archived_at ? "Advisory restored from archive." : "Advisory moved to archive.");
       loadAdvisories();
+      broadcastAdvisoryChange();
       onAdvisoryChange?.();
     } catch {
       showToast("Could not update archive status.");
@@ -197,6 +209,7 @@ export default function AdminAdvisories({ refreshKey = 0, onAdvisoryChange }) {
       showToast("Advisory permanently deleted.");
       setDeletingId(null);
       loadAdvisories();
+      broadcastAdvisoryChange();
       onAdvisoryChange?.();
     } catch {
       showToast("Failed to delete advisory.");

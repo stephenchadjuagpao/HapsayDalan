@@ -176,3 +176,21 @@ class TrafficAdvisoryTests(TestCase):
         self.assertIn("Active Advisory", titles)
         self.assertNotIn("Expired Advisory", titles)
 
+    def test_scheduled_upcoming_advisory_is_visible_immediately(self):
+        from django.utils import timezone
+        from datetime import timedelta
+
+        now = timezone.now()
+        TrafficAdvisory.objects.create(
+            title="Upcoming Rerouting Tomorrow",
+            message="Road rerouting starts tomorrow at 8am",
+            status="published",
+            audience="public",
+            start_datetime=now + timedelta(days=1),
+            created_by=self.staff
+        )
+        res = self.client.get("/api/advisories/")
+        self.assertEqual(res.status_code, 200)
+        titles = [item["title"] for item in res.data]
+        self.assertIn("Upcoming Rerouting Tomorrow", titles)
+

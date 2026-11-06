@@ -100,9 +100,13 @@ export default function TrafficAdvisoryPage() {
   };
 
   // Fetch Advisories (Public feed — always published advisories only)
-  const loadAdvisories = useCallback(async () => {
-    setLoading(true);
-    setError("");
+  // Accepts silent parameter so background real-time polls don't flash the loading spinner
+  const lastAdvisoryIdRef = useRef(null);
+  const loadAdvisories = useCallback(async (silent = false) => {
+    if (!silent) {
+      setLoading(true);
+      setError("");
+    }
     try {
       const params = new URLSearchParams();
       if (selectedCategory && selectedCategory !== "All") {
@@ -116,47 +120,86 @@ export default function TrafficAdvisoryPage() {
       const url = `advisories/${queryString ? `?${queryString}` : ""}`;
       const { data } = await API.get(url);
       const rows = Array.isArray(data) ? data : data?.results || [];
+
+      // Check if a new advisory was published to alert user in real-time
+      if (rows.length > 0) {
+        const topId = rows[0].id;
+        if (lastAdvisoryIdRef.current !== null && topId !== lastAdvisoryIdRef.current) {
+          const newest = rows[0];
+          if (typeof Notification !== "undefined" && Notification.permission === "granted") {
+            try {
+              new Notification("CTMO Surigao City – New Traffic Advisory", {
+                body: newest.title || newest.message || "A new traffic advisory has been posted.",
+                icon: "/favicon.ico",
+              });
+            } catch {
+              /* ignore notification errors */
+            }
+          }
+          showToast("🔔 New traffic advisory published by CTMO!");
+        }
+        lastAdvisoryIdRef.current = topId;
+      }
+
       setAdvisories(rows);
     } catch {
-      setError("Unable to load traffic advisories. Please check your connection.");
+      if (!silent) {
+        setError("Unable to load traffic advisories. Please check your connection.");
+      }
     } finally {
-      setLoading(false);
+      if (!silent) {
+        setLoading(false);
+      }
     }
   }, [selectedCategory, searchQuery]);
 
+  // Initial load & debounced search/category filter
   useEffect(() => {
-    const timer = setTimeout(loadAdvisories, 250);
+    const timer = setTimeout(() => {
+      loadAdvisories(false);
+    }, 250);
     return () => clearTimeout(timer);
   }, [loadAdvisories]);
 
-  // Poll for new advisories every 60 seconds and fire browser notification
-  const lastAdvisoryIdRef = useRef(null);
+  // Real-time auto-refresh & cross-tab sync
   useEffect(() => {
-    if (!notifEnabled) return;
-    const poll = async () => {
-      try {
-        const { data } = await API.get("advisories/?page_size=1&page=1");
-        const newest = (Array.isArray(data) ? data : data?.results || [])[0];
-        if (!newest) return;
-        if (lastAdvisoryIdRef.current === null) {
-          lastAdvisoryIdRef.current = newest.id;
-          return;
-        }
-        if (newest.id !== lastAdvisoryIdRef.current && Notification.permission === "granted") {
-          lastAdvisoryIdRef.current = newest.id;
-          new Notification("CTMO Surigao City – New Traffic Advisory", {
-            body: newest.title || newest.message || "A new traffic advisory has been posted.",
-            icon: "/favicon.ico",
-          });
-          loadAdvisories();
-        }
-      } catch {
-        /* ignore polling errors */
+    const handleStorage = (e) => {
+      if (e.key === "hapsaydalan_advisory_updated") {
+        loadAdvisories(true);
       }
     };
-    const interval = setInterval(poll, 60000);
-    return () => clearInterval(interval);
-  }, [notifEnabled, loadAdvisories]);
+    const handleCustomEvent = () => {
+      loadAdvisories(true);
+    };
+    const handleFocus = () => {
+      loadAdvisories(true);
+    };
+    const handleVisibility = () => {
+      if (!document.hidden) {
+        loadAdvisories(true);
+      }
+    };
+
+    window.addEventListener("storage", handleStorage);
+    window.addEventListener("hapsaydalan_advisory_updated", handleCustomEvent);
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    // Fast silent polling every 3.5 seconds
+    const interval = setInterval(() => {
+      if (!document.hidden) {
+        loadAdvisories(true);
+      }
+    }, 3500);
+
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("hapsaydalan_advisory_updated", handleCustomEvent);
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibility);
+      clearInterval(interval);
+    };
+  }, [loadAdvisories]);
 
   // Citizen Reaction / Like
   const handleLike = async (advisoryId) => {

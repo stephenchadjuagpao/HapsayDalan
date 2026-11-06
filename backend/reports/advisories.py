@@ -93,8 +93,6 @@ def public_advisories(request):
         status="published",
         audience__in=["all", "public"]
     ).filter(
-        Q(start_datetime__isnull=True) | Q(start_datetime__lte=now)
-    ).filter(
         Q(end_datetime__isnull=True) | Q(end_datetime__gte=now)
     )
 
