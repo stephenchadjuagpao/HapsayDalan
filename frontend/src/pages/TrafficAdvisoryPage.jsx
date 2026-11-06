@@ -48,71 +48,26 @@ export default function TrafficAdvisoryPage() {
   const [advisories, setAdvisories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [isAdminLoading, setIsAdminLoading] = useState(true); // prevent flash of admin UI
 
   // Filters
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
 
-  // Modals & Forms
-  const [showComposer, setShowComposer] = useState(false);
-  const [editingAdvisory, setEditingAdvisory] = useState(null);
-  const [deletingId, setDeletingId] = useState(null);
+  // Toast
   const [toastMessage, setToastMessage] = useState("");
-
-  // Composer Form State
-  const [formTitle, setFormTitle] = useState("");
-  const [formCategory, setFormCategory] = useState("Road Closure");
-  const [formMessage, setFormMessage] = useState("");
-  const [formLocation, setFormLocation] = useState("");
-  const [formRoute, setFormRoute] = useState("");
-  const [formStartDate, setFormStartDate] = useState("");
-  const [formEndDate, setFormEndDate] = useState("");
-  const [formIsPinned, setFormIsPinned] = useState(false);
-  const [formStatus, setFormStatus] = useState("published");
-  const [formMediaFile, setFormMediaFile] = useState(null);
-  const [formMediaPreview, setFormMediaPreview] = useState(null);
-  const [submittingForm, setSubmittingForm] = useState(false);
-  const [formError, setFormError] = useState("");
-  const fileInputRef = useRef(null);
 
   // Notifications subscription (browser Push API / local polling)
   const [notifEnabled, setNotifEnabled] = useState(
     () => localStorage.getItem("advisory_notifications") === "true"
   );
 
-  // Active Dropdowns / Lightboxes / Comments
-  const [openMenuId, setOpenMenuId] = useState(null);
+  // Active Lightbox / Comments
   const [activeMediaModal, setActiveMediaModal] = useState(null);
   const [openCommentsId, setOpenCommentsId] = useState(null);
   const [commentsMap, setCommentsMap] = useState({});
   const [newCommentText, setNewCommentText] = useState({});
   const [newCommentAuthor, setNewCommentAuthor] = useState({});
   const [commentSubmitting, setCommentSubmitting] = useState({});
-
-  // Check admin authorization — only trust the server response (never fall back to sessionStorage alone)
-  useEffect(() => {
-    let alive = true;
-    API.get("admin/me/")
-      .then(({ data }) => {
-        if (!alive) return;
-        // Only grant admin UI if the server confirms staff/superuser status
-        if (data && (data.is_staff || data.is_superuser)) {
-          setIsAdmin(true);
-        }
-      })
-      .catch(() => {
-        // API error (not logged in / 401 / 403 / network): always treat as public user
-        // Do NOT fall back to sessionStorage — that caused the 3-dot menu leak
-      })
-      .finally(() => {
-        if (alive) setIsAdminLoading(false);
-      });
-    return () => {
-      alive = false;
-    };
-  }, []);
 
   const showToast = (msg) => {
     setToastMessage(msg);
@@ -126,13 +81,11 @@ export default function TrafficAdvisoryPage() {
       return;
     }
     if (notifEnabled) {
-      // Unsubscribe
       localStorage.setItem("advisory_notifications", "false");
       setNotifEnabled(false);
       showToast("Notification alerts turned off.");
       return;
     }
-    // Request permission if not yet granted
     let perm = Notification.permission;
     if (perm === "default") {
       perm = await Notification.requestPermission();
@@ -146,7 +99,7 @@ export default function TrafficAdvisoryPage() {
     }
   };
 
-  // Fetch Advisories (Public feed always fetches published advisories)
+  // Fetch Advisories (Public feed — always published advisories only)
   const loadAdvisories = useCallback(async () => {
     setLoading(true);
     setError("");
@@ -204,122 +157,6 @@ export default function TrafficAdvisoryPage() {
     const interval = setInterval(poll, 60000);
     return () => clearInterval(interval);
   }, [notifEnabled, loadAdvisories]);
-
-  // Open Composer for Editing Existing Announcement
-  const openEditComposer = (advisory) => {
-    setEditingAdvisory(advisory);
-    setFormTitle(advisory.title || "");
-    setFormCategory(advisory.category || "Road Closure");
-    setFormMessage(advisory.message || "");
-    setFormLocation(advisory.affected_location || "");
-    setFormRoute(advisory.alternative_route || "");
-    setFormStartDate(advisory.start_datetime ? advisory.start_datetime.slice(0, 16) : "");
-    setFormEndDate(advisory.end_datetime ? advisory.end_datetime.slice(0, 16) : "");
-    setFormIsPinned(Boolean(advisory.is_pinned));
-    setFormStatus(advisory.status || "published");
-    setFormMediaFile(null);
-    setFormMediaPreview(advisory.media_url || null);
-    setFormError("");
-    setShowComposer(true);
-    setOpenMenuId(null);
-  };
-
-  // Handle Media File Selection
-  const handleMediaChange = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setFormMediaFile(file);
-    const url = URL.createObjectURL(file);
-    setFormMediaPreview(url);
-  };
-
-  // Submit Composer Form (Create / Edit)
-  const handleSubmitAnnouncement = async (e) => {
-    e.preventDefault();
-    if (!formTitle.trim() && !formMessage.trim()) {
-      setFormError("Please enter an announcement title or description.");
-      return;
-    }
-    setSubmittingForm(true);
-    setFormError("");
-
-    try {
-      const formData = new FormData();
-      formData.append("title", formTitle.trim());
-      formData.append("category", formCategory);
-      formData.append("message", formMessage.trim() || formTitle.trim());
-      formData.append("affected_location", formLocation.trim());
-      formData.append("alternative_route", formRoute.trim());
-      formData.append("is_pinned", formIsPinned ? "true" : "false");
-      formData.append("status", formStatus);
-      formData.append("audience", "all");
-
-      if (formStartDate) formData.append("start_datetime", new Date(formStartDate).toISOString());
-      if (formEndDate) formData.append("end_datetime", new Date(formEndDate).toISOString());
-      if (formMediaFile) formData.append("media", formMediaFile);
-
-      if (editingAdvisory) {
-        await API.patch(`admin/advisories/${editingAdvisory.id}/`, formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
-        showToast("Announcement updated successfully!");
-      } else {
-        await API.post("admin/advisories/", formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
-        showToast("New traffic announcement published!");
-      }
-
-      setShowComposer(false);
-      loadAdvisories();
-    } catch (err) {
-      const detail =
-        err.response?.data?.message?.[0] ||
-        err.response?.data?.detail ||
-        "Could not save announcement. Please try again.";
-      setFormError(detail);
-    } finally {
-      setSubmittingForm(false);
-    }
-  };
-
-  // Pin / Unpin Advisory
-  const togglePinAdvisory = async (advisory) => {
-    try {
-      await API.patch(`admin/advisories/${advisory.id}/pin/`, { is_pinned: !advisory.is_pinned });
-      showToast(advisory.is_pinned ? "Announcement unpinned." : "Announcement pinned to top!");
-      setOpenMenuId(null);
-      loadAdvisories();
-    } catch {
-      showToast("Failed to update pin status.");
-    }
-  };
-
-  // Archive / Unarchive Advisory
-  const toggleArchiveAdvisory = async (advisory) => {
-    try {
-      await API.patch(`admin/advisories/${advisory.id}/archive/`);
-      showToast(advisory.archived_at ? "Announcement restored from archive." : "Announcement archived.");
-      setOpenMenuId(null);
-      loadAdvisories();
-    } catch {
-      showToast("Failed to update archive status.");
-    }
-  };
-
-  // Delete Advisory
-  const confirmDeleteAdvisory = async () => {
-    if (!deletingId) return;
-    try {
-      await API.delete(`admin/advisories/${deletingId}/`);
-      showToast("Announcement permanently deleted.");
-      setDeletingId(null);
-      setOpenMenuId(null);
-      loadAdvisories();
-    } catch {
-      showToast("Failed to delete announcement.");
-    }
-  };
 
   // Citizen Reaction / Like
   const handleLike = async (advisoryId) => {
@@ -473,18 +310,16 @@ export default function TrafficAdvisoryPage() {
               </div>
             </div>
 
-            {/* Notification Subscribe Button — public users */}
-            {!isAdmin && (
-              <button
-                type="button"
-                className={`ta-notify-btn ${notifEnabled ? "is-subscribed" : ""}`}
-                onClick={toggleNotifications}
-                title={notifEnabled ? "Turn off notifications" : "Get notified of new advisories"}
-              >
-                <MaterialIcon name={notifEnabled ? "notifications" : "notifications_none"} />
-                <span>{notifEnabled ? "Notifications On" : "Get Notified"}</span>
-              </button>
-            )}
+            {/* Notification Subscribe Button */}
+            <button
+              type="button"
+              className={`ta-notify-btn ${notifEnabled ? "is-subscribed" : ""}`}
+              onClick={toggleNotifications}
+              title={notifEnabled ? "Turn off notifications" : "Get notified of new advisories"}
+            >
+              <MaterialIcon name={notifEnabled ? "notifications" : "notifications_none"} />
+              <span>{notifEnabled ? "Notifications On" : "Get Notified"}</span>
+            </button>
           </div>
         </aside>
 
@@ -625,63 +460,9 @@ export default function TrafficAdvisoryPage() {
                         )}
                       </div>
                     </div>
-
-                    {/* Admin 3-Dot Management Menu (top right) */}
-                    {!isAdminLoading && isAdmin && (
-                      <div className="ta-post-actions-menu">
-                        <button
-                          type="button"
-                          className="ta-icon-btn"
-                          onClick={() =>
-                            setOpenMenuId((cur) => (cur === item.id ? null : item.id))
-                          }
-                          title="Manage Post"
-                        >
-                          <MaterialIcon name="more_vert" />
-                        </button>
-
-                        {openMenuId === item.id && (
-                          <div className="ta-menu-dropdown">
-                            <button
-                              type="button"
-                              className="ta-menu-item"
-                              onClick={() => togglePinAdvisory(item)}
-                            >
-                              <MaterialIcon name="push_pin" />
-                              <span>{item.is_pinned ? "Unpin Post" : "Pin to Top"}</span>
-                            </button>
-                            <button
-                              type="button"
-                              className="ta-menu-item"
-                              onClick={() => openEditComposer(item)}
-                            >
-                              <MaterialIcon name="edit" />
-                              <span>Edit Announcement</span>
-                            </button>
-                            <button
-                              type="button"
-                              className="ta-menu-item"
-                              onClick={() => toggleArchiveAdvisory(item)}
-                            >
-                              <MaterialIcon name="archive" />
-                              <span>{item.archived_at ? "Unarchive Post" : "Archive Post"}</span>
-                            </button>
-                            <div className="ta-menu-divider" />
-                            <button
-                              type="button"
-                              className="ta-menu-item is-danger"
-                              onClick={() => setDeletingId(item.id)}
-                            >
-                              <MaterialIcon name="delete" />
-                              <span>Delete Post</span>
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    )}
                   </div>
 
-                  {/* Category Badge — below header, matches screenshot */}
+                  {/* Category Badge */}
                   <div className="ta-post-category-row">
                     <span
                       className="ta-category-badge"
@@ -760,7 +541,7 @@ export default function TrafficAdvisoryPage() {
                     </div>
                   )}
 
-                  {/* Reaction and Engagement Stats Bar — matches screenshot exactly */}
+                  {/* Reaction and Engagement Stats Bar */}
                   {((item.likes_count || 0) > 0 || (item.comments_count || 0) > 0) && (
                     <div className="ta-post-stats-bar">
                       <div className="ta-stats-row">
@@ -894,239 +675,6 @@ export default function TrafficAdvisoryPage() {
           </div>
         </main>
       </div>
-
-      {/* Admin Composer Modal */}
-      {showComposer && (
-        <div className="ta-modal-backdrop" onClick={() => setShowComposer(false)}>
-          <div className="ta-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="ta-modal-header">
-              <h2>{editingAdvisory ? "Edit Traffic Advisory" : "Create Traffic Advisory"}</h2>
-              <button
-                type="button"
-                className="ta-modal-close"
-                onClick={() => setShowComposer(false)}
-              >
-                <MaterialIcon name="close" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmitAnnouncement} className="ta-modal-form">
-              {formError && <div className="ta-form-error">{formError}</div>}
-
-              {/* Title */}
-              <div className="ta-form-group">
-                <label className="ta-form-label">Announcement Title *</label>
-                <input
-                  type="text"
-                  className="ta-form-input"
-                  placeholder="e.g. Temporary Road Closure: Bilang-Bilang St."
-                  value={formTitle}
-                  onChange={(e) => setFormTitle(e.target.value)}
-                  required
-                />
-              </div>
-
-              {/* Category */}
-              <div className="ta-form-group">
-                <label className="ta-form-label">Advisory Category *</label>
-                <select
-                  className="ta-form-select"
-                  value={formCategory}
-                  onChange={(e) => setFormCategory(e.target.value)}
-                >
-                  {CATEGORIES.map((cat) => (
-                    <option key={cat.label} value={cat.label}>
-                      {cat.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Description / Content */}
-              <div className="ta-form-group">
-                <label className="ta-form-label">Description / Announcement Details *</label>
-                <textarea
-                  className="ta-form-textarea"
-                  rows={4}
-                  placeholder="Provide detailed instructions, reasons for advisory, and traffic personnel guidance..."
-                  value={formMessage}
-                  onChange={(e) => setFormMessage(e.target.value)}
-                  required
-                />
-              </div>
-
-              {/* Location & Alternative Route */}
-              <div className="ta-form-row">
-                <div className="ta-form-group">
-                  <label className="ta-form-label">Affected Location</label>
-                  <input
-                    type="text"
-                    className="ta-form-input"
-                    placeholder="e.g. Rizal St. cor. Borromeo"
-                    value={formLocation}
-                    onChange={(e) => setFormLocation(e.target.value)}
-                  />
-                </div>
-                <div className="ta-form-group">
-                  <label className="ta-form-label">Alternative Route</label>
-                  <input
-                    type="text"
-                    className="ta-form-input"
-                    placeholder="e.g. Reroute via Boulevard / Taft St."
-                    value={formRoute}
-                    onChange={(e) => setFormRoute(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              {/* Start & End Dates */}
-              <div className="ta-form-row">
-                <div className="ta-form-group">
-                  <label className="ta-form-label">Start Date & Time</label>
-                  <input
-                    type="datetime-local"
-                    className="ta-form-input"
-                    value={formStartDate}
-                    onChange={(e) => setFormStartDate(e.target.value)}
-                  />
-                </div>
-                <div className="ta-form-group">
-                  <label className="ta-form-label">End Date & Time</label>
-                  <input
-                    type="datetime-local"
-                    className="ta-form-input"
-                    value={formEndDate}
-                    onChange={(e) => setFormEndDate(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              {/* Photo / Video Upload */}
-              <div className="ta-form-group">
-                <label className="ta-form-label">Photo or Video Evidence / Notice</label>
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  style={{ display: "none" }}
-                  accept="image/*,video/*"
-                  onChange={handleMediaChange}
-                />
-                <button
-                  type="button"
-                  className="ta-upload-box"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <MaterialIcon name="add_photo_alternate" />
-                  <span>
-                    {formMediaFile ? formMediaFile.name : "Click to select a photo or video"}
-                  </span>
-                </button>
-                {formMediaPreview && (
-                  <div className="ta-preview-box">
-                    <img src={formMediaPreview} alt="Preview" className="ta-preview-img" />
-                    <button
-                      type="button"
-                      className="ta-preview-remove"
-                      onClick={() => {
-                        setFormMediaFile(null);
-                        setFormMediaPreview(null);
-                      }}
-                    >
-                      <MaterialIcon name="close" />
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Pin & Status Options */}
-              <div className="ta-form-options">
-                <label className="ta-checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={formIsPinned}
-                    onChange={(e) => setFormIsPinned(e.target.checked)}
-                  />
-                  <span>📌 Pin to top of feed (High Priority)</span>
-                </label>
-
-                <div className="ta-status-radios">
-                  <label className="ta-radio-label">
-                    <input
-                      type="radio"
-                      name="status"
-                      value="published"
-                      checked={formStatus === "published"}
-                      onChange={() => setFormStatus("published")}
-                    />
-                    <span>Publish Immediately</span>
-                  </label>
-                  <label className="ta-radio-label">
-                    <input
-                      type="radio"
-                      name="status"
-                      value="draft"
-                      checked={formStatus === "draft"}
-                      onChange={() => setFormStatus("draft")}
-                    />
-                    <span>Save as Draft</span>
-                  </label>
-                </div>
-              </div>
-
-              {/* Footer Actions */}
-              <div className="ta-modal-footer">
-                <button
-                  type="button"
-                  className="ta-btn-secondary"
-                  onClick={() => setShowComposer(false)}
-                >
-                  Cancel
-                </button>
-                <button type="submit" className="ta-btn-primary" disabled={submittingForm}>
-                  {submittingForm
-                    ? "Saving..."
-                    : editingAdvisory
-                    ? "Update Announcement"
-                    : formStatus === "draft"
-                    ? "Save Draft"
-                    : "Publish Announcement"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Delete Confirmation Modal */}
-      {deletingId && (
-        <div className="ta-modal-backdrop" onClick={() => setDeletingId(null)}>
-          <div className="ta-modal ta-confirm-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="ta-confirm-icon">
-              <MaterialIcon name="delete" />
-            </div>
-            <h3>Delete this announcement?</h3>
-            <p>
-              This will permanently remove the announcement and its comments from the feed. This action cannot be undone.
-            </p>
-            <div className="ta-modal-footer">
-              <button
-                type="button"
-                className="ta-btn-secondary"
-                onClick={() => setDeletingId(null)}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className="ta-btn-danger"
-                onClick={confirmDeleteAdvisory}
-              >
-                Delete Announcement
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Lightbox Media Modal */}
       {activeMediaModal && (
