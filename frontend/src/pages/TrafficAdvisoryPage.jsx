@@ -44,25 +44,50 @@ function formatSchedule(start, end) {
   return `${sStr} – ${eStr}`;
 }
 
-const NOTIFIED_ADVISORIES_KEY = "hapsaydalan_notified_advisories";
+const SEEN_ADVISORIES_KEY = "hapsaydalan_seen_advisory_ids";
 
-function getNotifiedAdvisoryIds() {
+function getSeenAdvisoryIds() {
   try {
-    const raw = localStorage.getItem(NOTIFIED_ADVISORIES_KEY);
+    const raw = localStorage.getItem(SEEN_ADVISORIES_KEY);
     return raw ? new Set(JSON.parse(raw)) : new Set();
   } catch {
     return new Set();
   }
 }
 
-function saveNotifiedAdvisoryId(id) {
+function recordSeenAdvisoryIds(ids) {
   try {
-    const set = getNotifiedAdvisoryIds();
-    set.add(String(id));
-    const arr = Array.from(set).slice(-100);
-    localStorage.setItem(NOTIFIED_ADVISORIES_KEY, JSON.stringify(arr));
+    const set = getSeenAdvisoryIds();
+    ids.forEach((id) => set.add(String(id)));
+    const arr = Array.from(set).slice(-300);
+    localStorage.setItem(SEEN_ADVISORIES_KEY, JSON.stringify(arr));
   } catch {
     /* ignore storage errors */
+  }
+}
+
+// Gentle audio chime for real-time advisory alert
+function playAlertChime() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    if (ctx.state === "suspended") {
+      ctx.resume().catch(() => {});
+    }
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.12);
+    gain.gain.setValueAtTime(0.18, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.35);
+  } catch {
+    /* ignore audio errors */
   }
 }
 
@@ -78,7 +103,7 @@ export default function TrafficAdvisoryPage() {
   // Toast
   const [toastMessage, setToastMessage] = useState("");
 
-  // Notifications subscription (browser Push API / local polling)
+  // Notifications subscription (in-app alerts + browser Push API)
   const [notifEnabled, setNotifEnabled] = useState(
     () => localStorage.getItem("advisory_notifications") === "true"
   );
@@ -91,37 +116,35 @@ export default function TrafficAdvisoryPage() {
   const [newCommentAuthor, setNewCommentAuthor] = useState({});
   const [commentSubmitting, setCommentSubmitting] = useState({});
 
-  // Refs for tracking known advisories to ensure notifications alert exactly ONCE
-  const knownIdsRef = useRef(new Set());
   const isInitializedRef = useRef(false);
+  const loadAdvisoriesRef = useRef();
 
   const showToast = (msg) => {
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(""), 3500);
+    setTimeout(() => setToastMessage(""), 4000);
   };
 
-  // Toggle browser notification subscription
+  // Toggle advisory alerts subscription
   const toggleNotifications = async () => {
-    if (typeof Notification === "undefined") {
-      showToast("Your browser does not support notifications.");
-      return;
-    }
     if (notifEnabled) {
       localStorage.setItem("advisory_notifications", "false");
       setNotifEnabled(false);
-      showToast("Notification alerts turned off.");
+      showToast("Advisory alerts turned off.");
       return;
     }
-    let perm = Notification.permission;
-    if (perm === "default") {
-      perm = await Notification.requestPermission();
-    }
-    if (perm === "granted") {
-      localStorage.setItem("advisory_notifications", "true");
-      setNotifEnabled(true);
-      showToast("You will now receive traffic advisory notifications.");
-    } else {
-      showToast("Notification permission denied. Enable it in your browser settings.");
+
+    // Turn ON in-app advisory alerts
+    localStorage.setItem("advisory_notifications", "true");
+    setNotifEnabled(true);
+    showToast("Advisory alerts turned on! You will receive real-time updates.");
+
+    // Also attempt browser push permission if supported
+    if (typeof Notification !== "undefined" && Notification.permission === "default") {
+      try {
+        await Notification.requestPermission();
+      } catch {
+        /* ignore */
+      }
     }
   };
 
@@ -157,35 +180,40 @@ export default function TrafficAdvisoryPage() {
     }
   }, [selectedCategory, searchQuery]);
 
+  loadAdvisoriesRef.current = loadAdvisories;
+
   // Check for newly published announcements in the global "All" feed
-  // Alerts user exactly ONCE per announcement and is completely independent of category filters
+  // Completely isolated from category clicks: alerts user exactly ONCE per announcement
   const checkForNewAdvisories = useCallback(async () => {
     try {
-      const { data } = await API.get("advisories/?page_size=5&page=1");
-      const list = Array.isArray(data) ? data : data?.results || [];
-      if (!list.length) return;
+      const { data } = await API.get("advisories/");
+      const allRows = Array.isArray(data) ? data : data?.results || [];
+      if (!allRows.length) return;
 
-      // On initial run, mark all currently existing advisories as known so we don't alert old ones
+      const currentIds = allRows.map((item) => String(item.id));
+      const seenSet = getSeenAdvisoryIds();
+
+      // On initial page load: mark all existing advisories as already seen
+      // so the user is NEVER alerted about historical posts
       if (!isInitializedRef.current) {
-        list.forEach((item) => knownIdsRef.current.add(String(item.id)));
+        recordSeenAdvisoryIds(currentIds);
         isInitializedRef.current = true;
         return;
       }
 
-      const notifiedSet = getNotifiedAdvisoryIds();
-      const newItems = list.filter(
-        (item) => !knownIdsRef.current.has(String(item.id)) && !notifiedSet.has(String(item.id))
-      );
+      // Check for brand-new advisories that were NOT seen before
+      const brandNew = allRows.filter((item) => !seenSet.has(String(item.id)));
 
-      if (newItems.length > 0) {
-        const newest = newItems[0];
-        // Mark all new items as known & save to localStorage so they NEVER alert again
-        newItems.forEach((item) => {
-          knownIdsRef.current.add(String(item.id));
-          saveNotifiedAdvisoryId(item.id);
-        });
+      if (brandNew.length > 0) {
+        // Record them immediately in localStorage so they can NEVER notify again
+        recordSeenAdvisoryIds(brandNew.map((item) => String(item.id)));
 
-        // Browser push notification if user opted in
+        const newest = brandNew[0];
+
+        // 1. Play audio chime
+        playAlertChime();
+
+        // 2. Browser push notification if user opted in and granted
         if (typeof Notification !== "undefined" && Notification.permission === "granted") {
           try {
             new Notification("CTMO Surigao City – New Traffic Advisory", {
@@ -197,16 +225,16 @@ export default function TrafficAdvisoryPage() {
           }
         }
 
-        // Show toast alert exactly once
-        showToast("New traffic advisory published by CTMO.");
+        // 3. Show in-app alert toast exactly once
+        showToast(`New traffic advisory: ${newest.title || newest.message}`);
 
-        // Silently reload current view so the new announcement appears immediately
-        loadAdvisories(true);
+        // 4. Silently refresh the current feed list so it appears on screen immediately
+        loadAdvisoriesRef.current?.(true);
       }
     } catch {
-      /* ignore polling check errors */
+      /* ignore background check errors */
     }
-  }, [loadAdvisories]);
+  }, []); // EMPTY DEPENDENCY ARRAY: Never recreated on category filter change!
 
   // Initial load & debounced search/category filter change
   useEffect(() => {
@@ -221,11 +249,11 @@ export default function TrafficAdvisoryPage() {
     checkForNewAdvisories();
   }, [checkForNewAdvisories]);
 
-  // Real-time auto-refresh, cross-tab sync & background polling
+  // Real-time auto-refresh, cross-tab sync & background polling (every 3 seconds)
   useEffect(() => {
     const triggerSync = () => {
       checkForNewAdvisories();
-      loadAdvisories(true);
+      loadAdvisoriesRef.current?.(true);
     };
 
     const handleStorage = (e) => {
@@ -250,12 +278,12 @@ export default function TrafficAdvisoryPage() {
     window.addEventListener("focus", handleFocus);
     document.addEventListener("visibilitychange", handleVisibility);
 
-    // Fast silent polling every 3.5 seconds
+    // Fast silent polling every 3 seconds for instant updates
     const interval = setInterval(() => {
       if (!document.hidden) {
         triggerSync();
       }
-    }, 3500);
+    }, 3000);
 
     return () => {
       window.removeEventListener("storage", handleStorage);
@@ -264,7 +292,7 @@ export default function TrafficAdvisoryPage() {
       document.removeEventListener("visibilitychange", handleVisibility);
       clearInterval(interval);
     };
-  }, [checkForNewAdvisories, loadAdvisories]);
+  }, [checkForNewAdvisories]);
 
   // Citizen Reaction / Like
   const handleLike = async (advisoryId) => {

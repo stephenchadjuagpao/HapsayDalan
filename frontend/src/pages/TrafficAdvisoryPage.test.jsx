@@ -153,6 +153,18 @@ describe("TrafficAdvisoryPage", () => {
     fireEvent.click(allPill);
 
     // Toast alert for new advisory should NOT be shown on category switch
-    expect(screen.queryByText("New traffic advisory published by CTMO.")).not.toBeInTheDocument();
+    expect(screen.queryByText(/New traffic advisory/i)).not.toBeInTheDocument();
+  });
+
+  test("toggling advisory alerts activates real-time alert preference", async () => {
+    localStorage.clear();
+    render(<TrafficAdvisoryPage />);
+
+    const notifyBtn = await screen.findByRole("button", { name: /Get Notified/i });
+    fireEvent.click(notifyBtn);
+
+    // Toast indicates alerts are active
+    expect(await screen.findByText(/Advisory alerts turned on/i)).toBeInTheDocument();
+    expect(localStorage.getItem("advisory_notifications")).toBe("true");
   });
 });
