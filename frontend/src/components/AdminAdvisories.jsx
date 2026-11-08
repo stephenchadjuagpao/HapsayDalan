@@ -128,6 +128,12 @@ export default function AdminAdvisories({ refreshKey = 0, onAdvisoryChange }) {
     setFormMediaPreview(URL.createObjectURL(file));
   };
 
+  const parseIsoDate = (val) => {
+    if (!val) return null;
+    const d = new Date(val);
+    return isNaN(d.getTime()) ? null : d.toISOString();
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formTitle.trim() && !formMessage.trim()) {
@@ -137,29 +143,44 @@ export default function AdminAdvisories({ refreshKey = 0, onAdvisoryChange }) {
     setSubmittingForm(true);
     setFormError("");
     try {
-      const formData = new FormData();
-      formData.append("title", formTitle.trim());
-      formData.append("category", formCategory);
-      formData.append("message", formMessage.trim() || formTitle.trim());
-      formData.append("affected_location", formLocation.trim());
-      formData.append("alternative_route", formRoute.trim());
-      formData.append("is_pinned", formIsPinned ? "true" : "false");
-      formData.append("status", formStatus);
-      formData.append("audience", "all");
+      const startIso = parseIsoDate(formStartDate);
+      const endIso = parseIsoDate(formEndDate);
 
-      if (formStartDate) formData.append("start_datetime", new Date(formStartDate).toISOString());
-      if (formEndDate) formData.append("end_datetime", new Date(formEndDate).toISOString());
-      if (formMediaFile) formData.append("media", formMediaFile);
+      let payload;
+      if (formMediaFile) {
+        const formData = new FormData();
+        formData.append("title", formTitle.trim());
+        formData.append("category", formCategory);
+        formData.append("message", formMessage.trim() || formTitle.trim());
+        formData.append("affected_location", formLocation.trim());
+        formData.append("alternative_route", formRoute.trim());
+        formData.append("is_pinned", formIsPinned ? "true" : "false");
+        formData.append("status", formStatus);
+        formData.append("audience", "all");
+        if (startIso) formData.append("start_datetime", startIso);
+        if (endIso) formData.append("end_datetime", endIso);
+        formData.append("media", formMediaFile);
+        payload = formData;
+      } else {
+        payload = {
+          title: formTitle.trim(),
+          category: formCategory,
+          message: formMessage.trim() || formTitle.trim(),
+          affected_location: formLocation.trim(),
+          alternative_route: formRoute.trim(),
+          is_pinned: Boolean(formIsPinned),
+          status: formStatus,
+          audience: "all",
+        };
+        if (startIso) payload.start_datetime = startIso;
+        if (endIso) payload.end_datetime = endIso;
+      }
 
       if (editingAdvisory) {
-        await API.patch(`admin/advisories/${editingAdvisory.id}/`, formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        await API.patch(`admin/advisories/${editingAdvisory.id}/`, payload);
         showToast("Announcement updated successfully!");
       } else {
-        await API.post("admin/advisories/", formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        await API.post("admin/advisories/", payload);
         showToast("New traffic announcement published!");
       }
 

@@ -414,6 +414,12 @@ export default function AdminDashboard() {
       if (notificationRoute.trim()) payload.alternative_route = notificationRoute.trim();
 
       await API.post("admin/advisories/", payload);
+      try {
+        localStorage.setItem("hapsaydalan_advisory_updated", Date.now().toString());
+        window.dispatchEvent(new CustomEvent("hapsaydalan_advisory_updated"));
+      } catch {
+        /* ignore storage errors */
+      }
       setAdvisoryVersion((value) => value + 1);
       setNotificationTitle("");
       setNotificationCategory("Road Closure");

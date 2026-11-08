@@ -103,9 +103,9 @@ export default function TrafficAdvisoryPage() {
   // Toast
   const [toastMessage, setToastMessage] = useState("");
 
-  // Notifications subscription (in-app alerts + browser Push API)
+  // Notifications subscription (in-app alerts + browser Push API) - active by default
   const [notifEnabled, setNotifEnabled] = useState(
-    () => localStorage.getItem("advisory_notifications") === "true"
+    () => localStorage.getItem("advisory_notifications") !== "false"
   );
 
   // Active Lightbox / Comments
@@ -453,8 +453,8 @@ export default function TrafficAdvisoryPage() {
               onClick={toggleNotifications}
               title={notifEnabled ? "Turn off notifications" : "Get notified of new advisories"}
             >
-              <MaterialIcon name={notifEnabled ? "notifications" : "notifications_none"} />
-              <span>{notifEnabled ? "Notifications On" : "Get Notified"}</span>
+              <MaterialIcon name={notifEnabled ? "notifications_active" : "notifications_none"} />
+              <span>{notifEnabled ? "Advisory Alerts Active" : "Get Notified"}</span>
             </button>
           </div>
         </aside>
@@ -470,8 +470,8 @@ export default function TrafficAdvisoryPage() {
                 className={`ta-mobile-notify-pill ${notifEnabled ? "is-subscribed" : ""}`}
                 onClick={toggleNotifications}
               >
-                <MaterialIcon name={notifEnabled ? "notifications" : "notifications_none"} />
-                <span>{notifEnabled ? "Advisory Alerts On" : "Get Real-Time Road Alerts"}</span>
+                <MaterialIcon name={notifEnabled ? "notifications_active" : "notifications_none"} />
+                <span>{notifEnabled ? "Advisory Alerts Active" : "Get Real-Time Road Alerts"}</span>
               </button>
             </div>
 

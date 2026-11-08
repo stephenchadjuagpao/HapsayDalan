@@ -136,8 +136,8 @@ describe("TrafficAdvisoryPage", () => {
 
     render(<TrafficAdvisoryPage />);
 
-    const notifyBtn = await screen.findByRole("button", { name: /Get Notified/i });
-    expect(notifyBtn).toBeInTheDocument();
+    const notifyBtns = await screen.findAllByRole("button", { name: /Advisory Alerts Active/i });
+    expect(notifyBtns.length).toBeGreaterThan(0);
   });
 
   test("clicking different categories does not trigger duplicate notifications", async () => {
@@ -160,10 +160,16 @@ describe("TrafficAdvisoryPage", () => {
     localStorage.clear();
     render(<TrafficAdvisoryPage />);
 
-    const notifyBtn = await screen.findByRole("button", { name: /Get Notified/i });
-    fireEvent.click(notifyBtn);
+    const [notifyBtn] = await screen.findAllByRole("button", { name: /Advisory Alerts Active/i });
+    expect(notifyBtn).toBeInTheDocument();
 
-    // Toast indicates alerts are active
+    // Toggle OFF
+    fireEvent.click(notifyBtn);
+    expect(await screen.findByText(/Advisory alerts turned off/i)).toBeInTheDocument();
+    expect(localStorage.getItem("advisory_notifications")).toBe("false");
+
+    // Toggle back ON
+    fireEvent.click(notifyBtn);
     expect(await screen.findByText(/Advisory alerts turned on/i)).toBeInTheDocument();
     expect(localStorage.getItem("advisory_notifications")).toBe("true");
   });
