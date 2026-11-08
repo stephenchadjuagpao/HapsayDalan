@@ -146,7 +146,7 @@ class TrafficAdvisoryTests(TestCase):
         self.assertEqual(del_res.status_code, 204)
         self.assertFalse(TrafficAdvisory.objects.filter(pk=draft_id).exists())
 
-    def test_expired_advisories_are_hidden_from_public_feed(self):
+    def test_published_advisories_remain_visible_until_archived(self):
         from django.utils import timezone
         from datetime import timedelta
 
@@ -160,13 +160,22 @@ class TrafficAdvisoryTests(TestCase):
             end_datetime=now + timedelta(days=1),
             created_by=self.staff
         )
-        # Expired advisory (ended yesterday)
+        # Concluded past advisory (ended yesterday) - should remain visible in feed until archived
         TrafficAdvisory.objects.create(
-            title="Expired Advisory",
+            title="Concluded Advisory",
             message="Old road closure",
             status="published",
             audience="public",
             end_datetime=now - timedelta(days=1),
+            created_by=self.staff
+        )
+        # Archived advisory - should be hidden from public
+        TrafficAdvisory.objects.create(
+            title="Archived Advisory",
+            message="Hidden by CTMO admin",
+            status="published",
+            audience="public",
+            archived_at=now,
             created_by=self.staff
         )
 
@@ -174,7 +183,8 @@ class TrafficAdvisoryTests(TestCase):
         self.assertEqual(public_res.status_code, 200)
         titles = [item["title"] for item in public_res.data]
         self.assertIn("Active Advisory", titles)
-        self.assertNotIn("Expired Advisory", titles)
+        self.assertIn("Concluded Advisory", titles)
+        self.assertNotIn("Archived Advisory", titles)
 
     def test_scheduled_upcoming_advisory_is_visible_immediately(self):
         from django.utils import timezone

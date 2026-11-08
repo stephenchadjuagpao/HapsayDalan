@@ -356,8 +356,8 @@ export default function AdminAdvisories({ refreshKey = 0, onAdvisoryChange }) {
             {statusTab === "published"
               ? "No active traffic advisories currently broadcasted."
               : statusTab === "draft"
-              ? "You don't have any saved drafts."
-              : "No archived announcements."}
+                ? "You don't have any saved drafts."
+                : "No archived announcements."}
           </p>
           <button type="button" className="admin-adv-primary-btn" onClick={openNewComposer}>
             Create your first announcement
@@ -760,8 +760,8 @@ export default function AdminAdvisories({ refreshKey = 0, onAdvisoryChange }) {
                         {submittingForm
                           ? "Publishing..."
                           : editingAdvisory
-                          ? "Update Announcement"
-                          : "Publish Announcement"}
+                            ? "Update Announcement"
+                            : "Publish Announcement"}
                       </span>
                     </button>
                   )}

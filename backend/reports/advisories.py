@@ -87,13 +87,11 @@ def get_client_id(request):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def public_advisories(request):
-    now = timezone.now()
     qs = TrafficAdvisory.objects.filter(
         archived_at__isnull=True,
-        status="published",
-        audience__in=["all", "public"]
-    ).filter(
-        Q(end_datetime__isnull=True) | Q(end_datetime__gte=now)
+        status="published"
+    ).exclude(
+        audience="officers"
     )
 
     # Category filter
