@@ -1,14 +1,18 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import API from "../services/api";
 import ctmoShieldLogo from "../assets/ctmo-shield-logo-transparent.png";
 import ThemeToggle from "./ThemeToggle";
 import MaterialIcon from "./MaterialIcon";
 import PasswordRecovery from "./PasswordRecovery";
+import "./AdminLoginAnimation.css";
+import "./AdminPortalDesign.css";
+import portalCity from "../assets/ctmo-portal-city.svg";
 
 function PasswordInput({ id, ...props }) {
   const [visible, setVisible] = useState(false);
   return (
     <div className="admin-password-wrap">
+      <MaterialIcon name="lock" className="admin-portal-field-icon" size={18} />
       <input {...props} id={id} type={visible ? "text" : "password"} />
       <button type="button" className="admin-password-toggle"
         aria-label={`${visible ? "Hide" : "Show"} ${id === "confirm-password" ? "confirmation password" : "password"}`}
@@ -34,6 +38,10 @@ export default function AdminLogin({ onLock }) {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [authenticated, setAuthenticated] = useState(false);
+  const submitting = useRef(false);
+  const redirectTimer = useRef(null);
+  useEffect(() => () => clearTimeout(redirectTimer.current), []);
 
   const handleChange = (event) => {
     const { name, value, type, checked } = event.target;
@@ -47,6 +55,7 @@ export default function AdminLogin({ onLock }) {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    if (submitting.current) return;
     setMessage("");
     setError("");
 
@@ -55,6 +64,7 @@ export default function AdminLogin({ onLock }) {
       return;
     }
 
+    submitting.current = true;
     setIsSubmitting(true);
 
     try {
@@ -84,10 +94,12 @@ export default function AdminLogin({ onLock }) {
       );
 
       setMessage("Login successful. Opening CTMO admin dashboard...");
-      setTimeout(() => {
+      setAuthenticated(true);
+      redirectTimer.current = setTimeout(() => {
         window.location.href = "/admin-dashboard";
       }, 500);
     } catch (apiError) {
+      submitting.current = false;
       const status = apiError?.response?.status;
       const detail = apiError?.response?.data?.detail;
       const nextError = (typeof detail === "string" && detail) ||
@@ -588,7 +600,11 @@ export default function AdminLogin({ onLock }) {
       `}</style>
 
       <div className="admin-login-page">
-        <form className="admin-login-card" onSubmit={handleSubmit}>
+        <div className="ctmo-portal-shell">
+          <aside className="ctmo-portal-city" aria-label="HapsayDalan traffic operations">
+            <img src={portalCity} className="ctmo-portal-city-image" alt="Illustrated city streets and buildings with a location pin" />
+          </aside>
+        <form className="admin-login-card ctmo-portal-form" onSubmit={handleSubmit}>
           <div className="admin-login-appearance">
             {onLock ? (
               <button
@@ -602,18 +618,16 @@ export default function AdminLogin({ onLock }) {
             ) : <div />}
             <ThemeToggle showLabel />
           </div>
-          <div className="admin-login-logo-shell">
-            <div className="admin-login-logo">
-              <img src={ctmoShieldLogo} alt="CTMO shield logo" />
-            </div>
+          <div className="ctmo-portal-brand">
+            <img src={ctmoShieldLogo} alt="CTMO shield logo" />
+            <div><h1 className="admin-login-title">CTMO Portal</h1><p className="admin-login-subtitle">Authorized personnel only. Log in to continue.</p></div>
           </div>
-
-          <h1 className="admin-login-title">CTMO Portal</h1>
-          <p className="admin-login-subtitle">Authorized Personnel Only</p>
 
           <label className="admin-login-label" htmlFor="username">
             Email Address
           </label>
+          <div className="admin-portal-field">
+          <MaterialIcon name="mail" className="admin-portal-field-icon" size={18} />
           <input
             id="username"
             name="username"
@@ -625,6 +639,7 @@ export default function AdminLogin({ onLock }) {
             autoComplete="username"
             required
           />
+          </div>
           <label className="admin-login-label" htmlFor="password">
             Password
           </label>
@@ -659,8 +674,33 @@ export default function AdminLogin({ onLock }) {
             </button>
           </div>
 
-          <button type="submit" className="admin-login-button" disabled={isSubmitting}>
-            {isSubmitting ? "Please wait..." : "Log In"}
+          <button type="submit" className={`admin-login-button login-motion-button${authenticated ? " is-authenticated" : isSubmitting ? " is-authenticating" : ""}`} disabled={isSubmitting || authenticated} aria-busy={isSubmitting && !authenticated}>
+            <span className="login-motion-icon" aria-hidden="true">
+              {authenticated ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path className="login-success-check" d="m5 12 4 4L19 6" /></svg>
+                : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M14 4h5a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-5" /><g className="login-enter-arrow"><path d="M3 12h12m-4-4 4 4-4 4" /></g></svg>}
+            </span>
+            <span className="login-motion-label">{authenticated ? "Welcome back!" : isSubmitting ? "Logging in…" : "Log In"}</span>
+            <span className="login-motion-progress" aria-hidden="true" />
+            <span className="portal-login-road" aria-hidden="true">
+              <svg viewBox="0 0 54 26" className="portal-patrol-car">
+                <line x1="1" y1="12" x2="7" y2="12" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" opacity="0.9" />
+                <line x1="0" y1="15.5" x2="8" y2="15.5" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" opacity="0.9" />
+                <line x1="1.5" y1="19" x2="6.5" y2="19" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" opacity="0.9" />
+                <rect x="22" y="1" width="8" height="4" rx="2" fill="#f59e0b" />
+                <rect x="24" y="0.5" width="4" height="2" rx="1" fill="#fef08a" />
+                <path d="M 15 13.5 L 19 5.5 H 32.5 L 37.5 13.5 Z" fill="#ffffff" />
+                <polygon points="17,13 20.5,7 24.5,7 24.5,13" fill="#93c5fd" />
+                <polygon points="26.5,13 26.5,7 31,7 35.5,13" fill="#93c5fd" />
+                <rect x="10" y="13" width="37" height="9.5" rx="3" fill="#ffffff" />
+                <rect x="10" y="16.5" width="37" height="2.5" fill="#60a5fa" />
+                <rect x="9.5" y="14" width="2" height="4" rx="1" fill="#ef4444" />
+                <rect x="46" y="14" width="2" height="4" rx="1" fill="#f59e0b" />
+                <circle cx="19" cy="22.5" r="4.2" fill="#1e293b" />
+                <circle cx="19" cy="22.5" r="1.8" fill="#ffffff" />
+                <circle cx="38" cy="22.5" r="4.2" fill="#1e293b" />
+                <circle cx="38" cy="22.5" r="1.8" fill="#ffffff" />
+              </svg>
+            </span>
           </button>
 
           {error ? <div className="admin-login-error">{error}</div> : null}
@@ -671,10 +711,11 @@ export default function AdminLogin({ onLock }) {
           <div className="admin-login-footer">
             <div>This is a restricted system for CTMO personnel only.</div>
             <div>
-              Need assistance? <a href="mailto:support@ctmo.gov.ph">Contact support</a>
+              Need assistance? <a href="/contact#contact-form">Contact support</a>
             </div>
           </div>
         </form>
+        </div>
       </div>
     </>
   );

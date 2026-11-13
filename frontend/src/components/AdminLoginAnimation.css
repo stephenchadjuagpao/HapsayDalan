@@ -1,0 +1,37 @@
+.admin-login-page .login-motion-button {
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  box-sizing:border-box;
+  height:44px;
+  min-height:44px;
+  padding-block:0;
+}
+.login-motion-icon { position:relative; display:grid; place-items:center; flex-shrink:0; width:20px; height:20px; z-index:1; }
+.login-motion-icon svg { display:block; width:20px; height:20px; }
+.login-motion-label { position:relative; z-index:1; }
+.login-enter-arrow { transition:transform .2s ease; }
+.login-motion-button:hover:not(:disabled) .login-enter-arrow { transform:translateX(2px); }
+.login-motion-progress { position:absolute; bottom:0; left:0; width:35%; height:3px; background:#b9dbff; opacity:0; }
+.admin-login-page .login-motion-button.is-authenticating { opacity:1; }
+.login-motion-button.is-authenticating .login-motion-icon::before { content:""; position:absolute; inset:-2px; border:2px solid #ffffff40; border-top-color:#fff; border-radius:50%; animation:login-ring 1s linear infinite; }
+.login-motion-button.is-authenticating .login-motion-icon svg { width:19px; height:19px; }
+.login-motion-button.is-authenticating .login-enter-arrow { animation:login-arrow-enter 1s ease-in-out infinite; }
+.login-motion-button.is-authenticating .login-motion-progress { opacity:1; animation:login-progress 1.3s ease-in-out infinite; }
+.admin-login-page .login-motion-button.is-authenticated { background:linear-gradient(135deg,#176349,#20805f); opacity:1; box-shadow:0 10px 22px #17634925; }
+.login-motion-button.is-authenticated .login-motion-icon { animation:login-success-pop .35s ease-out; }
+.login-success-check { stroke-dasharray:24; stroke-dashoffset:0; animation:login-check-draw .3s ease-out; }
+.admin-login-page .login-motion-button:focus-visible { outline:3px solid #82b9ff; outline-offset:3px; }
+@keyframes login-ring { to { transform:rotate(360deg); } }
+@keyframes login-arrow-enter { 0%,100% { transform:translateX(-1px); opacity:.6; } 50% { transform:translateX(2px); opacity:1; } }
+@keyframes login-progress { from { transform:translateX(-110%); } to { transform:translateX(390%); } }
+@keyframes login-success-pop { from { transform:scale(.7); } 70% { transform:scale(1.12); } to { transform:scale(1); } }
+@keyframes login-check-draw { from { stroke-dashoffset:24; } to { stroke-dashoffset:0; } }
+@media(prefers-reduced-motion:reduce) {
+  .login-motion-button *,.login-motion-icon::before { animation:none !important; transition:none !important; }
+  .login-motion-button.is-authenticating .login-motion-progress { width:100%; opacity:.5; }
+}
