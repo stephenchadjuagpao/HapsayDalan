@@ -2079,6 +2079,22 @@ html[data-theme=dark] .admin-modal-footer .admin-modal-cancel:active:not(:disabl
   }
 }
 
+/* Navigation links and buttons share the same grid row bounds on mobile. */
+@media(max-width:1100px) {
+  .admin-sidebar .admin-nav-bar>.admin-tab-btn {
+    position:relative;
+    align-self:stretch;
+    margin-block:0;
+  }
+  .admin-sidebar .admin-user-dashboard-tab .admin-nav-tab-arrow {
+    position:absolute;
+    top:12px;
+    right:12px;
+    margin:0;
+  }
+  .admin-sidebar .admin-user-dashboard-tab .admin-nav-copy { padding-right:18px; }
+}
+
 @media(prefers-reduced-motion:reduce) {
 
   .admin-modal-footer .admin-fez-delete,
@@ -3468,7 +3484,7 @@ html[data-theme=dark] .admin-modal-delete-trigger:hover:not(:disabled) {
 
   .admin-mobile-actions-buttons {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
     gap: 8px;
   }
 

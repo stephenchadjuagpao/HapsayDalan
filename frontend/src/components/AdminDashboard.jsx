@@ -538,7 +538,6 @@ export default function AdminDashboard() {
               <div className="admin-mobile-actions-time"><AdminIcon name="clock" /><span>Local time</span><strong>{currentTime}</strong></div>
               <ThemeToggle showLabel />
               <div className="admin-mobile-actions-buttons">
-                <Link to="/" className="admin-header-btn" onClick={() => setMobileMenuOpen(false)}><AdminIcon name="home" /><span>User Dashboard</span></Link>
                 <button type="button" className="admin-logout-btn" onClick={handleLogout}><AdminIcon name="logout" /><span>Log Out</span></button>
               </div>
             </div>
@@ -551,16 +550,6 @@ export default function AdminDashboard() {
               <strong>{adminUser}</strong>
               <small>CTMO administrator</small>
             </div>
-            <button
-              type="button"
-              className="admin-sidebar-logout-btn"
-              onClick={handleLogout}
-              title="Log out of session"
-              aria-label="Log Out"
-            >
-              <AdminIcon name="logout" />
-              <span>Log Out</span>
-            </button>
           </div>
         </aside>
         <header className="admin-header">
